@@ -504,6 +504,9 @@ import {
   downloadTemplateApi,
   generateQRCodeApi
 } from '../api/relics'
+import { 
+  getRelicImagesApi
+} from '../api/relicImages'
 
 const { t } = useI18n()
 
@@ -532,6 +535,7 @@ const imageInputMode = ref('upload') // 'upload' 或 'url'
 const qrcodeDialogVisible = ref(false)
 const currentQRCode = ref(null)
 const qrcodeImageData = ref('')
+
 const query = reactive({ pageNum: 1, pageSize: 10, relicName: '', categoryId: null, status: '', era: '' })
 const form = reactive({})
 const rules = {
@@ -599,7 +603,7 @@ const openAdd = () => {
   dialogVisible.value = true
 }
 
-const openEdit = (row) => {
+const openEdit = async (row) => {
   Object.assign(form, row)
   // 编辑时显示现有图片
   imageFile.value = null
@@ -619,11 +623,28 @@ const viewDetail = async (row) => {
   currentDetail.value = row
   detailDialogVisible.value = true
   
-  // 准备图片列表（支持多图）
-  if (row.imagePath) {
-    detailImages.value = [resolveImageUrl(row.imagePath)]
-  } else {
-    detailImages.value = []
+  // 加载文物的所有图片用于轮播
+  try {
+    const res = await getRelicImagesApi(row.id)
+    const images = res.data || []
+    
+    if (images.length > 0) {
+      // 按主图优先排序，然后按 sortOrder 排序
+      images.sort((a, b) => {
+        if (a.isMain !== b.isMain) return b.isMain - a.isMain
+        return a.sortOrder - b.sortOrder
+      })
+      
+      // 提取图片路径
+      detailImages.value = images.map(img => resolveImageUrl(img.image?.filePath)).filter(path => path)
+    } else {
+      // 如果没有关联图片，使用主图路径
+      detailImages.value = row.imagePath ? [resolveImageUrl(row.imagePath)] : []
+    }
+  } catch (error) {
+    console.error('加载图片失败:', error)
+    // 降级：使用主图路径
+    detailImages.value = row.imagePath ? [resolveImageUrl(row.imagePath)] : []
   }
   
   // 加载时间轴数据
@@ -1381,6 +1402,10 @@ const printQRCode = () => {
   
   ElMessage.success(t('relic.printPreviewGenerated'))
 }
+
+// ========================================
+// 多图片管理功能
+// ========================================
 
 onMounted(async () => {
   await Promise.all([loadCategories(), loadData()])

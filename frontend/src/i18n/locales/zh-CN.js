@@ -1158,5 +1158,28 @@ export default {
     totalAmount: '总金额',
     usageCount: '使用次数',
     times: '次'
+  },
+  relicImages: {
+    title: '文物图片',
+    uploadImages: '上传图片',
+    mainImage: '主图',
+    setAsMain: '设为主图',
+    deleteImage: '删除',
+    imageList: '图片列表',
+    noImages: '暂无图片',
+    uploadSuccess: '上传成功',
+    uploadFailed: '上传失败',
+    deleteConfirm: '确定要删除这张图片吗？',
+    setMainSuccess: '主图设置成功',
+    deleteSuccess: '删除成功',
+    maxImages: '最多上传{count}张图片',
+    uploadingImages: '正在上传图片...',
+    batchUploadSuccess: '成功上传 {count} 张图片',
+    batchUploadFailed: '{count} 张图片上传失败',
+    setMainFailed: '设置主图失败',
+    deleteFailed: '删除图片失败',
+    pleaseSelectImages: '请选择要上传的图片',
+    imageManager: '图片管理',
+    currentImages: '当前图片'
   }
 }

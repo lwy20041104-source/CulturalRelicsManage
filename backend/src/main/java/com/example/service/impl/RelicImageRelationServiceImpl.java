@@ -163,6 +163,239 @@ public class RelicImageRelationServiceImpl implements RelicImageRelationService 
     }
     
     @Override
+    public List<RelicImageRelation> getRelicImages(Long relicId) {
+        return relationMapper.selectAllByRelicIdWithImage(relicId);
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean addRelicImages(Long relicId, List<Long> imageIds, boolean setFirstAsMain) {
+        if (imageIds == null || imageIds.isEmpty()) {
+            return false;
+        }
+        
+        // 检查文物是否已有主图
+        List<RelicImageRelation> existingImages = relationMapper.selectAllByRelicId(relicId);
+        boolean hasMainImage = existingImages.stream().anyMatch(r -> r.getIsMain() != null && r.getIsMain() == 1);
+        
+        // 获取当前最大的sort_order
+        int maxSortOrder = existingImages.stream()
+            .mapToInt(r -> r.getSortOrder() != null ? r.getSortOrder() : 0)
+            .max()
+            .orElse(0);
+        
+        // 批量创建关联
+        List<RelicImageRelation> relations = new java.util.ArrayList<>();
+        for (int i = 0; i < imageIds.size(); i++) {
+            Long imageId = imageIds.get(i);
+            
+            // 检查图片是否存在
+            ImageLibrary image = imageLibraryMapper.selectById(imageId);
+            if (image == null || image.getStatus() != 1) {
+                continue;
+            }
+            
+            // 检查图片是否已被其他文物使用
+            RelicImageRelation existingRelation = relationMapper.selectByImageId(imageId);
+            if (existingRelation != null) {
+                continue;
+            }
+            
+            RelicImageRelation relation = new RelicImageRelation();
+            relation.setRelicId(relicId);
+            relation.setImageId(imageId);
+            
+            // 如果是第一张且需要设为主图，或者文物没有主图
+            if ((i == 0 && setFirstAsMain && !hasMainImage) || (!hasMainImage && i == 0)) {
+                relation.setIsMain(1);
+                relation.setRelationType("main");
+                relation.setSortOrder(0);
+                hasMainImage = true;
+            } else {
+                relation.setIsMain(0);
+                relation.setRelationType("detail");
+                relation.setSortOrder(++maxSortOrder);
+            }
+            
+            relations.add(relation);
+            
+            // 更新图片的reference字段
+            image.setReferenceType("relic");
+            image.setReferenceId(relicId);
+            image.setUpdateTime(LocalDateTime.now());
+            imageLibraryMapper.updateById(image);
+        }
+        
+        if (relations.isEmpty()) {
+            return false;
+        }
+        
+        return relationMapper.batchInsert(relations) > 0;
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> batchUploadAndAddImages(Long relicId, MultipartFile[] files, 
+                                                       Long uploaderId, String uploaderName) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> imagePaths = new java.util.ArrayList<>();
+        List<Long> imageIds = new java.util.ArrayList<>();
+        int successCount = 0;
+        int failedCount = 0;
+        
+        if (files == null || files.length == 0) {
+            result.put("successCount", 0);
+            result.put("failedCount", 0);
+            result.put("imagePaths", imagePaths);
+            return result;
+        }
+        
+        // 检查文物是否已有主图
+        List<RelicImageRelation> existingImages = relationMapper.selectAllByRelicId(relicId);
+        boolean hasMainImage = existingImages.stream().anyMatch(r -> r.getIsMain() != null && r.getIsMain() == 1);
+        int maxSortOrder = existingImages.stream()
+            .mapToInt(r -> r.getSortOrder() != null ? r.getSortOrder() : 0)
+            .max()
+            .orElse(0);
+        
+        // 逐个上传文件
+        for (int i = 0; i < files.length; i++) {
+            MultipartFile file = files[i];
+            try {
+                // 1. 保存文件到存储
+                String filePath = fileStorageUtil.save(file);
+                
+                // 2. 获取图片尺寸
+                Integer width = null;
+                Integer height = null;
+                try {
+                    java.awt.image.BufferedImage bufferedImage = javax.imageio.ImageIO.read(file.getInputStream());
+                    if (bufferedImage != null) {
+                        width = bufferedImage.getWidth();
+                        height = bufferedImage.getHeight();
+                    }
+                } catch (IOException e) {
+                    // 忽略尺寸获取失败
+                }
+                
+                // 3. 创建图片库记录
+                ImageLibrary imageLibrary = new ImageLibrary();
+                imageLibrary.setImageName(file.getOriginalFilename());
+                imageLibrary.setOriginalName(file.getOriginalFilename());
+                imageLibrary.setFilePath(filePath);
+                imageLibrary.setFileSize(file.getSize());
+                imageLibrary.setFileType(file.getContentType());
+                imageLibrary.setWidth(width);
+                imageLibrary.setHeight(height);
+                imageLibrary.setCategory("relic");
+                imageLibrary.setUploaderId(uploaderId);
+                imageLibrary.setUploaderName(uploaderName);
+                imageLibrary.setReferenceType("relic");
+                imageLibrary.setReferenceId(relicId);
+                imageLibrary.setIsPublic(1);
+                imageLibrary.setViewCount(0);
+                imageLibrary.setDownloadCount(0);
+                imageLibrary.setStatus(1);
+                imageLibrary.setCreateTime(LocalDateTime.now());
+                imageLibrary.setUpdateTime(LocalDateTime.now());
+                
+                imageLibraryMapper.insert(imageLibrary);
+                
+                // 4. 建立文物图片关联
+                RelicImageRelation relation = new RelicImageRelation();
+                relation.setRelicId(relicId);
+                relation.setImageId(imageLibrary.getId());
+                
+                // 第一张且没有主图时设为主图
+                if (i == 0 && !hasMainImage) {
+                    relation.setIsMain(1);
+                    relation.setRelationType("main");
+                    relation.setSortOrder(0);
+                    hasMainImage = true;
+                } else {
+                    relation.setIsMain(0);
+                    relation.setRelationType("detail");
+                    relation.setSortOrder(++maxSortOrder);
+                }
+                
+                relation.setCreateTime(LocalDateTime.now());
+                relation.setUpdateTime(LocalDateTime.now());
+                relationMapper.insert(relation);
+                
+                imagePaths.add(filePath);
+                imageIds.add(imageLibrary.getId());
+                successCount++;
+            } catch (Exception e) {
+                failedCount++;
+                System.err.println("上传文件失败: " + file.getOriginalFilename() + ", " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        result.put("successCount", successCount);
+        result.put("failedCount", failedCount);
+        result.put("imagePaths", imagePaths);
+        result.put("imageIds", imageIds);
+        
+        return result;
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean removeRelicImage(Long relicId, Long imageId) {
+        // 获取要删除的关联
+        RelicImageRelation relation = relationMapper.selectByImageId(imageId);
+        if (relation == null || !relation.getRelicId().equals(relicId)) {
+            return false;
+        }
+        
+        boolean wasMainImage = relation.getIsMain() != null && relation.getIsMain() == 1;
+        
+        // 删除关联
+        int result = relationMapper.deleteByRelicIdAndImageId(relicId, imageId);
+        
+        if (result > 0) {
+            // 清除图片的reference字段
+            ImageLibrary image = imageLibraryMapper.selectById(imageId);
+            if (image != null) {
+                image.setReferenceType(null);
+                image.setReferenceId(null);
+                image.setUpdateTime(LocalDateTime.now());
+                imageLibraryMapper.updateById(image);
+            }
+            
+            // 如果删除的是主图，自动将第一张图片设为主图
+            if (wasMainImage) {
+                List<RelicImageRelation> remainingImages = relationMapper.selectAllByRelicId(relicId);
+                if (!remainingImages.isEmpty()) {
+                    RelicImageRelation firstImage = remainingImages.get(0);
+                    relationMapper.updateIsMain(relicId, firstImage.getImageId(), 1, "main");
+                }
+            }
+        }
+        
+        return result > 0;
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean setMainImage(Long relicId, Long imageId) {
+        // 检查关联是否存在
+        List<RelicImageRelation> relations = relationMapper.selectAllByRelicId(relicId);
+        boolean imageExists = relations.stream().anyMatch(r -> r.getImageId().equals(imageId));
+        
+        if (!imageExists) {
+            throw new IllegalArgumentException("该图片不属于此文物");
+        }
+        
+        // 将所有图片设为非主图
+        relationMapper.batchUpdateIsMain(relicId, 0, "detail");
+        
+        // 将指定图片设为主图
+        return relationMapper.updateIsMain(relicId, imageId, 1, "main") > 0;
+    }
+    
+    @Override
     public String getRelicImagePath(Long relicId) {
         RelicImageRelation relation = relationMapper.selectByRelicIdWithImage(relicId);
         if (relation != null && relation.getImage() != null) {

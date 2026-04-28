@@ -151,6 +151,145 @@ public class RelicImageRelationController {
     }
     
     /**
+     * 获取文物的所有图片（支持多图片）
+     */
+    @GetMapping("/list/{relicId}")
+    public Result<List<RelicImageRelation>> getRelicImages(@PathVariable Long relicId) {
+        List<RelicImageRelation> images = relicImageRelationService.getRelicImages(relicId);
+        return Result.success(images);
+    }
+    
+    /**
+     * 批量上传文物图片
+     */
+    @PostMapping("/batch-upload/{relicId}")
+    @OperationLog(operationType = "新增", operationModule = "文物图片管理", operationContent = "批量上传文物图片")
+    public Result<Map<String, Object>> batchUploadImages(
+            @PathVariable Long relicId,
+            @RequestParam("files") MultipartFile[] files) {
+        try {
+            if (files == null || files.length == 0) {
+                return Result.error("请选择要上传的文件");
+            }
+            
+            // 限制最多上传10张
+            if (files.length > 10) {
+                return Result.error("最多只能上传10张图片");
+            }
+            
+            // 获取当前登录用户信息
+            String uploaderName = userContextUtil.getCurrentUserRealName();
+            Long uploaderId = userContextUtil.getCurrentUserId();
+            
+            // 批量上传
+            Map<String, Object> result = relicImageRelationService.batchUploadAndAddImages(
+                relicId, files, uploaderId, uploaderName);
+            
+            return Result.success("上传完成", result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("上传失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除文物的某张图片
+     */
+    @DeleteMapping("/{relicId}/{imageId}")
+    public Result<Boolean> removeImage(
+            @PathVariable Long relicId,
+            @PathVariable Long imageId,
+            HttpServletRequest request) {
+        try {
+            // 1. 获取删除前的数据
+            RelicImageRelation oldRelation = relicImageRelationService.getByImageId(imageId);
+            
+            // 2. 执行删除操作
+            boolean success = relicImageRelationService.removeRelicImage(relicId, imageId);
+            
+            // 3. 记录审计日志
+            if (success && oldRelation != null) {
+                try {
+                    String realName = userContextUtil.getCurrentUserRealName();
+                    Long userId = userContextUtil.getCurrentUserId();
+                    String ipAddress = getClientIp(request);
+                    
+                    operationLogService.logDataChange(
+                        userId,
+                        realName,
+                        "删除图片",
+                        "文物图片管理",
+                        "RELIC_IMAGE",
+                        relicId,
+                        oldRelation,
+                        null,
+                        ipAddress,
+                        "DELETE",
+                        "/relic-images/" + relicId + "/" + imageId
+                    );
+                } catch (Exception e) {
+                    System.err.println("记录审计日志失败: " + e.getMessage());
+                }
+            }
+            
+            return success ? Result.success("删除成功", true) : Result.error("删除失败");
+        } catch (Exception e) {
+            return Result.error("删除失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 设置主图
+     */
+    @PutMapping("/set-main")
+    public Result<Boolean> setMainImage(@RequestBody Map<String, Long> params, HttpServletRequest request) {
+        try {
+            Long relicId = params.get("relicId");
+            Long imageId = params.get("imageId");
+            
+            if (relicId == null || imageId == null) {
+                return Result.error("参数错误");
+            }
+            
+            // 1. 获取修改前的数据
+            RelicImageRelation oldRelation = relicImageRelationService.getRelicMainImage(relicId);
+            
+            // 2. 执行设置操作
+            boolean success = relicImageRelationService.setMainImage(relicId, imageId);
+            
+            // 3. 记录审计日志
+            if (success) {
+                try {
+                    RelicImageRelation newRelation = relicImageRelationService.getRelicMainImage(relicId);
+                    String realName = userContextUtil.getCurrentUserRealName();
+                    Long userId = userContextUtil.getCurrentUserId();
+                    String ipAddress = getClientIp(request);
+                    
+                    operationLogService.logDataChange(
+                        userId,
+                        realName,
+                        "设置主图",
+                        "文物图片管理",
+                        "RELIC_IMAGE",
+                        relicId,
+                        oldRelation,
+                        newRelation,
+                        ipAddress,
+                        "PUT",
+                        "/relic-images/set-main"
+                    );
+                } catch (Exception e) {
+                    System.err.println("记录审计日志失败: " + e.getMessage());
+                }
+            }
+            
+            return success ? Result.success("主图设置成功", true) : Result.error("设置失败");
+        } catch (Exception e) {
+            return Result.error("设置失败: " + e.getMessage());
+        }
+    }
+    
+    /**
      * 获取文物的主图路径
      */
     @GetMapping("/path/{relicId}")

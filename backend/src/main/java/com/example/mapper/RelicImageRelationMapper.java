@@ -32,6 +32,40 @@ public interface RelicImageRelationMapper {
     RelicImageRelation selectByRelicId(@Param("relicId") Long relicId);
     
     /**
+     * 根据文物ID查询所有关联（一对多，支持多张图片）
+     */
+    @Select("SELECT * FROM relic_image_relation WHERE relic_id = #{relicId} ORDER BY is_main DESC, sort_order ASC")
+    List<RelicImageRelation> selectAllByRelicId(@Param("relicId") Long relicId);
+    
+    /**
+     * 根据文物ID查询所有关联（包含图片信息）
+     */
+    @Select("SELECT r.*, i.id as image_id, i.image_name, i.file_name, i.file_path, i.file_size, i.width, i.height, i.file_type " +
+            "FROM relic_image_relation r " +
+            "LEFT JOIN image_library i ON r.image_id = i.id " +
+            "WHERE r.relic_id = #{relicId} AND i.status = 1 " +
+            "ORDER BY r.is_main DESC, r.sort_order ASC")
+    @Results(id = "relicImageWithDetails", value = {
+        @Result(property = "id", column = "id"),
+        @Result(property = "relicId", column = "relic_id"),
+        @Result(property = "imageId", column = "image_id"),
+        @Result(property = "relationType", column = "relation_type"),
+        @Result(property = "isMain", column = "is_main"),
+        @Result(property = "sortOrder", column = "sort_order"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time"),
+        @Result(property = "image.id", column = "image_id"),
+        @Result(property = "image.imageName", column = "image_name"),
+        @Result(property = "image.fileName", column = "file_name"),
+        @Result(property = "image.filePath", column = "file_path"),
+        @Result(property = "image.fileSize", column = "file_size"),
+        @Result(property = "image.width", column = "width"),
+        @Result(property = "image.height", column = "height"),
+        @Result(property = "image.fileType", column = "file_type")
+    })
+    List<RelicImageRelation> selectAllByRelicIdWithImage(@Param("relicId") Long relicId);
+    
+    /**
      * 根据图片ID查询关联（一对一，只返回一条）
      */
     @Select("SELECT * FROM relic_image_relation WHERE image_id = #{imageId} LIMIT 1")
@@ -44,12 +78,14 @@ public interface RelicImageRelationMapper {
             "FROM relic_image_relation r " +
             "LEFT JOIN image_library i ON r.image_id = i.id " +
             "WHERE r.relic_id = #{relicId} AND i.status = 1 " +
+            "ORDER BY r.is_main DESC " +
             "LIMIT 1")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "relicId", column = "relic_id"),
         @Result(property = "imageId", column = "image_id"),
         @Result(property = "relationType", column = "relation_type"),
+        @Result(property = "isMain", column = "is_main"),
         @Result(property = "sortOrder", column = "sort_order"),
         @Result(property = "createTime", column = "create_time"),
         @Result(property = "updateTime", column = "update_time"),
@@ -64,10 +100,43 @@ public interface RelicImageRelationMapper {
     RelicImageRelation selectByRelicIdWithImage(@Param("relicId") Long relicId);
     
     /**
+     * 批量插入关联记录
+     */
+    @Insert("<script>" +
+            "INSERT INTO relic_image_relation (relic_id, image_id, relation_type, is_main, sort_order) VALUES " +
+            "<foreach collection='relations' item='item' separator=','>" +
+            "(#{item.relicId}, #{item.imageId}, #{item.relationType}, #{item.isMain}, #{item.sortOrder})" +
+            "</foreach>" +
+            "</script>")
+    int batchInsert(@Param("relations") List<RelicImageRelation> relations);
+    
+    /**
+     * 删除指定文物的指定图片关联
+     */
+    @Delete("DELETE FROM relic_image_relation WHERE relic_id = #{relicId} AND image_id = #{imageId}")
+    int deleteByRelicIdAndImageId(@Param("relicId") Long relicId, @Param("imageId") Long imageId);
+    
+    /**
+     * 更新指定图片的主图状态
+     */
+    @Update("UPDATE relic_image_relation SET is_main = #{isMain}, relation_type = #{relationType} " +
+            "WHERE relic_id = #{relicId} AND image_id = #{imageId}")
+    int updateIsMain(@Param("relicId") Long relicId, @Param("imageId") Long imageId, 
+                     @Param("isMain") Integer isMain, @Param("relationType") String relationType);
+    
+    /**
+     * 批量更新文物所有图片的主图状态
+     */
+    @Update("UPDATE relic_image_relation SET is_main = #{isMain}, relation_type = #{relationType} " +
+            "WHERE relic_id = #{relicId}")
+    int batchUpdateIsMain(@Param("relicId") Long relicId, @Param("isMain") Integer isMain, 
+                          @Param("relationType") String relationType);
+    
+    /**
      * 更新关联
      */
     @Update("UPDATE relic_image_relation SET image_id = #{imageId}, relation_type = #{relationType}, " +
-            "sort_order = #{sortOrder}, update_time = #{updateTime} WHERE id = #{id}")
+            "is_main = #{isMain}, sort_order = #{sortOrder}, update_time = #{updateTime} WHERE id = #{id}")
     int updateById(RelicImageRelation relation);
     
     /**

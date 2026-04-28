@@ -60,6 +60,17 @@ public interface RelicImageRelationService {
     boolean addRelicImages(Long relicId, List<Long> imageIds, boolean setFirstAsMain);
     
     /**
+     * 批量上传并添加文物图片
+     * @param relicId 文物ID
+     * @param files 图片文件数组
+     * @param uploaderId 上传者ID
+     * @param uploaderName 上传者姓名
+     * @return 上传结果（成功数量、失败数量、图片路径列表）
+     */
+    Map<String, Object> batchUploadAndAddImages(Long relicId, org.springframework.web.multipart.MultipartFile[] files, 
+                                                Long uploaderId, String uploaderName);
+    
+    /**
      * 删除文物的某张图片
      * @param relicId 文物ID
      * @param imageId 图片ID

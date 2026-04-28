@@ -1157,5 +1157,28 @@ export default {
     totalAmount: 'Total Amount',
     usageCount: 'Usage Count',
     times: 'times'
+  },
+  relicImages: {
+    title: 'Relic Images',
+    uploadImages: 'Upload Images',
+    mainImage: 'Main Image',
+    setAsMain: 'Set as Main',
+    deleteImage: 'Delete',
+    imageList: 'Image List',
+    noImages: 'No Images',
+    uploadSuccess: 'Upload Successful',
+    uploadFailed: 'Upload Failed',
+    deleteConfirm: 'Are you sure to delete this image?',
+    setMainSuccess: 'Main image set successfully',
+    deleteSuccess: 'Delete successful',
+    maxImages: 'Maximum {count} images allowed',
+    uploadingImages: 'Uploading images...',
+    batchUploadSuccess: 'Successfully uploaded {count} images',
+    batchUploadFailed: '{count} images failed to upload',
+    setMainFailed: 'Failed to set main image',
+    deleteFailed: 'Failed to delete image',
+    pleaseSelectImages: 'Please select images to upload',
+    imageManager: 'Image Manager',
+    currentImages: 'Current Images'
   }
 }
