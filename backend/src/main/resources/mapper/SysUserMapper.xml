@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SysUserMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.SysUser">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="realName" column="real_name"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="status" column="status"/>
+        <result property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <!-- 登录安全字段 -->
+        <result property="loginFailedCount" column="login_failed_count"/>
+        <result property="accountLocked" column="account_locked"/>
+        <result property="lockedTime" column="locked_time"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="lastLoginIp" column="last_login_ip"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        su.id, su.username, su.password, su.real_name, su.email, su.phone, su.status, su.role_id,
+        su.create_time, su.update_time, sr.role_name, sr.role_code,
+        su.login_failed_count, su.account_locked, su.locked_time, su.last_login_time, su.last_login_ip
+    </sql>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user su
+                 LEFT JOIN sys_role sr ON su.role_id = sr.id
+        WHERE su.username = #{username}
+        LIMIT 1
+    </select>
+
+    <select id="selectActiveByUsername" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user su
+                 LEFT JOIN sys_role sr ON su.role_id = sr.id
+        WHERE su.username = #{username} AND su.status = 1
+        LIMIT 1
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user su
+                 LEFT JOIN sys_role sr ON su.role_id = sr.id
+        WHERE su.id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectByRealName" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user su
+                 LEFT JOIN sys_role sr ON su.role_id = sr.id
+        WHERE su.real_name = #{realName}
+        LIMIT 1
+    </select>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/>
+        FROM sys_user su
+                 LEFT JOIN sys_role sr ON su.role_id = sr.id
+        <where>
+            su.status != 0
+            <if test="realName != null and realName != ''">
+                AND su.real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+            <if test="roleId != null">
+                AND su.role_id = #{roleId}
+            </if>
+        </where>
+        ORDER BY su.id ASC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1)
+        FROM sys_user su
+        <where>
+            su.status != 0
+            <if test="realName != null and realName != ''">
+                AND su.real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+            <if test="roleId != null">
+                AND su.role_id = #{roleId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.SysUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user
+        (username, password, real_name, email, phone, status, role_id, create_time, update_time,
+         login_failed_count, account_locked)
+        VALUES
+        (#{username}, #{password}, #{realName}, #{email}, #{phone}, #{status}, #{roleId}, #{createTime}, #{updateTime},
+         0, 0)
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.SysUser">
+        UPDATE sys_user
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="roleId != null">role_id = #{roleId},</if>
+            <if test="loginFailedCount != null">login_failed_count = #{loginFailedCount},</if>
+            <if test="accountLocked != null">account_locked = #{accountLocked},</if>
+            <if test="lockedTime != null">locked_time = #{lockedTime},</if>
+            <if test="lastLoginTime != null">last_login_time = #{lastLoginTime},</if>
+            <if test="lastLoginIp != null">last_login_ip = #{lastLoginIp},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

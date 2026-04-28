@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.LoanRecordMapper">
+
+    <select id="selectPage" resultType="com.example.entity.LoanRecord">
+        SELECT lr.*, 
+               cr.relic_name AS relicName,
+               su.real_name AS borrowerName
+        FROM loan_record lr
+        LEFT JOIN cultural_relic cr ON lr.relic_id = cr.id
+        LEFT JOIN sys_user su ON lr.borrower_id = su.id
+        <where>
+            <if test="status != null and status != ''">
+                AND lr.status = #{status}
+            </if>
+        </where>
+        ORDER BY lr.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1) FROM loan_record
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="countByMonth" resultType="long">
+        SELECT COUNT(1)
+        FROM loan_record
+        WHERE YEAR(loan_date) = #{year}
+        AND MONTH(loan_date) = #{month}
+    </select>
+
+    <select id="countByDateRange" resultType="long">
+        SELECT COUNT(1)
+        FROM loan_record
+        WHERE DATE(loan_date) BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="selectById" resultType="com.example.entity.LoanRecord">
+        SELECT lr.*, 
+               cr.relic_name AS relicName,
+               su.real_name AS borrowerName
+        FROM loan_record lr
+        LEFT JOIN cultural_relic cr ON lr.relic_id = cr.id
+        LEFT JOIN sys_user su ON lr.borrower_id = su.id
+        WHERE lr.id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectByStatus" resultType="com.example.entity.LoanRecord">
+        SELECT lr.*, 
+               cr.relic_name AS relicName,
+               su.real_name AS borrowerName
+        FROM loan_record lr
+        LEFT JOIN cultural_relic cr ON lr.relic_id = cr.id
+        LEFT JOIN sys_user su ON lr.borrower_id = su.id
+        WHERE lr.status = #{status}
+        ORDER BY lr.id DESC
+    </select>
+
+    <select id="selectAll" resultType="com.example.entity.LoanRecord">
+        SELECT lr.*, 
+               cr.relic_name AS relicName,
+               su.real_name AS borrowerName
+        FROM loan_record lr
+        LEFT JOIN cultural_relic cr ON lr.relic_id = cr.id
+        LEFT JOIN sys_user su ON lr.borrower_id = su.id
+        ORDER BY lr.id DESC
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.LoanRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO loan_record
+        (relic_id, borrower_id, borrower_unit, borrower_phone, loan_date, expected_return_date, actual_return_date,
+         purpose, status, approver_name, approve_time, approve_remark, create_time, update_time)
+        VALUES
+        (#{relicId}, #{borrowerId}, #{borrowerUnit}, #{borrowerPhone}, #{loanDate}, #{expectedReturnDate}, #{actualReturnDate},
+         #{purpose}, #{status}, #{approverName}, #{approveTime}, #{approveRemark}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.LoanRecord">
+        UPDATE loan_record
+        <set>
+            <if test="relicId != null">relic_id = #{relicId},</if>
+            <if test="borrowerId != null">borrower_id = #{borrowerId},</if>
+            <if test="borrowerUnit != null">borrower_unit = #{borrowerUnit},</if>
+            <if test="borrowerPhone != null">borrower_phone = #{borrowerPhone},</if>
+            <if test="loanDate != null">loan_date = #{loanDate},</if>
+            <if test="expectedReturnDate != null">expected_return_date = #{expectedReturnDate},</if>
+            <if test="actualReturnDate != null">actual_return_date = #{actualReturnDate},</if>
+            <if test="purpose != null">purpose = #{purpose},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="approverName != null">approver_name = #{approverName},</if>
+            <if test="approveTime != null">approve_time = #{approveTime},</if>
+            <if test="approveRemark != null">approve_remark = #{approveRemark},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 前台用户端查询 -->
+    <select id="selectPageByBorrowerName" resultType="com.example.entity.LoanRecord">
+        SELECT lr.*, 
+               cr.relic_name AS relicName,
+               cr.relic_code AS relicCode,
+               su.real_name AS borrowerName
+        FROM loan_record lr
+        LEFT JOIN cultural_relic cr ON lr.relic_id = cr.id
+        LEFT JOIN sys_user su ON lr.borrower_id = su.id
+        <where>
+            AND su.username = #{borrowerName}
+            <if test="status != null and status != ''">
+                AND lr.status = #{status}
+            </if>
+        </where>
+        ORDER BY lr.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="countByBorrowerName" resultType="long">
+        SELECT COUNT(1)
+        FROM loan_record lr
+        LEFT JOIN sys_user su ON lr.borrower_id = su.id
+        <where>
+            AND su.username = #{borrowerName}
+            <if test="status != null and status != ''">
+                AND lr.status = #{status}
+            </if>
+        </where>
+    </select>
+
+</mapper>

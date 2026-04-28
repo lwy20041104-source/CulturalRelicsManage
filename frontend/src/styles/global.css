@@ -1,0 +1,98 @@
+
+</invoke>
+
+:root {
+  /* 主题颜色变量 - 默认值（古典棕色） */
+  --color-primary: #a67c52;
+  --color-primary-light: #8b6f47;
+  --color-primary-dark: #8a5b2f;
+  
+  /* 背景色 */
+  --bg-main: #f5ede0;
+  --bg-aside: #fdfbf7;
+  --bg-card: #ffffff;
+  --bg-hover: #fbf6ee;
+  --bg-active: #fef5e7;
+  
+  /* 文字颜色 */
+  --text-primary: #3d2f1f;
+  --text-secondary: #5d4a2f;
+  --text-tertiary: #6c5037;
+  --text-light: #9b8d7d;
+  
+  /* 边框颜色 */
+  --border-light: #eadfce;
+  --border-normal: #e6d8c4;
+  --border-dark: #d4c4b0;
+  
+  /* 滚动条 */
+  --scrollbar-track: #eadfce;
+  --scrollbar-thumb: #a67c52;
+  --scrollbar-thumb-hover: #8b6f47;
+  
+  /* Logo渐变 */
+  --logo-gradient-start: #a67c52;
+  --logo-gradient-end: #8b6f47;
+  
+  /* 兼容旧变量 */
+  --bg: var(--bg-main);
+  --panel: var(--bg-card);
+  --text: var(--text-primary);
+  --muted: var(--text-light);
+  --brand: var(--color-primary-dark);
+  --brand-soft: var(--bg-active);
+  --line: var(--border-light);
+  --shadow: 0 10px 30px rgba(76, 58, 38, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(187, 147, 93, 0.12), transparent 35%),
+    radial-gradient(circle at 85% 90%, rgba(132, 96, 58, 0.12), transparent 30%),
+    var(--bg-main);
+  color: var(--text-primary);
+  font-family: "Noto Serif SC", "Source Han Serif SC", "STSong", "Songti SC", serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.el-card {
+  border: 1px solid var(--border-light) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--shadow) !important;
+  background: var(--bg-card) !important;
+}
+
+.el-table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.el-table th.el-table__cell {
+  background: var(--bg-active) !important;
+  color: var(--text-secondary);
+}
+
+.el-button--primary {
+  --el-button-bg-color: var(--color-primary);
+  --el-button-border-color: var(--color-primary);
+  --el-button-hover-bg-color: var(--color-primary-light);
+  --el-button-hover-border-color: var(--color-primary-light);
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+

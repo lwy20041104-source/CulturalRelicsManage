@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.RepairRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.RepairRecord">
+        <id column="id" property="id"/>
+        <result column="repair_code" property="repairCode"/>
+        <result column="relic_id" property="relicId"/>
+        <result column="status" property="status"/>
+        <result column="priority" property="priority"/>
+        <result column="applicant_id" property="applicantId"/>
+        <result column="apply_date" property="applyDate"/>
+        <result column="repair_reason" property="repairReason"/>
+        <result column="damage_description" property="damageDescription"/>
+        <result column="estimated_cost" property="estimatedCost"/>
+        <result column="approver" property="approver"/>
+        <result column="approve_date" property="approveDate"/>
+        <result column="approve_remark" property="approveRemark"/>
+        <result column="repair_expert" property="repairExpert"/>
+        <result column="start_date" property="startDate"/>
+        <result column="complete_date" property="completeDate"/>
+        <result column="repair_process" property="repairProcess"/>
+        <result column="repair_method" property="repairMethod"/>
+        <result column="materials_used" property="materialsUsed"/>
+        <result column="actual_cost" property="actualCost"/>
+        <result column="before_images" property="beforeImages"/>
+        <result column="after_images" property="afterImages"/>
+        <result column="quality_score" property="qualityScore"/>
+        <result column="quality_remark" property="qualityRemark"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="relic_name" property="relicName"/>
+        <result column="relic_code" property="relicCode"/>
+        <result column="applicant_name" property="applicantName"/>
+    </resultMap>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT rr.*, cr.relic_name, cr.relic_code, su.real_name as applicant_name
+        FROM repair_record rr
+        LEFT JOIN cultural_relic cr ON rr.relic_id = cr.id
+        LEFT JOIN sys_user su ON rr.applicant_id = su.id
+        <where>
+            <if test="status != null and status != ''">
+                AND rr.status = #{status}
+            </if>
+            <if test="priority != null and priority != ''">
+                AND rr.priority = #{priority}
+            </if>
+            <if test="relicName != null and relicName != ''">
+                AND cr.relic_name LIKE CONCAT('%', #{relicName}, '%')
+            </if>
+            <if test="repairExpert != null and repairExpert != ''">
+                AND rr.repair_expert LIKE CONCAT('%', #{repairExpert}, '%')
+            </if>
+            <if test="applicantId != null">
+                AND rr.applicant_id = #{applicantId}
+            </if>
+        </where>
+        ORDER BY rr.apply_date DESC, rr.id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM repair_record rr
+        LEFT JOIN cultural_relic cr ON rr.relic_id = cr.id
+        <where>
+            <if test="status != null and status != ''">
+                AND rr.status = #{status}
+            </if>
+            <if test="priority != null and priority != ''">
+                AND rr.priority = #{priority}
+            </if>
+            <if test="relicName != null and relicName != ''">
+                AND cr.relic_name LIKE CONCAT('%', #{relicName}, '%')
+            </if>
+            <if test="repairExpert != null and repairExpert != ''">
+                AND rr.repair_expert LIKE CONCAT('%', #{repairExpert}, '%')
+            </if>
+            <if test="applicantId != null">
+                AND rr.applicant_id = #{applicantId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT rr.*, cr.relic_name, cr.relic_code, su.real_name as applicant_name
+        FROM repair_record rr
+        LEFT JOIN cultural_relic cr ON rr.relic_id = cr.id
+        LEFT JOIN sys_user su ON rr.applicant_id = su.id
+        WHERE rr.id = #{id}
+    </select>
+
+    <select id="selectByRelicId" resultMap="BaseResultMap">
+        SELECT rr.*, cr.relic_name, cr.relic_code, su.real_name as applicant_name
+        FROM repair_record rr
+        LEFT JOIN cultural_relic cr ON rr.relic_id = cr.id
+        LEFT JOIN sys_user su ON rr.applicant_id = su.id
+        WHERE rr.relic_id = #{relicId}
+        ORDER BY rr.apply_date DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repair_record (
+            repair_code, relic_id, status, priority, applicant_id, apply_date,
+            repair_reason, damage_description, estimated_cost, before_images, remark
+        ) VALUES (
+            #{repairCode}, #{relicId}, #{status}, #{priority}, #{applicantId}, #{applyDate},
+            #{repairReason}, #{damageDescription}, #{estimatedCost}, #{beforeImages}, #{remark}
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE repair_record
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="approver != null">approver = #{approver},</if>
+            <if test="approveDate != null">approve_date = #{approveDate},</if>
+            <if test="approveRemark != null">approve_remark = #{approveRemark},</if>
+            <if test="repairExpert != null">repair_expert = #{repairExpert},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="completeDate != null">complete_date = #{completeDate},</if>
+            <if test="repairProcess != null">repair_process = #{repairProcess},</if>
+            <if test="repairMethod != null">repair_method = #{repairMethod},</if>
+            <if test="materialsUsed != null">materials_used = #{materialsUsed},</if>
+            <if test="actualCost != null">actual_cost = #{actualCost},</if>
+            <if test="beforeImages != null">before_images = #{beforeImages},</if>
+            <if test="afterImages != null">after_images = #{afterImages},</if>
+            <if test="qualityScore != null">quality_score = #{qualityScore},</if>
+            <if test="qualityRemark != null">quality_remark = #{qualityRemark},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM repair_record WHERE id = #{id}
+    </delete>
+
+    <select id="generateRepairCode" resultType="string">
+        SELECT CONCAT('REP', DATE_FORMAT(NOW(), '%Y'), LPAD(IFNULL(MAX(CAST(SUBSTRING(repair_code, 8) AS UNSIGNED)), 0) + 1, 3, '0'))
+        FROM repair_record
+        WHERE repair_code LIKE CONCAT('REP', DATE_FORMAT(NOW(), '%Y'), '%')
+    </select>
+
+    <select id="countByStatus" resultType="map">
+        SELECT status, COUNT(*) as count
+        FROM repair_record
+        GROUP BY status
+    </select>
+
+    <select id="countByMonth" resultType="long">
+        SELECT COUNT(1)
+        FROM repair_record
+        WHERE YEAR(start_date) = #{year}
+        AND MONTH(start_date) = #{month}
+    </select>
+
+    <select id="countByDateRange" resultType="long">
+        SELECT COUNT(1)
+        FROM repair_record
+        WHERE DATE(start_date) BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="selectRelicById" resultType="com.example.entity.CulturalRelic">
+        SELECT id, relic_code, relic_name, category_id, era, material,
+               origin, dimensions, weight, description, status, image_path,
+               create_time, update_time
+        FROM cultural_relic
+        WHERE id = #{relicId}
+    </select>
+
+    <update id="updateRelicStatus">
+        UPDATE cultural_relic
+        SET status = #{status}, update_time = #{updateTime}
+        WHERE id = #{relicId}
+    </update>
+
+</mapper>

@@ -1,0 +1,19 @@
+# 163邮箱配置
+spring:
+  mail:
+    enabled: true
+    host: smtp.163.com
+    port: 465
+    username: lwy1472583692024@163.com
+    password: MSsMnpMSWfPuJ3bQ
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            trust: smtp.163.com
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
+    default-encoding: UTF-8

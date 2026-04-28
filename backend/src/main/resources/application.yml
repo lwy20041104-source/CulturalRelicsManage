@@ -1,0 +1,70 @@
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: cultural-relics-manage
+  profiles:
+    active: dev
+    # 邮箱配置切换：
+    # - 使用QQ邮箱：include: mail-qq
+    # - 使用163邮箱：include: mail-163
+    # 修改后需要重启服务
+    include: mail-163
+  datasource:
+    url: jdbc:mysql://localhost:3306/cultural_relics?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    timeout: 10000ms
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 0
+
+# 阿里云短信配置（默认禁用，需要时在 application-mail-sms.yml 中配置）
+aliyun:
+  sms:
+    enabled: false
+
+mybatis:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.example.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: info
+    com.example: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+jwt:
+  secret: Y3VsdHVyYWwtcmVsaWNzLW1hbmFnZS1zZWNyZXQta2V5LTIwMjQ=
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+file:
+  upload-path: ./uploads/
+  max-size: 10485760

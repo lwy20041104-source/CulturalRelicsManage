@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.NotificationConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.NotificationConfig">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="notificationType" column="notification_type"/>
+        <result property="enabled" column="enabled"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="selectByUserIdAndType" resultMap="BaseResultMap">
+        SELECT id, user_id, notification_type, enabled, create_time, update_time
+        FROM notification_config
+        WHERE user_id = #{userId} AND notification_type = #{notificationType}
+        LIMIT 1
+    </select>
+
+</mapper>

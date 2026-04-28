@@ -1,0 +1,19 @@
+# QQ邮箱配置
+spring:
+  mail:
+    enabled: true
+    host: smtp.qq.com
+    port: 465
+    username: 3071624946@qq.com
+    password: rpybvffaulzqddbc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            trust: smtp.qq.com
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
+    default-encoding: UTF-8

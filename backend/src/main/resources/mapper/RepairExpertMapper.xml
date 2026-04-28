@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.RepairExpertMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.RepairExpert">
+        <id column="id" property="id"/>
+        <result column="expert_name" property="expertName"/>
+        <result column="expert_code" property="expertCode"/>
+        <result column="specialty" property="specialty"/>
+        <result column="title" property="title"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="work_years" property="workYears"/>
+        <result column="certification" property="certification"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectEnabledList" resultMap="BaseResultMap">
+        SELECT * FROM repair_expert
+        WHERE status = 1
+        ORDER BY work_years DESC, id ASC
+    </select>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT * FROM repair_expert
+        <where>
+            <if test="expertName != null and expertName != ''">
+                AND expert_name LIKE CONCAT('%', #{expertName}, '%')
+            </if>
+            <if test="specialty != null and specialty != ''">
+                AND specialty LIKE CONCAT('%', #{specialty}, '%')
+            </if>
+        </where>
+        ORDER BY status DESC, work_years DESC, id ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM repair_expert
+        <where>
+            <if test="expertName != null and expertName != ''">
+                AND expert_name LIKE CONCAT('%', #{expertName}, '%')
+            </if>
+            <if test="specialty != null and specialty != ''">
+                AND specialty LIKE CONCAT('%', #{specialty}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM repair_expert WHERE id = #{id}
+    </select>
+
+    <select id="selectByName" resultMap="BaseResultMap">
+        SELECT * FROM repair_expert WHERE expert_name = #{expertName} LIMIT 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repair_expert (
+            expert_name, expert_code, specialty, title, phone, email,
+            work_years, certification, status, remark
+        ) VALUES (
+            #{expertName}, #{expertCode}, #{specialty}, #{title}, #{phone}, #{email},
+            #{workYears}, #{certification}, #{status}, #{remark}
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE repair_expert
+        <set>
+            <if test="expertName != null">expert_name = #{expertName},</if>
+            <if test="expertCode != null">expert_code = #{expertCode},</if>
+            <if test="specialty != null">specialty = #{specialty},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="workYears != null">work_years = #{workYears},</if>
+            <if test="certification != null">certification = #{certification},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM repair_expert WHERE id = #{id}
+    </delete>
+
+    <select id="generateExpertCode" resultType="string">
+        SELECT CONCAT('EXP', LPAD(IFNULL(MAX(CAST(SUBSTRING(expert_code, 4) AS UNSIGNED)), 0) + 1, 5, '0'))
+        FROM repair_expert
+        WHERE expert_code REGEXP '^EXP[0-9]+$'
+    </select>
+
+</mapper>

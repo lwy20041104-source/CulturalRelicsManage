@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CulturalRelicMapper">
+
+    <select id="selectPage" resultType="com.example.entity.CulturalRelic">
+        SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
+        FROM cultural_relic cr
+        LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
+        <where>
+            <if test="relicName != null and relicName != ''">
+                AND cr.relic_name LIKE CONCAT('%', #{relicName}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND cr.category_id = #{categoryId}
+            </if>
+            <if test="status != null and status != ''">
+                AND cr.status = #{status}
+            </if>
+            <if test="era != null and era != ''">
+                AND cr.era LIKE CONCAT('%', #{era}, '%')
+            </if>
+        </where>
+        ORDER BY cr.id ASC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1) FROM cultural_relic cr
+        <where>
+            <if test="relicName != null and relicName != ''">
+                AND cr.relic_name LIKE CONCAT('%', #{relicName}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND cr.category_id = #{categoryId}
+            </if>
+            <if test="status != null and status != ''">
+                AND cr.status = #{status}
+            </if>
+            <if test="era != null and era != ''">
+                AND cr.era LIKE CONCAT('%', #{era}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultType="com.example.entity.CulturalRelic">
+        SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
+        FROM cultural_relic cr
+        LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
+        WHERE cr.id = #{id} LIMIT 1
+    </select>
+
+    <select id="selectAll" resultType="com.example.entity.CulturalRelic">
+        SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
+        FROM cultural_relic cr
+        LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
+        ORDER BY cr.id ASC
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(1) FROM cultural_relic
+    </select>
+
+    <select id="countByStatus" resultType="long">
+        SELECT COUNT(1) FROM cultural_relic WHERE status = #{status}
+    </select>
+
+    <select id="countByCategory" resultType="java.util.HashMap">
+        SELECT 
+            c.category_name AS categoryName,
+            c.category_name AS category_name,
+            COUNT(cr.id) AS count
+        FROM cultural_relic cr
+        LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
+        WHERE c.category_name IS NOT NULL
+        GROUP BY c.id, c.category_name
+        ORDER BY count DESC
+    </select>
+
+    <select id="countByEra" resultType="java.util.HashMap">
+        SELECT 
+            era,
+            COUNT(id) AS count
+        FROM cultural_relic
+        WHERE era IS NOT NULL AND era != ''
+        GROUP BY era
+        ORDER BY count DESC
+    </select>
+
+    <select id="countByMonth" resultType="long">
+        SELECT COUNT(1)
+        FROM cultural_relic
+        WHERE YEAR(create_time) = #{year}
+        AND MONTH(create_time) = #{month}
+    </select>
+
+    <select id="countByDateRange" resultType="long">
+        SELECT COUNT(1)
+        FROM cultural_relic
+        WHERE DATE(create_time) BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="selectMaxRelicCode" resultType="string">
+        SELECT relic_code
+        FROM cultural_relic
+        WHERE relic_code REGEXP '^CR[0-9]+$'
+        ORDER BY CAST(SUBSTRING(relic_code, 3) AS UNSIGNED) DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.CulturalRelic" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cultural_relic
+        (relic_code, relic_name, category_id, era, material, origin, dimensions, weight, description, status, image_path, create_time, update_time)
+        VALUES
+        (#{relicCode}, #{relicName}, #{categoryId}, #{era}, #{material}, #{origin}, #{dimensions}, #{weight}, #{description}, #{status}, #{imagePath}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.CulturalRelic">
+        UPDATE cultural_relic
+        <set>
+            <if test="relicCode != null">relic_code = #{relicCode},</if>
+            <if test="relicName != null">relic_name = #{relicName},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="era != null">era = #{era},</if>
+            <if test="material != null">material = #{material},</if>
+            <if test="origin != null">origin = #{origin},</if>
+            <if test="dimensions != null">dimensions = #{dimensions},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="imagePath != null">image_path = #{imagePath},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM cultural_relic WHERE id = #{id}
+    </delete>
+
+    <!-- 查询可用于修复的文物列表（排除有正在进行修复的文物） -->
+    <select id="selectAvailableForRepair" resultType="com.example.entity.CulturalRelic">
+        SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
+        FROM cultural_relic cr
+        LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
+        WHERE cr.id NOT IN (
+            SELECT DISTINCT rr.relic_id
+            FROM repair_record rr
+            WHERE rr.status IN ('待审批', '待修复', '修复中')
+        )
+        ORDER BY cr.id ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>测试后端权限接口</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 测试后端权限接口</h1>
+        <p>这个工具会直接调用后端的 /auth/permissions 接口，查看返回的权限列表。</p>
+        
+        <div>
+            <label>用户名: <input type="text" id="username" value="admin" /></label>
+            <button onclick="testPermissions()">测试权限接口</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function testPermissions() {
+            const username = document.getElementById('username').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = '<p class="info">⏳ 正在请求后端...</p>';
+            
+            try {
+                const response = await fetch(`http://localhost:8080/api/auth/permissions?username=${username}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                let html = '<h2>✅ 请求成功</h2>';
+                html += '<h3>响应数据：</h3>';
+                html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.data && Array.isArray(data.data)) {
+                    const permissions = data.data;
+                    const hasImagePerm = permissions.includes('images:manage');
+                    
+                    html += '<h3>权限检查：</h3>';
+                    html += '<p>权限总数: <strong>' + permissions.length + '</strong></p>';
+                    html += '<p>images:manage 权限: ';
+                    if (hasImagePerm) {
+                        html += '<span class="success">✅ 存在</span>';
+                    } else {
+                        html += '<span class="error">❌ 不存在</span>';
+                        html += '<p class="error">⚠️ 后端没有返回 images:manage 权限！</p>';
+                        html += '<p>可能原因：</p>';
+                        html += '<ul>';
+                        html += '<li>后端服务没有重启</li>';
+                        html += '<li>代码没有正确编译</li>';
+                        html += '<li>使用的不是 ADMIN 或 CURATOR 角色</li>';
+                        html += '</ul>';
+                    }
+                    html += '</p>';
+                    
+                    html += '<h3>完整权限列表：</h3>';
+                    html += '<ul>';
+                    permissions.forEach(perm => {
+                        const highlight = perm === 'images:manage' ? ' style="background: #fff3cd; padding: 2px 5px;"' : '';
+                        html += '<li' + highlight + '>' + perm + '</li>';
+                    });
+                    html += '</ul>';
+                }
+                
+                resultDiv.innerHTML = html;
+                
+            } catch (error) {
+                let html = '<h2 class="error">❌ 请求失败</h2>';
+                html += '<p class="error">' + error.message + '</p>';
+                html += '<h3>可能原因：</h3>';
+                html += '<ul>';
+                html += '<li>后端服务未启动（检查 http://localhost:8080 是否可访问）</li>';
+                html += '<li>端口号不正确（默认是 8080）</li>';
+                html += '<li>CORS 跨域问题</li>';
+                html += '<li>用户不存在</li>';
+                html += '</ul>';
+                resultDiv.innerHTML = html;
+            }
+        }
+    </script>
+</body>
+</html>

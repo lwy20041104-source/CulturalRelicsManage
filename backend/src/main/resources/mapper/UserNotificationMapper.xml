@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.UserNotificationMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.UserNotification">
+        <id property="id" column="id"/>
+        <result property="notificationId" column="notification_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="isRead" column="is_read"/>
+        <result property="readTime" column="read_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.entity.UserNotification" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_notification
+        (notification_id, user_id, is_read, read_time, create_time)
+        VALUES
+        (#{notificationId}, #{userId}, #{isRead}, #{readTime}, #{createTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.UserNotification">
+        UPDATE user_notification
+        <set>
+            <if test="notificationId != null">notification_id = #{notificationId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="isRead != null">is_read = #{isRead},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM user_notification WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, notification_id, user_id, is_read, read_time, create_time
+        FROM user_notification
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectByNotificationIdAndUserId" resultMap="BaseResultMap">
+        SELECT id, notification_id, user_id, is_read, read_time, create_time
+        FROM user_notification
+        WHERE notification_id = #{notificationId} AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT un.id, un.notification_id, un.user_id, un.is_read, un.read_time, un.create_time
+        FROM user_notification un
+        <if test="keyword != null and keyword != ''">
+            INNER JOIN system_notification sn ON un.notification_id = sn.id
+        </if>
+        <where>
+            un.user_id = #{userId}
+            <if test="isRead != null">
+                AND un.is_read = #{isRead}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (sn.title LIKE CONCAT('%', #{keyword}, '%') OR sn.content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY un.create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1)
+        FROM user_notification un
+        <if test="keyword != null and keyword != ''">
+            INNER JOIN system_notification sn ON un.notification_id = sn.id
+        </if>
+        <where>
+            un.user_id = #{userId}
+            <if test="isRead != null">
+                AND un.is_read = #{isRead}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (sn.title LIKE CONCAT('%', #{keyword}, '%') OR sn.content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+</mapper>
