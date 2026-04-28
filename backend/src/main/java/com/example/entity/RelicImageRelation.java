@@ -12,6 +12,7 @@ public class RelicImageRelation {
     private Long relicId;
     private Long imageId;
     private String relationType;  // main:主图, detail:详情图
+    private Integer isMain;       // 是否为主图（1:是, 0:否）
     private Integer sortOrder;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
@@ -71,6 +72,14 @@ public class RelicImageRelation {
         this.sortOrder = sortOrder;
     }
     
+    public Integer getIsMain() {
+        return isMain;
+    }
+    
+    public void setIsMain(Integer isMain) {
+        this.isMain = isMain;
+    }
+    
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -110,6 +119,7 @@ public class RelicImageRelation {
                 ", relicId=" + relicId +
                 ", imageId=" + imageId +
                 ", relationType='" + relationType + '\'' +
+                ", isMain=" + isMain +
                 ", sortOrder=" + sortOrder +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +

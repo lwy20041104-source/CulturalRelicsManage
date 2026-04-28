@@ -61,11 +61,22 @@ public class UserContextUtil {
     
     /**
      * 获取当前登录用户的ID
-     * 注意：这里返回硬编码的1L，生产环境应该从authentication中获取真实用户ID
      */
     public Long getCurrentUserId() {
-        // TODO: 从authentication中获取真实用户ID
-        return 1L;
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+                return null;
+            }
+            
+            String username = authentication.getName();
+            SysUser user = userMapper.selectByUsername(username);
+            
+            return user != null ? user.getId() : null;
+        } catch (Exception e) {
+            System.err.println("获取当前用户ID失败: " + e.getMessage());
+            return null;
+        }
     }
     
     /**

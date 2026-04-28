@@ -44,6 +44,38 @@ public interface RelicImageRelationService {
     RelicImageRelation getRelicMainImage(Long relicId);
     
     /**
+     * 获取文物的所有图片（支持一对多）
+     * @param relicId 文物ID
+     * @return 图片列表（按sort_order排序，主图在前）
+     */
+    List<RelicImageRelation> getRelicImages(Long relicId);
+    
+    /**
+     * 批量添加文物图片
+     * @param relicId 文物ID
+     * @param imageIds 图片ID列表
+     * @param setFirstAsMain 是否将第一张设为主图
+     * @return 是否成功
+     */
+    boolean addRelicImages(Long relicId, List<Long> imageIds, boolean setFirstAsMain);
+    
+    /**
+     * 删除文物的某张图片
+     * @param relicId 文物ID
+     * @param imageId 图片ID
+     * @return 是否成功
+     */
+    boolean removeRelicImage(Long relicId, Long imageId);
+    
+    /**
+     * 设置主图
+     * @param relicId 文物ID
+     * @param imageId 图片ID
+     * @return 是否成功
+     */
+    boolean setMainImage(Long relicId, Long imageId);
+    
+    /**
      * 获取文物的主图路径
      * @param relicId 文物ID
      * @return 图片路径

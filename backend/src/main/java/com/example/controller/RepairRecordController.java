@@ -49,29 +49,54 @@ public class RepairRecordController {
             @RequestParam(required = false) String repairExpert,
             Authentication authentication) {
         
+        System.out.println("========== 修复记录查询请求 ==========");
+        System.out.println("请求参数: pageNum=" + pageNum + ", pageSize=" + pageSize);
+        System.out.println("过滤条件: status=[" + status + "], priority=[" + priority + 
+                         "], relicName=[" + relicName + "], repairExpert=[" + repairExpert + "]");
+        
         // 获取当前用户权限，判断是否需要过滤申请人
         Long applicantIdFilter = null;
         if (authentication != null) {
+            String username = authentication.getName();
+            System.out.println("当前用户: " + username);
+            
             java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
                 authentication.getAuthorities();
             
-            // 检查是否有 repairs:manage 权限
-            boolean hasManagePermission = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("repairs:manage"));
+            System.out.println("用户权限: " + authorities.stream()
+                .map(a -> a.getAuthority())
+                .collect(java.util.stream.Collectors.joining(", ")));
             
-            // 如果只有 repairs:apply 权限，只查询自己申请的
-            if (!hasManagePermission) {
+            // 检查是否是管理员角色（ADMIN可以查看所有记录）
+            boolean isAdmin = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            
+            System.out.println("是否是管理员: " + isAdmin);
+            
+            // 如果不是管理员（即CURATOR等角色），只查询自己申请的
+            if (!isAdmin) {
                 try {
                     applicantIdFilter = userContextUtil.getCurrentUserId();
                     System.out.println("保管员权限过滤：只显示申请人ID=" + applicantIdFilter + "的记录");
                 } catch (Exception e) {
                     System.err.println("获取当前用户ID失败: " + e.getMessage());
                 }
+            } else {
+                System.out.println("管理员权限：显示所有记录");
             }
         }
         
         PageResult<RepairRecord> result = repairRecordService.pageRecords(
                 pageNum, pageSize, status, priority, relicName, repairExpert, applicantIdFilter);
+        
+        System.out.println("查询结果: total=" + result.getTotal() + ", records.size=" + result.getRecords().size());
+        if (result.getRecords().size() > 0) {
+            System.out.println("记录状态分布: " + result.getRecords().stream()
+                .map(RepairRecord::getStatus)
+                .collect(java.util.stream.Collectors.groupingBy(s -> s, java.util.stream.Collectors.counting())));
+        }
+        System.out.println("========================================");
+        
         return Result.success(result);
     }
     
@@ -90,11 +115,12 @@ public class RepairRecordController {
             java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
                 authentication.getAuthorities();
             
-            boolean hasManagePermission = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("repairs:manage"));
+            // 检查是否是管理员角色
+            boolean isAdmin = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
             
-            // 如果只有 repairs:apply 权限，检查是否是自己的记录
-            if (!hasManagePermission) {
+            // 如果不是管理员，检查是否是自己的记录
+            if (!isAdmin) {
                 try {
                     Long currentUserId = userContextUtil.getCurrentUserId();
                     if (record.getApplicantId() == null || !record.getApplicantId().equals(currentUserId)) {
@@ -369,11 +395,12 @@ public class RepairRecordController {
             java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
                 authentication.getAuthorities();
             
-            boolean hasManagePermission = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("repairs:manage"));
+            // 检查是否是管理员角色
+            boolean isAdmin = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
             
-            // 如果只有 repairs:apply 权限，检查是否是自己的记录
-            if (!hasManagePermission) {
+            // 如果不是管理员，检查是否是自己的记录
+            if (!isAdmin) {
                 try {
                     Long currentUserId = userContextUtil.getCurrentUserId();
                     if (oldRecord.getApplicantId() == null || !oldRecord.getApplicantId().equals(currentUserId)) {
