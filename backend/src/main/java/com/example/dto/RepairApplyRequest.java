@@ -8,6 +8,7 @@ import java.math.BigDecimal;
  */
 @Data
 public class RepairApplyRequest {
+    private Long id;                        // 修复记录ID（更新时使用）
     private Long relicId;                   // 文物ID
     private String priority;                // 优先级：紧急、高、普通、低
     private String repairReason;            // 修复原因

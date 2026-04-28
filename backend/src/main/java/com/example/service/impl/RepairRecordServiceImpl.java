@@ -131,6 +131,61 @@ public class RepairRecordServiceImpl implements RepairRecordService {
     
     @Override
     @Transactional
+    public boolean updateRepairApply(RepairApplyRequest request) {
+        // 获取原记录
+        RepairRecord record = repairRecordMapper.selectById(request.getId());
+        if (record == null) {
+            throw new IllegalArgumentException("修复记录不存在");
+        }
+        
+        // 检查状态
+        if (!"待审批".equals(record.getStatus())) {
+            throw new IllegalArgumentException("只能修改待审批状态的申请");
+        }
+        
+        // 如果修改了文物，检查新文物状态
+        if (request.getRelicId() != null && !request.getRelicId().equals(record.getRelicId())) {
+            com.example.entity.CulturalRelic relic = repairRecordMapper.selectRelicById(request.getRelicId());
+            if (relic == null) {
+                throw new IllegalArgumentException("文物不存在");
+            }
+            if (!"在库".equals(relic.getStatus())) {
+                throw new IllegalArgumentException("只有在库状态的文物才能申请修复，当前状态：" + relic.getStatus());
+            }
+            record.setRelicId(request.getRelicId());
+        }
+        
+        // 更新字段
+        if (request.getPriority() != null) {
+            record.setPriority(request.getPriority());
+        }
+        if (request.getRepairReason() != null) {
+            record.setRepairReason(request.getRepairReason());
+        }
+        if (request.getDamageDescription() != null) {
+            record.setDamageDescription(request.getDamageDescription());
+        }
+        if (request.getEstimatedCost() != null) {
+            record.setEstimatedCost(request.getEstimatedCost());
+        }
+        if (request.getBeforeImages() != null) {
+            record.setBeforeImages(request.getBeforeImages());
+        }
+        if (request.getRepairExpert() != null) {
+            record.setRepairExpert(request.getRepairExpert());
+        }
+        if (request.getRemark() != null) {
+            record.setRemark(request.getRemark());
+        }
+        
+        int result = repairRecordMapper.updateById(record);
+        log.info("更新修复申请：id={}, relicId={}", request.getId(), record.getRelicId());
+        
+        return result > 0;
+    }
+    
+    @Override
+    @Transactional
     public boolean approveRepair(RepairApproveRequest request, String approver) {
         RepairRecord record = repairRecordMapper.selectById(request.getId());
         if (record == null) {

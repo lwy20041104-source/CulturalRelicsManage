@@ -47,6 +47,11 @@ public interface RepairRecordService {
     boolean applyRepair(RepairApplyRequest request, String applicant);
     
     /**
+     * 更新修复申请（仅限待审批状态）
+     */
+    boolean updateRepairApply(RepairApplyRequest request);
+    
+    /**
      * 审批修复申请
      */
     boolean approveRepair(RepairApproveRequest request, String approver);

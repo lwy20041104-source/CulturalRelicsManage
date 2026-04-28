@@ -14,8 +14,8 @@ public interface RelicImageRelationMapper {
     /**
      * 插入关联记录
      */
-    @Insert("INSERT INTO relic_image_relation (relic_id, image_id, relation_type, sort_order, create_time, update_time) " +
-            "VALUES (#{relicId}, #{imageId}, #{relationType}, #{sortOrder}, #{createTime}, #{updateTime})")
+    @Insert("INSERT INTO relic_image_relation (relic_id, image_id, relation_type, is_main, sort_order, create_time, update_time) " +
+            "VALUES (#{relicId}, #{imageId}, #{relationType}, #{isMain}, #{sortOrder}, #{createTime}, #{updateTime})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(RelicImageRelation relation);
     
@@ -39,30 +39,17 @@ public interface RelicImageRelationMapper {
     
     /**
      * 根据文物ID查询所有关联（包含图片信息）
+     * 使用简化的映射方式
      */
-    @Select("SELECT r.*, i.id as image_id, i.image_name, i.file_name, i.file_path, i.file_size, i.width, i.height, i.file_type " +
+    @Select("SELECT r.id, r.relic_id, r.image_id, r.relation_type, r.is_main, r.sort_order, " +
+            "r.create_time, r.update_time, " +
+            "i.id as 'image.id', i.image_name as 'image.imageName', i.file_name as 'image.fileName', " +
+            "i.file_path as 'image.filePath', i.file_size as 'image.fileSize', " +
+            "i.width as 'image.width', i.height as 'image.height', i.file_type as 'image.fileType' " +
             "FROM relic_image_relation r " +
             "LEFT JOIN image_library i ON r.image_id = i.id " +
-            "WHERE r.relic_id = #{relicId} AND i.status = 1 " +
+            "WHERE r.relic_id = #{relicId} " +
             "ORDER BY r.is_main DESC, r.sort_order ASC")
-    @Results(id = "relicImageWithDetails", value = {
-        @Result(property = "id", column = "id"),
-        @Result(property = "relicId", column = "relic_id"),
-        @Result(property = "imageId", column = "image_id"),
-        @Result(property = "relationType", column = "relation_type"),
-        @Result(property = "isMain", column = "is_main"),
-        @Result(property = "sortOrder", column = "sort_order"),
-        @Result(property = "createTime", column = "create_time"),
-        @Result(property = "updateTime", column = "update_time"),
-        @Result(property = "image.id", column = "image_id"),
-        @Result(property = "image.imageName", column = "image_name"),
-        @Result(property = "image.fileName", column = "file_name"),
-        @Result(property = "image.filePath", column = "file_path"),
-        @Result(property = "image.fileSize", column = "file_size"),
-        @Result(property = "image.width", column = "width"),
-        @Result(property = "image.height", column = "height"),
-        @Result(property = "image.fileType", column = "file_type")
-    })
     List<RelicImageRelation> selectAllByRelicIdWithImage(@Param("relicId") Long relicId);
     
     /**
@@ -103,9 +90,9 @@ public interface RelicImageRelationMapper {
      * 批量插入关联记录
      */
     @Insert("<script>" +
-            "INSERT INTO relic_image_relation (relic_id, image_id, relation_type, is_main, sort_order) VALUES " +
+            "INSERT INTO relic_image_relation (relic_id, image_id, relation_type, is_main, sort_order, create_time, update_time) VALUES " +
             "<foreach collection='relations' item='item' separator=','>" +
-            "(#{item.relicId}, #{item.imageId}, #{item.relationType}, #{item.isMain}, #{item.sortOrder})" +
+            "(#{item.relicId}, #{item.imageId}, #{item.relationType}, #{item.isMain}, #{item.sortOrder}, NOW(), NOW())" +
             "</foreach>" +
             "</script>")
     int batchInsert(@Param("relations") List<RelicImageRelation> relations);

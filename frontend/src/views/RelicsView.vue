@@ -166,73 +166,64 @@
         <el-form-item :label="$t('relic.origin')"><el-input v-model="form.origin" /></el-form-item>
         
         <!-- 图片上传区域 -->
-        <el-form-item :label="$t('relic.image')">
+        <el-form-item :label="$t('relic.images')">
           <div class="image-upload-wrapper">
-            <!-- 切换模式按钮 -->
-            <el-radio-group v-model="imageInputMode" size="small" style="margin-bottom: 10px;">
-              <el-radio-button label="upload">{{ $t('relic.uploadMode') }}</el-radio-button>
-              <el-radio-button label="url">{{ $t('relic.urlMode') }}</el-radio-button>
-            </el-radio-group>
-            
-            <!-- URL输入模式 -->
-            <div v-if="imageInputMode === 'url'" class="url-input-box">
-              <el-input
-                v-model="form.imagePath"
-                :placeholder="$t('relic.enterImageUrl')"
-                clearable
-                @input="handleUrlInput"
-              >
-                <template #prepend>
-                  <el-icon><Link /></el-icon>
-                </template>
-              </el-input>
-              <!-- URL预览 -->
-              <div v-if="form.imagePath && isValidUrl(form.imagePath)" class="url-preview-box">
-                <el-image
-                  :src="form.imagePath"
-                  fit="cover"
-                  class="preview-img"
-                  :preview-src-list="[form.imagePath]"
-                  @error="handleImageError"
-                />
-                <div class="image-actions">
-                  <el-button size="small" type="danger" @click="clearImageUrl">{{ $t('relic.remove') }}</el-button>
+            <!-- 编辑模式：显示已有图片 -->
+            <div v-if="form.id" class="existing-images">
+              <div v-if="existingImages.length > 0" class="images-grid">
+                <div 
+                  v-for="img in existingImages" 
+                  :key="img.id" 
+                  class="image-card"
+                  :class="{ 'is-main': img.isMain === 1 }"
+                >
+                  <el-image
+                    :src="resolveImageUrl(img.image?.filePath)"
+                    fit="cover"
+                    class="image-thumb"
+                    :preview-src-list="existingImages.map(i => resolveImageUrl(i.image?.filePath))"
+                    preview-teleported
+                  />
+                  
+                  <!-- 主图标签 -->
+                  <el-tag v-if="img.isMain === 1" type="success" class="main-tag" size="small">
+                    {{ $t('relicImages.mainImage') }}
+                  </el-tag>
                 </div>
               </div>
+              <el-empty v-else :description="$t('relicImages.noImages')" :image-size="60" />
             </div>
             
-            <!-- 文件上传模式 -->
-            <div v-else>
-              <!-- 图片预览 -->
-              <div v-if="imagePreview" class="image-preview-box">
-                <el-image
-                  :src="imagePreview"
-                  fit="cover"
-                  class="preview-img"
-                  :preview-src-list="[imagePreview]"
-                />
-                <div class="image-actions">
-                  <el-button size="small" type="danger" @click="removeImage">{{ $t('relic.remove') }}</el-button>
-                </div>
-              </div>
+            <!-- 上传按钮（新增和编辑都显示） -->
+            <div class="upload-section" :style="{ marginTop: form.id ? '15px' : '0' }">
+              <el-upload
+                ref="uploadRef"
+                :auto-upload="false"
+                :on-change="handleMultiImageChange"
+                :on-remove="handleImageRemove"
+                accept="image/*"
+                multiple
+                :limit="10"
+                list-type="picture-card"
+                :file-list="newImageFileList"
+              >
+                <el-icon><Plus /></el-icon>
+                <template #tip>
+                  <div class="el-upload__tip">
+                    {{ form.id ? $t('relicImages.uploadMoreImages') : $t('relicImages.uploadImages') }}
+                    ({{ $t('relicImages.maxImages', { count: 10 }) }})
+                  </div>
+                </template>
+              </el-upload>
               
-              <!-- 上传按钮 -->
-              <div v-else class="upload-box">
-                <el-upload
-                  ref="uploadRef"
-                  :auto-upload="false"
-                  :show-file-list="false"
-                  :on-change="handleImageChange"
-                  accept="image/*"
-                  drag
-                >
-                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-                  <div class="el-upload__text">{{ $t('relic.dragOrClick') }}<em>{{ $t('relic.clickToUpload') }}</em></div>
-                  <template #tip>
-                    <div class="el-upload__tip">{{ $t('relic.imageUploadTip') }}</div>
-                  </template>
-                </el-upload>
-              </div>
+              <!-- 提示信息 -->
+              <el-alert 
+                v-if="!form.id && newImageFileList.length > 0"
+                :title="$t('relicImages.firstImageAsMain')" 
+                type="info" 
+                :closable="false"
+                style="margin-top: 10px;"
+              />
             </div>
           </div>
         </el-form-item>
@@ -486,7 +477,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { UploadFilled, Link, Loading, InfoFilled, Download, Printer } from '@element-plus/icons-vue'
+import { UploadFilled, Link, Loading, InfoFilled, Download, Printer, Plus } from '@element-plus/icons-vue'
 import request from '../api/request'
 import { getCategoriesApi } from '../api/categories'
 import { 
@@ -505,7 +496,8 @@ import {
   generateQRCodeApi
 } from '../api/relics'
 import { 
-  getRelicImagesApi
+  getRelicImagesApi,
+  batchUploadImagesApi
 } from '../api/relicImages'
 
 const { t } = useI18n()
@@ -529,9 +521,8 @@ const detailImages = ref([])
 const relicTimeline = ref([])
 const relatedRelics = ref([])
 const submitting = ref(false)
-const imageFile = ref(null)
-const imagePreview = ref('')
-const imageInputMode = ref('upload') // 'upload' 或 'url'
+const existingImages = ref([])  // 已有图片列表（编辑时）
+const newImageFileList = ref([])  // 新上传的图片文件列表
 const qrcodeDialogVisible = ref(false)
 const currentQRCode = ref(null)
 const qrcodeImageData = ref('')
@@ -591,12 +582,10 @@ const openAdd = () => {
     origin: '',
     imagePath: '',
     description: ''
-    // 不设置 createTime 和 updateTime，让后端自动设置
   })
-  // 清空图片
-  imageFile.value = null
-  imagePreview.value = ''
-  imageInputMode.value = 'upload' // 默认为上传模式
+  // 清空图片列表
+  existingImages.value = []
+  newImageFileList.value = []
   if (uploadRef.value) {
     uploadRef.value.clearFiles()
   }
@@ -605,15 +594,35 @@ const openAdd = () => {
 
 const openEdit = async (row) => {
   Object.assign(form, row)
-  // 编辑时显示现有图片
-  imageFile.value = null
-  imagePreview.value = row.imagePath ? resolveImageUrl(row.imagePath) : ''
   
-  // 判断是URL还是上传的文件
-  if (row.imagePath && /^https?:\/\//i.test(row.imagePath)) {
-    imageInputMode.value = 'url'
-  } else {
-    imageInputMode.value = 'upload'
+  // 清空新上传列表
+  newImageFileList.value = []
+  if (uploadRef.value) {
+    uploadRef.value.clearFiles()
+  }
+  
+  // 加载已有图片
+  existingImages.value = []
+  if (row.id) {
+    try {
+      const res = await getRelicImagesApi(row.id)
+      const images = res.data || []
+      
+      console.log('加载的图片数据:', images)
+      
+      // 按主图优先、排序号排序
+      images.sort((a, b) => {
+        if (a.isMain !== b.isMain) return b.isMain - a.isMain
+        return a.sortOrder - b.sortOrder
+      })
+      
+      // 保存已有图片
+      existingImages.value = images
+      
+      console.log('existingImages.value:', existingImages.value)
+    } catch (error) {
+      console.error('加载图片失败:', error)
+    }
   }
   
   dialogVisible.value = true
@@ -899,82 +908,63 @@ const submit = async () => {
     await formRef.value?.validate()
     submitting.value = true
     
+    // 准备要发送的数据（只包含后端需要的字段）
+    const relicData = {
+      relicName: form.relicName,
+      era: form.era,
+      material: form.material,
+      categoryId: form.categoryId,
+      status: form.status || '在库',
+      dimensions: form.dimensions,
+      weight: form.weight,
+      origin: form.origin,
+      description: form.description,
+      imagePath: form.imagePath || ''
+    }
+    
     if (form.id) {
-      // 编辑模式：使用原有的更新接口
-      console.log('编辑文物:', form)
+      // 编辑模式：添加 id 字段
+      relicData.id = form.id
       
-      // 如果是URL模式，确保imagePath有值
-      if (imageInputMode.value === 'url') {
-        // URL模式下，imagePath已经在form中
-        console.log('URL模式，imagePath:', form.imagePath)
-      } else if (imageFile.value) {
-        // 上传模式且有新文件，需要特殊处理
-        // 这里可以扩展为支持编辑时上传新图片
-        ElMessage.warning(t('relic.editModeNoUpload'))
-        submitting.value = false
-        return
+      // 更新文物信息
+      await updateRelicApi(relicData)
+      
+      // 处理新上传的图片
+      if (newImageFileList.value.length > 0) {
+        const files = newImageFileList.value.map(file => file.raw).filter(f => f)
+        if (files.length > 0) {
+          await batchUploadImagesApi(form.id, files)
+        }
       }
       
-      const response = await updateRelicApi(form)
-      console.log('更新响应:', response)
-      
-      // 检查响应状态
-      if (response.code === 200) {
-        ElMessage.success(t('message.updateSuccess'))
-        dialogVisible.value = false
-        loadData()
-      } else {
-        ElMessage.error(response.message || t('message.operationFailed'))
-      }
+      ElMessage.success(t('message.updateSuccess'))
+      dialogVisible.value = false
+      loadData()
     } else {
-      // 新增模式
-      console.log('新增文物 - 模式:', imageInputMode.value)
-      console.log('表单数据:', form)
+      // 新增模式：先创建文物
+      const response = await addRelicApi(relicData)
       
-      let response
-      if (imageInputMode.value === 'url') {
-        // URL模式：使用原有接口，imagePath已在form中
-        console.log('URL模式，调用 addRelicApi，imagePath:', form.imagePath)
-        response = await addRelicApi(form)
-        console.log('响应:', response)
-      } else if (imageFile.value) {
-        // 上传模式且有文件：使用 FormData
-        console.log('上传模式，调用 addRelicWithImageApi')
-        const formData = new FormData()
-        formData.append('relicName', form.relicName)
-        formData.append('era', form.era || '')
-        formData.append('material', form.material || '')
-        formData.append('status', form.status || '在库')
-        if (form.categoryId) formData.append('categoryId', form.categoryId)
-        if (form.dimensions) formData.append('dimensions', form.dimensions)
-        if (form.weight) formData.append('weight', form.weight)
-        if (form.origin) formData.append('origin', form.origin)
-        if (form.description) formData.append('description', form.description)
-        formData.append('imageFile', imageFile.value)
+      if (response.code === 200 && response.data) {
+        // 获取文物ID
+        const relicId = response.data.id
         
-        response = await addRelicWithImageApi(formData)
-        console.log('响应:', response)
-      } else {
-        // 无图片：使用原有接口
-        console.log('无图片，调用 addRelicApi')
-        response = await addRelicApi(form)
-        console.log('响应:', response)
-      }
-      
-      // 检查响应状态
-      if (response.code === 200) {
+        // 如果有图片，批量上传
+        if (newImageFileList.value.length > 0) {
+          const files = newImageFileList.value.map(file => file.raw).filter(f => f)
+          if (files.length > 0) {
+            await batchUploadImagesApi(relicId, files)
+          }
+        }
+        
         ElMessage.success(t('message.saveSuccess'))
         dialogVisible.value = false
         loadData()
       } else {
-        // 显示后端返回的错误信息
         ElMessage.error(response.message || t('message.operationFailed'))
-        console.error('保存失败:', response.message)
       }
     }
   } catch (error) {
     console.error('提交失败:', error)
-    // 显示更详细的错误信息
     const errorMsg = error.response?.data?.message || error.message || t('message.operationFailed')
     ElMessage.error(errorMsg)
   } finally {
@@ -982,63 +972,37 @@ const submit = async () => {
   }
 }
 
-// 处理图片选择
-const handleImageChange = (file) => {
+// 处理多图片选择
+const handleMultiImageChange = (file, fileList) => {
   const isImage = file.raw.type.startsWith('image/')
   const isLt5M = file.raw.size / 1024 / 1024 < 5
 
   if (!isImage) {
     ElMessage.error(t('relic.onlyImageAllowed'))
+    // 移除非图片文件
+    const index = fileList.indexOf(file)
+    if (index > -1) {
+      fileList.splice(index, 1)
+    }
     return
   }
   if (!isLt5M) {
     ElMessage.error(t('relic.imageSizeLimit'))
+    // 移除超大文件
+    const index = fileList.indexOf(file)
+    if (index > -1) {
+      fileList.splice(index, 1)
+    }
     return
   }
 
-  imageFile.value = file.raw
-  
-  // 生成预览
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    imagePreview.value = e.target.result
-  }
-  reader.readAsDataURL(file.raw)
+  // 更新新上传的文件列表
+  newImageFileList.value = fileList
 }
 
-// 移除图片
-const removeImage = () => {
-  imageFile.value = null
-  imagePreview.value = ''
-  if (uploadRef.value) {
-    uploadRef.value.clearFiles()
-  }
-}
-
-// 验证URL格式
-const isValidUrl = (url) => {
-  if (!url) return false
-  return /^https?:\/\/.+/i.test(url)
-}
-
-// 处理URL输入
-const handleUrlInput = () => {
-  // URL输入时清空文件上传
-  imageFile.value = null
-  imagePreview.value = ''
-  if (uploadRef.value) {
-    uploadRef.value.clearFiles()
-  }
-}
-
-// 清除图片URL
-const clearImageUrl = () => {
-  form.imagePath = ''
-}
-
-// 处理图片加载错误
-const handleImageError = () => {
-  ElMessage.warning(t('relic.imageLoadError'))
+// 处理图片移除
+const handleImageRemove = (file, fileList) => {
+  newImageFileList.value = fileList
 }
 
 const remove = async (id) => {
@@ -1485,6 +1449,56 @@ onMounted(async () => {
 
 /* 图片上传样式 */
 .image-upload-wrapper {
+  width: 100%;
+}
+
+/* 已有图片展示 */
+.existing-images {
+  margin-bottom: 15px;
+}
+
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.image-card {
+  position: relative;
+  border: 2px solid #eadfce;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+  background: #fff;
+}
+
+.image-card.is-main {
+  border-color: #67c23a;
+  box-shadow: 0 0 8px rgba(103, 194, 58, 0.3);
+}
+
+.image-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.image-thumb {
+  width: 100%;
+  height: 120px;
+  display: block;
+  cursor: pointer;
+}
+
+.main-tag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 1;
+  font-weight: 600;
+}
+
+/* 上传区域 */
+.upload-section {
   width: 100%;
 }
 

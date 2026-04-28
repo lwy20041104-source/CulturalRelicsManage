@@ -21,7 +21,6 @@
         <result column="complete_date" property="completeDate"/>
         <result column="repair_process" property="repairProcess"/>
         <result column="repair_method" property="repairMethod"/>
-        <result column="materials_used" property="materialsUsed"/>
         <result column="actual_cost" property="actualCost"/>
         <result column="before_images" property="beforeImages"/>
         <result column="after_images" property="afterImages"/>
@@ -114,8 +113,12 @@
     <update id="updateById">
         UPDATE repair_record
         <set>
+            <if test="relicId != null">relic_id = #{relicId},</if>
             <if test="status != null">status = #{status},</if>
             <if test="priority != null">priority = #{priority},</if>
+            <if test="repairReason != null">repair_reason = #{repairReason},</if>
+            <if test="damageDescription != null">damage_description = #{damageDescription},</if>
+            <if test="estimatedCost != null">estimated_cost = #{estimatedCost},</if>
             <if test="approver != null">approver = #{approver},</if>
             <if test="approveDate != null">approve_date = #{approveDate},</if>
             <if test="approveRemark != null">approve_remark = #{approveRemark},</if>
@@ -124,13 +127,13 @@
             <if test="completeDate != null">complete_date = #{completeDate},</if>
             <if test="repairProcess != null">repair_process = #{repairProcess},</if>
             <if test="repairMethod != null">repair_method = #{repairMethod},</if>
-            <if test="materialsUsed != null">materials_used = #{materialsUsed},</if>
             <if test="actualCost != null">actual_cost = #{actualCost},</if>
             <if test="beforeImages != null">before_images = #{beforeImages},</if>
             <if test="afterImages != null">after_images = #{afterImages},</if>
             <if test="qualityScore != null">quality_score = #{qualityScore},</if>
             <if test="qualityRemark != null">quality_remark = #{qualityRemark},</if>
             <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW()
         </set>
         WHERE id = #{id}
     </update>

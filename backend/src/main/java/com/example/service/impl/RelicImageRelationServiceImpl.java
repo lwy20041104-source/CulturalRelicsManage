@@ -164,7 +164,18 @@ public class RelicImageRelationServiceImpl implements RelicImageRelationService 
     
     @Override
     public List<RelicImageRelation> getRelicImages(Long relicId) {
-        return relationMapper.selectAllByRelicIdWithImage(relicId);
+        // 先查询关联关系
+        List<RelicImageRelation> relations = relationMapper.selectAllByRelicId(relicId);
+        
+        // 手动加载图片信息
+        for (RelicImageRelation relation : relations) {
+            if (relation.getImageId() != null) {
+                ImageLibrary image = imageLibraryMapper.selectById(relation.getImageId());
+                relation.setImage(image);
+            }
+        }
+        
+        return relations;
     }
     
     @Override

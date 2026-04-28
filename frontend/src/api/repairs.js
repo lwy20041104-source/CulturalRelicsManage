@@ -29,6 +29,13 @@ export const applyRepairApi = (data) => {
 }
 
 /**
+ * 更新修复申请（仅限待审批状态）
+ */
+export const updateRepairApplyApi = (id, data) => {
+  return request.put(`/repairs/apply/${id}`, data)
+}
+
+/**
  * 审批修复申请
  */
 export const approveRepairApi = (data) => {

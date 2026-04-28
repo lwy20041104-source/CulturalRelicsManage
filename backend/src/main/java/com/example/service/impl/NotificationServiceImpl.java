@@ -232,6 +232,36 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
+    public void sendRepairUpdateNotification(Long repairId, String relicName, String repairReason, Long senderId) {
+        SystemNotification notification = new SystemNotification();
+        notification.setTitle("修复申请已更新");
+        notification.setContent(String.format("文物\"%s\"的修复申请已更新，修复原因：%s，请重新审核。", relicName, repairReason));
+        notification.setType("REPAIR_UPDATE");
+        notification.setPriority("NORMAL");
+        notification.setRelatedType("REPAIR");
+        notification.setRelatedId(repairId);
+        notification.setSenderId(senderId);
+        
+        // 发送给系统管理员
+        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+    }
+    
+    @Override
+    public void sendRepairWithdrawNotification(Long repairId, String relicName, String repairReason, Long senderId) {
+        SystemNotification notification = new SystemNotification();
+        notification.setTitle("修复申请已撤回");
+        notification.setContent(String.format("文物\"%s\"的修复申请已被撤回，原修复原因：%s。", relicName, repairReason));
+        notification.setType("REPAIR_WITHDRAW");
+        notification.setPriority("NORMAL");
+        notification.setRelatedType("REPAIR");
+        notification.setRelatedId(repairId);
+        notification.setSenderId(senderId);
+        
+        // 发送给系统管理员
+        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+    }
+    
+    @Override
     public void sendLoanApprovalNotification(Long loanId, Long borrowerId, String relicName, boolean approved, String approverName) {
         SystemNotification notification = new SystemNotification();
         notification.setTitle(approved ? "借展申请已通过" : "借展申请已驳回");

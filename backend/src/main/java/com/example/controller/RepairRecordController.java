@@ -171,6 +171,104 @@ public class RepairRecordController {
     }
     
     /**
+     * 更新修复申请（仅限待审批状态）
+     */
+    @PutMapping("/apply/{id}")
+    @OperationLog(operationType = "修改", operationModule = "文物修复", operationContent = "更新修复申请")
+    public Result<Boolean> updateRepairApply(@PathVariable Long id,
+                                             @RequestBody RepairApplyRequest request,
+                                             Authentication authentication,
+                                             javax.servlet.http.HttpServletRequest httpRequest) {
+        // 1. 获取原记录
+        RepairRecord oldRecord = repairRecordService.getById(id);
+        if (oldRecord == null) {
+            return Result.error("修复记录不存在");
+        }
+        
+        // 2. 权限检查：只能修改自己的申请
+        if (authentication != null) {
+            try {
+                Long currentUserId = userContextUtil.getCurrentUserId();
+                if (oldRecord.getApplicantId() == null || !oldRecord.getApplicantId().equals(currentUserId)) {
+                    return Result.error("无权修改此申请");
+                }
+            } catch (Exception e) {
+                System.err.println("权限检查失败: " + e.getMessage());
+                return Result.error("权限验证失败");
+            }
+        }
+        
+        // 3. 状态检查：只能修改待审批的申请
+        if (!"待审批".equals(oldRecord.getStatus())) {
+            return Result.error("只能修改待审批状态的申请");
+        }
+        
+        // 4. 验证文物是否有其他正在进行的修复（排除当前记录）
+        if (request.getRelicId() != null && !request.getRelicId().equals(oldRecord.getRelicId())) {
+            List<RepairRecord> existingRepairs = repairRecordService.listByRelicId(request.getRelicId());
+            for (RepairRecord repair : existingRepairs) {
+                if (!repair.getId().equals(id)) {
+                    String status = repair.getStatus();
+                    if ("待审批".equals(status) || "待修复".equals(status) || "修复中".equals(status)) {
+                        return Result.error("该文物已有正在进行的修复申请（状态：" + status + "），不能修改为此文物");
+                    }
+                }
+            }
+        }
+        
+        // 5. 执行更新操作
+        request.setId(id);
+        boolean success = repairRecordService.updateRepairApply(request);
+        
+        // 6. 发送更新通知
+        if (success) {
+            try {
+                RepairRecord updatedRecord = repairRecordService.getById(id);
+                Long currentUserId = userContextUtil.getCurrentUserId();
+                
+                notificationService.sendRepairUpdateNotification(
+                    id,
+                    updatedRecord.getRelicName() != null ? updatedRecord.getRelicName() : "未知文物",
+                    updatedRecord.getRepairReason(),
+                    currentUserId
+                );
+                System.out.println("修复申请更新通知已发送：repairId=" + id + ", relic=" + updatedRecord.getRelicName());
+            } catch (Exception e) {
+                System.err.println("发送修复申请更新通知失败: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        // 7. 记录审计日志
+        if (success) {
+            try {
+                RepairRecord newRecord = repairRecordService.getById(id);
+                String realName = userContextUtil.getCurrentUserRealName();
+                Long userId = userContextUtil.getCurrentUserId();
+                String ipAddress = getClientIp(httpRequest);
+                
+                operationLogService.logDataChange(
+                    userId,
+                    realName,
+                    "修改",
+                    "文物修复",
+                    "REPAIR",
+                    id,
+                    oldRecord,
+                    newRecord,
+                    ipAddress,
+                    "PUT",
+                    "/repairs/apply/" + id
+                );
+            } catch (Exception e) {
+                System.err.println("记录审计日志失败: " + e.getMessage());
+            }
+        }
+        
+        return Result.success("修复申请已更新", success);
+    }
+    
+    /**
      * 审批修复申请
      */
     @PutMapping("/approve")
@@ -416,7 +514,25 @@ public class RepairRecordController {
         // 2. 执行删除操作
         boolean success = repairRecordService.deleteById(id);
         
-        // 3. 记录审计日志
+        // 3. 发送撤回通知（仅当状态为待审批时）
+        if (success && "待审批".equals(oldRecord.getStatus())) {
+            try {
+                Long currentUserId = userContextUtil.getCurrentUserId();
+                
+                notificationService.sendRepairWithdrawNotification(
+                    id,
+                    oldRecord.getRelicName() != null ? oldRecord.getRelicName() : "未知文物",
+                    oldRecord.getRepairReason(),
+                    currentUserId
+                );
+                System.out.println("修复申请撤回通知已发送：repairId=" + id + ", relic=" + oldRecord.getRelicName());
+            } catch (Exception e) {
+                System.err.println("发送修复申请撤回通知失败: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        // 4. 记录审计日志
         if (success && oldRecord != null) {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();

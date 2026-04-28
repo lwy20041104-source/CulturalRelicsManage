@@ -64,16 +64,16 @@
         <el-table-column prop="remark" :label="$t('common.remark')" show-overflow-tooltip />
         <el-table-column :label="$t('common.action')" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="showStatistics(row)">
+            <el-button link type="primary" @click="showStatistics(row)">
               {{ $t('repairMaterials.statistics') }}
             </el-button>
-            <el-button size="small" type="primary" @click="showUpdateStock(row)">
+            <el-button link type="warning" @click="showUpdateStock(row)">
               {{ $t('repairMaterials.updateStock') }}
             </el-button>
-            <el-button size="small" @click="showEditDialog(row)">
+            <el-button link type="primary" @click="showEditDialog(row)">
               {{ $t('common.edit') }}
             </el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">
+            <el-button link type="danger" @click="handleDelete(row)">
               {{ $t('common.delete') }}
             </el-button>
           </template>

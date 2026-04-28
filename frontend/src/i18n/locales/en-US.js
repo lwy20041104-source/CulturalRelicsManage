@@ -225,6 +225,7 @@ export default {
     description: 'Description',
     status: 'Status',
     image: 'Image',
+    images: 'Images',
     imagePath: 'Image Path',
     inStock: 'In Stock',
     onLoan: 'On Loan',
@@ -1161,6 +1162,7 @@ export default {
   relicImages: {
     title: 'Relic Images',
     uploadImages: 'Upload Images',
+    uploadMoreImages: 'Upload More Images',
     mainImage: 'Main Image',
     setAsMain: 'Set as Main',
     deleteImage: 'Delete',
@@ -1179,6 +1181,7 @@ export default {
     deleteFailed: 'Failed to delete image',
     pleaseSelectImages: 'Please select images to upload',
     imageManager: 'Image Manager',
-    currentImages: 'Current Images'
+    currentImages: 'Current Images',
+    firstImageAsMain: 'The first image will be set as the main image automatically'
   }
 }

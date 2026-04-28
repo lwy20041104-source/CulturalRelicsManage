@@ -52,13 +52,18 @@ public class CulturalRelicController {
 
     @PostMapping
     @OperationLog(operationType = "新增", operationModule = "文物管理", operationContent = "新增文物")
-    public Result<Boolean> save(@RequestBody CulturalRelic relic) {
+    public Result<CulturalRelic> save(@RequestBody CulturalRelic relic) {
         relic.setCreateTime(LocalDateTime.now());
         relic.setUpdateTime(LocalDateTime.now());
         if (relic.getStatus() == null || relic.getStatus().isEmpty()) {
             relic.setStatus("在库");
         }
-        return Result.success("新增成功", culturalRelicService.save(relic));
+        boolean success = culturalRelicService.save(relic);
+        if (success) {
+            return Result.success("新增成功", relic);
+        } else {
+            return Result.error("新增失败");
+        }
     }
 
     /**

@@ -8,7 +8,7 @@
         SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
         FROM cultural_relic cr
         LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
-        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id AND rir.is_main = 1
         LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
         <where>
             <if test="relicName != null and relicName != ''">
@@ -50,16 +50,16 @@
         SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
         FROM cultural_relic cr
         LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
-        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id AND rir.is_main = 1
         LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
-        WHERE cr.id = #{id} LIMIT 1
+        WHERE cr.id = #{id}
     </select>
 
     <select id="selectAll" resultType="com.example.entity.CulturalRelic">
         SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
         FROM cultural_relic cr
         LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
-        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id AND rir.is_main = 1
         LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
         ORDER BY cr.id ASC
     </select>
@@ -150,7 +150,7 @@
         SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
         FROM cultural_relic cr
         LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
-        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id
+        LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id AND rir.is_main = 1
         LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
         WHERE cr.id NOT IN (
             SELECT DISTINCT rr.relic_id

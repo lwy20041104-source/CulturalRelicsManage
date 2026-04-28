@@ -65,14 +65,11 @@
           {{ formatCost(scope.row.actualCost) }}
         </template>
       </el-table-column>
-      <el-table-column :label="$t('common.operation')" width="280" fixed="right">
+      <el-table-column :label="$t('common.operation')" width="250" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <el-button v-if="scope.row.status === '待审批'" link type="success" @click="openApprove(scope.row)">{{ $t('repair.approve') }}</el-button>
-          <el-button v-if="scope.row.status === '待修复'" link type="warning" @click="startRepair(scope.row.id)">{{ $t('repair.startRepair') }}</el-button>
-          <el-button v-if="scope.row.status === '修复中'" link type="primary" @click="openProgress(scope.row)">{{ $t('repair.updateProgress') }}</el-button>
-          <el-button v-if="scope.row.status === '修复中'" link type="success" @click="openComplete(scope.row)">{{ $t('repair.completeRepair') }}</el-button>
-          <el-button v-if="['待审批', '已拒绝'].includes(scope.row.status)" link type="danger" @click="remove(scope.row.id)">{{ $t('common.delete') }}</el-button>
+          <el-button v-if="scope.row.status === '待审批'" link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
+          <el-button v-if="scope.row.status === '待审批'" link type="warning" @click="remove(scope.row.id)">{{ $t('repair.withdraw') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -88,7 +85,7 @@
     />
 
     <!-- 申请修复对话框 -->
-    <el-dialog v-model="applyDialogVisible" :title="$t('repair.addRepair')" width="700px">
+    <el-dialog v-model="applyDialogVisible" :title="applyForm.id ? $t('common.edit') + $t('repair.title') : $t('repair.addRepair')" width="700px">
       <el-form ref="applyFormRef" :model="applyForm" :rules="applyRules" label-width="110px">
         <el-form-item :label="$t('repair.relicName')" prop="relicId">
           <el-select v-model="applyForm.relicId" :placeholder="$t('common.pleaseSelect')" style="width: 100%" filterable>
@@ -202,94 +199,6 @@
       </template>
     </el-dialog>
 
-    <!-- 审批对话框 -->
-    <el-dialog v-model="approveDialogVisible" :title="$t('repair.approveRepair')" width="500px">
-      <el-form ref="approveFormRef" :model="approveForm" :rules="approveRules" label-width="100px">
-        <el-form-item :label="$t('repair.approve')" prop="approved">
-          <el-radio-group v-model="approveForm.approved">
-            <el-radio :label="true">{{ $t('loan.approve') }}</el-radio>
-            <el-radio :label="false">{{ $t('loan.reject') }}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item v-if="approveForm.approved" :label="$t('repair.repairExpert')" prop="repairExpert">
-          <el-select v-model="approveForm.repairExpert" :placeholder="$t('common.pleaseSelect')" style="width: 100%">
-            <el-option v-for="item in expertOptions" :key="item.expertName" :label="`${item.expertName} (${item.specialty})`" :value="item.expertName" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('loan.approveRemark')" prop="approveRemark">
-          <el-input v-model="approveForm.approveRemark" type="textarea" :rows="3" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="approveDialogVisible = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submitApprove">{{ $t('common.confirm') }}</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 更新进度对话框 -->
-    <el-dialog v-model="progressDialogVisible" :title="$t('repair.updateProgress')" width="600px">
-      <el-form ref="progressFormRef" :model="progressForm" label-width="100px">
-        <el-form-item :label="$t('repair.repairProcess')">
-          <el-input v-model="progressForm.repairProcess" type="textarea" :rows="3" />
-        </el-form-item>
-        <el-form-item :label="$t('repair.repairMethod')">
-          <el-input v-model="progressForm.repairMethod" type="textarea" :rows="2" />
-        </el-form-item>
-        <el-form-item :label="$t('repair.materialsUsed')">
-          <el-input v-model="progressForm.materialsUsed" />
-        </el-form-item>
-        <el-form-item :label="$t('repair.actualCost')">
-          <el-input-number v-model="progressForm.actualCost" :min="0" :precision="2" :controls="false" style="width: 90%" />
-          <span class="unit-text">{{ $t('repair.currencyUnit') }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('repair.afterImages')">
-          <el-input v-model="progressForm.afterImages" :placeholder="$t('common.pleaseInput')" />
-        </el-form-item>
-        <el-form-item :label="$t('common.remark')">
-          <el-input v-model="progressForm.remark" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="progressDialogVisible = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submitProgress">{{ $t('common.save') }}</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 完成修复对话框 -->
-    <el-dialog v-model="completeDialogVisible" :title="$t('repair.completeRepair')" width="600px">
-      <el-form ref="completeFormRef" :model="completeForm" label-width="100px">
-        <el-form-item :label="$t('repair.repairProcess')">
-          <el-input v-model="completeForm.repairProcess" type="textarea" :rows="3" />
-        </el-form-item>
-        <el-form-item :label="$t('repair.repairMethod')">
-          <el-input v-model="completeForm.repairMethod" type="textarea" :rows="2" />
-        </el-form-item>
-        <el-form-item :label="$t('repair.materialsUsed')">
-          <el-input v-model="completeForm.materialsUsed" />
-        </el-form-item>
-        <el-form-item :label="$t('repair.actualCost')">
-          <el-input-number v-model="completeForm.actualCost" :min="0" :precision="2" :controls="false" style="width: 90%" />
-          <span class="unit-text">{{ $t('repair.currencyUnit') }}</span>
-        </el-form-item>
-        <el-form-item :label="$t('repair.afterImages')">
-          <el-input v-model="completeForm.afterImages" :placeholder="$t('common.pleaseInput')" />
-        </el-form-item>
-        <el-form-item :label="$t('repair.qualityScore')">
-          <el-slider v-model="completeForm.qualityScore" :min="0" :max="100" show-input />
-        </el-form-item>
-        <el-form-item :label="$t('repair.qualityRemark')">
-          <el-input v-model="completeForm.qualityRemark" type="textarea" :rows="2" />
-        </el-form-item>
-        <el-form-item :label="$t('common.remark')">
-          <el-input v-model="completeForm.remark" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="completeDialogVisible = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submitComplete">{{ $t('repair.completeRepair') }}</el-button>
-      </template>
-    </el-dialog>
-
     <!-- 详情对话框 -->
     <el-dialog v-model="detailDialogVisible" :title="$t('repair.title') + $t('common.detail')" width="900px">
       <el-descriptions v-if="currentDetail" :column="2" border>
@@ -385,7 +294,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getRepairsPageApi, applyRepairApi, approveRepairApi, startRepairApi, updateProgressApi, completeRepairApi, deleteRepairApi, getEnabledExpertsApi } from '../api/repairs'
+import { getRepairsPageApi, applyRepairApi, updateRepairApplyApi, deleteRepairApi, getEnabledExpertsApi } from '../api/repairs'
 import { getAvailableForRepairApi } from '../api/relics'
 import { getRepairRecordMaterials, getAllMaterials, addMaterialUsage, deleteMaterialUsage } from '../api/repairMaterial'
 
@@ -402,17 +311,11 @@ const allMaterialOptions = ref([])
 const relicOptions = ref([])
 const expertOptions = ref([])
 const applyDialogVisible = ref(false)
-const approveDialogVisible = ref(false)
-const progressDialogVisible = ref(false)
-const completeDialogVisible = ref(false)
 const detailDialogVisible = ref(false)
 const currentDetail = ref(null)
 const detailMaterialsList = ref([])
 const detailMaterialsLoading = ref(false)
 const applyFormRef = ref()
-const approveFormRef = ref()
-const progressFormRef = ref()
-const completeFormRef = ref()
 
 const query = reactive({ pageNum: 1, pageSize: 10, status: '', priority: '', relicName: '', repairExpert: '' })
 const applyForm = reactive({ 
@@ -426,9 +329,6 @@ const applyForm = reactive({
   remark: '',
   materials: [] // 申请时的材料列表
 })
-const approveForm = reactive({ id: null, approved: true, repairExpert: '', approveRemark: '' })
-const progressForm = reactive({ id: null, repairProcess: '', repairMethod: '', materialsUsed: '', actualCost: 0, afterImages: '', remark: '' })
-const completeForm = reactive({ id: null, repairProcess: '', repairMethod: '', materialsUsed: '', actualCost: 0, afterImages: '', qualityScore: 85, qualityRemark: '', remark: '' })
 
 // 添加材料表单
 const addMaterialForm = reactive({
@@ -443,11 +343,6 @@ const applyRules = {
   priority: [{ required: true, message: t('validation.required'), trigger: 'change' }],
   repairReason: [{ required: true, message: t('validation.required'), trigger: 'blur' }],
   damageDescription: [{ required: true, message: t('validation.required'), trigger: 'blur' }]
-}
-
-const approveRules = {
-  approved: [{ required: true, message: t('validation.required'), trigger: 'change' }],
-  repairExpert: [{ required: true, message: t('validation.required'), trigger: 'change' }]
 }
 
 const getStatusType = (status) => {
@@ -509,6 +404,7 @@ const showMaterials = async (row) => {
 
 const openApply = () => {
   Object.assign(applyForm, { 
+    id: null,
     relicId: null, 
     priority: t('repair.normal'), 
     repairReason: '', 
@@ -518,6 +414,51 @@ const openApply = () => {
     beforeImages: '', 
     remark: '',
     materials: []
+  })
+  applyDialogVisible.value = true
+}
+
+const openEdit = async (row) => {
+  // 加载材料列表
+  let existingMaterials = []
+  try {
+    const res = await getRepairRecordMaterials(row.id)
+    existingMaterials = (res.data || []).map(m => ({
+      materialId: m.materialId,
+      materialName: m.materialName,
+      materialCode: m.materialCode,
+      unit: m.unit,
+      quantity: m.quantity,
+      unitPrice: m.unitPrice,
+      totalPrice: m.totalPrice,
+      remark: m.remark
+    }))
+  } catch (error) {
+    console.error('加载材料列表失败:', error)
+  }
+  
+  // 确保当前文物在选项列表中
+  const currentRelicInOptions = relicOptions.value.some(r => r.id === row.relicId)
+  if (!currentRelicInOptions && row.relicId && row.relicName) {
+    // 将当前文物添加到选项列表的开头
+    relicOptions.value.unshift({
+      id: row.relicId,
+      relicName: row.relicName,
+      relicCode: row.relicCode || ''
+    })
+  }
+  
+  Object.assign(applyForm, {
+    id: row.id,
+    relicId: row.relicId,
+    priority: row.priority,
+    repairReason: row.repairReason,
+    damageDescription: row.damageDescription,
+    estimatedCost: row.estimatedCost || 0,
+    repairExpert: row.repairExpert || '',
+    beforeImages: row.beforeImages || '',
+    remark: row.remark || '',
+    materials: existingMaterials
   })
   applyDialogVisible.value = true
 }
@@ -586,11 +527,34 @@ const submitApply = async () => {
   // 自动计算预估费用
   applyForm.estimatedCost = calculateTotalCost()
   
-  const res = await applyRepairApi(applyForm)
+  let res
+  if (applyForm.id) {
+    // 更新模式
+    res = await updateRepairApplyApi(applyForm.id, applyForm)
+    ElMessage.success(t('message.updateSuccess'))
+  } else {
+    // 新增模式
+    res = await applyRepairApi(applyForm)
+    ElMessage.success(t('message.saveSuccess'))
+  }
   
-  // 如果有材料，添加材料使用记录
-  if (applyForm.materials.length > 0 && res.data && res.data.id) {
-    const repairRecordId = res.data.id
+  // 如果有材料，处理材料使用记录
+  if (applyForm.materials.length > 0 && res.data) {
+    const repairRecordId = applyForm.id || res.data.id
+    
+    if (applyForm.id) {
+      // 编辑模式：先删除旧的材料记录，再添加新的
+      try {
+        const existingMaterials = await getRepairRecordMaterials(repairRecordId)
+        for (const material of existingMaterials.data || []) {
+          await deleteMaterialUsage(material.id)
+        }
+      } catch (error) {
+        console.error('删除旧材料记录失败:', error)
+      }
+    }
+    
+    // 添加新的材料记录
     for (const material of applyForm.materials) {
       try {
         await addMaterialUsage({
@@ -606,7 +570,6 @@ const submitApply = async () => {
     }
   }
   
-  ElMessage.success(t('message.saveSuccess'))
   applyDialogVisible.value = false
   loadData()
 }
@@ -614,47 +577,6 @@ const submitApply = async () => {
 const openApprove = (row) => {
   Object.assign(approveForm, { id: row.id, approved: true, repairExpert: '', approveRemark: '' })
   approveDialogVisible.value = true
-}
-
-const submitApprove = async () => {
-  if (approveForm.approved) {
-    await approveFormRef.value?.validate()
-  }
-  await approveRepairApi(approveForm)
-  ElMessage.success(t('loan.approveSuccess'))
-  approveDialogVisible.value = false
-  loadData()
-}
-
-const startRepair = async (id) => {
-  await ElMessageBox.confirm(t('repair.confirmStartRepair'), t('message.tip'), { type: 'warning' })
-  await startRepairApi(id)
-  ElMessage.success(t('message.operationSuccess'))
-  loadData()
-}
-
-const openProgress = (row) => {
-  Object.assign(progressForm, { id: row.id, repairProcess: row.repairProcess || '', repairMethod: row.repairMethod || '', materialsUsed: row.materialsUsed || '', actualCost: row.actualCost || 0, afterImages: row.afterImages || '', remark: row.remark || '' })
-  progressDialogVisible.value = true
-}
-
-const submitProgress = async () => {
-  await updateProgressApi(progressForm)
-  ElMessage.success(t('message.updateSuccess'))
-  progressDialogVisible.value = false
-  loadData()
-}
-
-const openComplete = (row) => {
-  Object.assign(completeForm, { id: row.id, repairProcess: row.repairProcess || '', repairMethod: row.repairMethod || '', materialsUsed: row.materialsUsed || '', actualCost: row.actualCost || 0, afterImages: row.afterImages || '', qualityScore: 85, qualityRemark: '', remark: row.remark || '' })
-  completeDialogVisible.value = true
-}
-
-const submitComplete = async () => {
-  await completeRepairApi(completeForm.id, completeForm)
-  ElMessage.success(t('message.operationSuccess'))
-  completeDialogVisible.value = false
-  loadData()
 }
 
 const viewDetail = async (row) => {
@@ -679,9 +601,9 @@ const viewDetail = async (row) => {
 }
 
 const remove = async (id) => {
-  await ElMessageBox.confirm(t('message.confirmDelete'), t('message.tip'), { type: 'warning' })
+  await ElMessageBox.confirm(t('repair.withdrawConfirm'), t('message.tip'), { type: 'warning' })
   await deleteRepairApi(id)
-  ElMessage.success(t('message.deleteSuccess'))
+  ElMessage.success(t('repair.withdrawSuccess'))
   loadData()
 }
 

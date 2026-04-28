@@ -98,6 +98,26 @@ public interface NotificationService {
     void sendRepairApplyNotification(Long repairId, String relicName, String repairReason, Long senderId);
     
     /**
+     * 发送修复申请更新通知
+     * 
+     * @param repairId 修复记录ID
+     * @param relicName 文物名称
+     * @param repairReason 修复原因
+     * @param senderId 发送人ID
+     */
+    void sendRepairUpdateNotification(Long repairId, String relicName, String repairReason, Long senderId);
+    
+    /**
+     * 发送修复申请撤回通知
+     * 
+     * @param repairId 修复记录ID
+     * @param relicName 文物名称
+     * @param repairReason 修复原因
+     * @param senderId 发送人ID
+     */
+    void sendRepairWithdrawNotification(Long repairId, String relicName, String repairReason, Long senderId);
+    
+    /**
      * 发送借展审批结果通知
      * 
      * @param loanId 借展记录ID

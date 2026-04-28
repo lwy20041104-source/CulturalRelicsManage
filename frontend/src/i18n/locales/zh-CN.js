@@ -225,6 +225,7 @@ export default {
     description: '描述',
     status: '状态',
     image: '图片',
+    images: '图片',
     imagePath: '图片路径',
     inStock: '在库',
     onLoan: '借展中',
@@ -1162,6 +1163,7 @@ export default {
   relicImages: {
     title: '文物图片',
     uploadImages: '上传图片',
+    uploadMoreImages: '继续上传图片',
     mainImage: '主图',
     setAsMain: '设为主图',
     deleteImage: '删除',
@@ -1180,6 +1182,7 @@ export default {
     deleteFailed: '删除图片失败',
     pleaseSelectImages: '请选择要上传的图片',
     imageManager: '图片管理',
-    currentImages: '当前图片'
+    currentImages: '当前图片',
+    firstImageAsMain: '第一张图片将自动设为主图'
   }
 }
