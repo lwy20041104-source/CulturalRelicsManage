@@ -225,11 +225,11 @@ public class LoanRecordServiceImpl implements LoanRecordService {
                 try {
                     notificationService.sendUserReturnNotification(
                         loanRecord.getId(),
-                        username,
+                        currentUser.getRealName(),
                         relic.getRelicName()
                     );
                     log.info("用户主动归还文物，已发送通知：loanId={}, user={}, relic={}", 
-                            loanRecord.getId(), username, relic.getRelicName());
+                            loanRecord.getId(), currentUser.getRealName(), relic.getRelicName());
                 } catch (Exception e) {
                     log.error("发送用户归还通知失败：loanId={}, error={}", loanRecord.getId(), e.getMessage(), e);
                 }

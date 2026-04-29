@@ -227,8 +227,8 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRelatedId(repairId);
         notification.setSenderId(senderId);
         
-        // 发送给系统管理员和文物保管员
-        createAndSendNotification(notification, Arrays.asList("ADMIN", "CURATOR"));
+        // 发送给系统管理员和申请审批员
+        createAndSendNotification(notification, Arrays.asList("ADMIN", "APPROVER"));
     }
     
     @Override
@@ -242,8 +242,8 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRelatedId(repairId);
         notification.setSenderId(senderId);
         
-        // 发送给系统管理员
-        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+        // 发送给系统管理员和申请审批员
+        createAndSendNotification(notification, Arrays.asList("ADMIN", "APPROVER"));
     }
     
     @Override
@@ -257,8 +257,8 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRelatedId(repairId);
         notification.setSenderId(senderId);
         
-        // 发送给系统管理员
-        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+        // 发送给系统管理员和申请审批员
+        createAndSendNotification(notification, Arrays.asList("ADMIN", "APPROVER"));
     }
     
     @Override
@@ -275,8 +275,8 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRelatedId(maintenanceId);
         notification.setSenderId(senderId);
         
-        // 发送给系统管理员
-        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+        // 发送给系统管理员和申请审批员
+        createAndSendNotification(notification, Arrays.asList("ADMIN", "APPROVER"));
         log.info("维护申请通知发送完成：maintenanceId={}", maintenanceId);
     }
     
@@ -293,7 +293,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setSenderName(approverName);
         notification.setCreateTime(LocalDateTime.now());
         
-        // 发送给维护人
+        // 发送给维护人（文物保管员）
         notificationMapper.insert(notification);
         
         UserNotification userNotification = new UserNotification();
@@ -302,6 +302,15 @@ public class NotificationServiceImpl implements NotificationService {
         userNotification.setIsRead(0);
         userNotification.setCreateTime(LocalDateTime.now());
         userNotificationMapper.insert(userNotification);
+        
+        // 通过WebSocket实时推送通知
+        try {
+            NotificationVO vo = convertToVO(notification);
+            webSocketNotificationService.sendNotificationToUser(maintainerId, vo);
+            log.info("维护审批结果WebSocket通知已推送：userId={}, approved={}", maintainerId, approved);
+        } catch (Exception e) {
+            log.error("维护审批结果WebSocket推送失败：userId={}, error={}", maintainerId, e.getMessage(), e);
+        }
     }
     
     @Override
@@ -315,8 +324,8 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRelatedId(maintenanceId);
         notification.setSenderId(senderId);
         
-        // 发送给系统管理员
-        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+        // 发送给系统管理员和申请审批员
+        createAndSendNotification(notification, Arrays.asList("ADMIN", "APPROVER"));
     }
     
     @Override
@@ -341,6 +350,15 @@ public class NotificationServiceImpl implements NotificationService {
         userNotification.setIsRead(0);
         userNotification.setCreateTime(LocalDateTime.now());
         userNotificationMapper.insert(userNotification);
+        
+        // 通过WebSocket实时推送通知
+        try {
+            NotificationVO vo = convertToVO(notification);
+            webSocketNotificationService.sendNotificationToUser(borrowerId, vo);
+            log.info("借展审批结果WebSocket通知已推送：userId={}, approved={}", borrowerId, approved);
+        } catch (Exception e) {
+            log.error("借展审批结果WebSocket推送失败：userId={}, error={}", borrowerId, e.getMessage(), e);
+        }
     }
     
     @Override
@@ -356,7 +374,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setSenderName(approverName);
         notification.setCreateTime(LocalDateTime.now());
         
-        // 发送给申请人
+        // 发送给申请人（文物保管员）
         notificationMapper.insert(notification);
         
         UserNotification userNotification = new UserNotification();
@@ -365,6 +383,15 @@ public class NotificationServiceImpl implements NotificationService {
         userNotification.setIsRead(0);
         userNotification.setCreateTime(LocalDateTime.now());
         userNotificationMapper.insert(userNotification);
+        
+        // 通过WebSocket实时推送通知
+        try {
+            NotificationVO vo = convertToVO(notification);
+            webSocketNotificationService.sendNotificationToUser(applicantId, vo);
+            log.info("修复审批结果WebSocket通知已推送：userId={}, approved={}", applicantId, approved);
+        } catch (Exception e) {
+            log.error("修复审批结果WebSocket推送失败：userId={}, error={}", applicantId, e.getMessage(), e);
+        }
     }
     
     @Override

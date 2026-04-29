@@ -312,12 +312,13 @@ public class RepairRecordController {
         if (success && oldRecord != null && oldRecord.getApplicantId() != null) {
             try {
                 RepairRecord record = repairRecordService.getById(request.getId());
+                String approverRealName = userContextUtil.getCurrentUserRealName();
                 notificationService.sendRepairApprovalNotification(
                     record.getId(),
                     record.getApplicantId(),
                     record.getRelicName(),
                     Boolean.TRUE.equals(request.getApproved()),
-                    approver
+                    approverRealName
                 );
                 System.out.println("修复审批通知已发送：repairId=" + record.getId() + 
                                  ", applicantId=" + record.getApplicantId() + 

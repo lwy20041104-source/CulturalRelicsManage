@@ -15,6 +15,13 @@
           </div>
           <div class="header-right">
             <el-button 
+              type="success"
+              @click="markAllUnreadAsRead"
+            >
+              <el-icon><Check /></el-icon>
+              {{ t('notification.markAllRead') }}
+            </el-button>
+            <el-button 
               v-if="selectedIds.length > 0" 
               type="warning"
               @click="batchMarkRead"
@@ -311,6 +318,38 @@ const batchMarkRead = async () => {
     loadNotifications()
   } catch (error) {
     ElMessage.error(t('notification.batchMarkReadFailed'))
+  }
+}
+
+// 全部已读（标记所有未读通知为已读）
+const markAllUnreadAsRead = async () => {
+  try {
+    // 获取所有未读通知的ID
+    const unreadNotifications = notificationsList.value.filter(n => !n.isRead)
+    
+    if (unreadNotifications.length === 0) {
+      ElMessage.info(t('notification.noUnreadNotifications'))
+      return
+    }
+    
+    await ElMessageBox.confirm(
+      t('notification.markAllReadConfirm').replace('{count}', unreadNotifications.length),
+      t('common.warning'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'info'
+      }
+    )
+    
+    const unreadIds = unreadNotifications.map(n => n.id)
+    await markAllAsReadApi(unreadIds)
+    ElMessage.success(t('notification.markAllReadSuccess'))
+    loadNotifications()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(t('notification.markAllReadFailed'))
+    }
   }
 }
 

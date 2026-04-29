@@ -45,14 +45,12 @@
       <el-table-column :label="$t('repair.materialsUsed')" width="150">
         <template #default="scope">
           <el-button 
-            v-if="scope.row.status === '修复完成' || scope.row.status === '修复中'"
             size="small" 
             type="text" 
             @click="showMaterials(scope.row)"
           >
             {{ $t('repair.viewMaterials') }}
           </el-button>
-          <span v-else style="color: #909399;">—</span>
         </template>
       </el-table-column>
       <el-table-column prop="estimatedCost" :label="$t('repair.estimatedCost')" width="110">
@@ -65,11 +63,14 @@
           {{ formatCost(scope.row.actualCost) }}
         </template>
       </el-table-column>
-      <el-table-column :label="$t('common.operation')" :width="isAdminOrApprover ? 210 : 250" fixed="right">
+      <el-table-column :label="$t('common.operation')" :width="isAdminOrApprover ? 240 : 250" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <!-- 管理员和审批员：只显示审批按钮 -->
-          <el-button v-if="isAdminOrApprover && scope.row.status === '待审批'" link type="warning" @click="openApprove(scope.row)">审批</el-button>
+          <!-- 管理员和审批员：显示批准和驳回按钮 -->
+          <template v-if="isAdminOrApprover && scope.row.status === '待审批'">
+            <el-button link type="success" @click="quickApprove(scope.row, true)">批准</el-button>
+            <el-button link type="danger" @click="quickApprove(scope.row, false)">驳回</el-button>
+          </template>
           <!-- 保管员：只显示编辑和撤回按钮 -->
           <template v-if="!isAdminOrApprover && scope.row.status === '待审批'">
             <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
@@ -111,18 +112,13 @@
         <el-form-item :label="$t('repair.damageDescription')" prop="damageDescription">
           <el-input v-model="applyForm.damageDescription" type="textarea" :rows="3" />
         </el-form-item>
-        <el-form-item :label="$t('repair.repairExpert')">
-          <el-select v-model="applyForm.repairExpert" :placeholder="$t('common.pleaseSelect')" clearable style="width: 100%">
-            <el-option v-for="item in expertOptions" :key="item.expertName" :label="`${item.expertName} (${item.specialty})`" :value="item.expertName" />
-          </el-select>
-        </el-form-item>
         <el-form-item :label="$t('repair.beforeImages')">
           <el-input v-model="applyForm.beforeImages" :placeholder="$t('common.pleaseInput')" />
         </el-form-item>
         
         <!-- 材料选择区域 -->
         <el-divider content-position="left">{{ $t('repair.materialsUsed') }}</el-divider>
-        <el-form-item :label="$t('repairMaterials.materialName')">
+        <el-form-item :label="$t('repairMaterials.materialName')" required>
           <el-select 
             v-model="addMaterialForm.materialId" 
             :placeholder="$t('common.pleaseSelect')" 
@@ -140,7 +136,7 @@
         </el-form-item>
         <el-row :gutter="10">
           <el-col :span="8">
-            <el-form-item :label="$t('repairMaterials.quantity')">
+            <el-form-item :label="$t('repairMaterials.quantity')" required>
               <el-input-number v-model="addMaterialForm.quantity" :min="0.01" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
@@ -201,6 +197,35 @@
       <template #footer>
         <el-button @click="applyDialogVisible = false">{{ $t('common.cancel') }}</el-button>
         <el-button type="primary" @click="submitApply">{{ $t('common.submit') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 审批对话框 -->
+    <el-dialog v-model="approveDialogVisible" title="批准修复申请" width="560px">
+      <el-form ref="approveFormRef" :model="approveForm" :rules="approveRules" label-width="100px">
+        <el-form-item label="文物名称">
+          <el-input v-model="approveForm.relicName" disabled />
+        </el-form-item>
+        <el-form-item label="修复原因">
+          <el-input v-model="approveForm.repairReason" type="textarea" :rows="2" disabled />
+        </el-form-item>
+        <el-form-item label="修复专家" prop="repairExpert">
+          <el-select v-model="approveForm.repairExpert" :placeholder="$t('common.pleaseSelect')" style="width: 100%" filterable>
+            <el-option 
+              v-for="item in expertOptions" 
+              :key="item.expertName" 
+              :label="`${item.expertName} (${item.specialty})`" 
+              :value="item.expertName" 
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="审批备注">
+          <el-input v-model="approveForm.approveRemark" type="textarea" :rows="2" placeholder="选填" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="approveDialogVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitApprove">{{ $t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
@@ -299,7 +324,7 @@
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getRepairsPageApi, applyRepairApi, updateRepairApplyApi, deleteRepairApi, getEnabledExpertsApi } from '../api/repairs'
+import { getRepairsPageApi, applyRepairApi, updateRepairApplyApi, deleteRepairApi, getEnabledExpertsApi, approveRepairApi } from '../api/repairs'
 import { getAvailableForRepairApi } from '../api/relics'
 import { getRepairRecordMaterials, getAllMaterials, addMaterialUsage, deleteMaterialUsage } from '../api/repairMaterial'
 
@@ -322,11 +347,13 @@ const allMaterialOptions = ref([])
 const relicOptions = ref([])
 const expertOptions = ref([])
 const applyDialogVisible = ref(false)
+const approveDialogVisible = ref(false)
 const detailDialogVisible = ref(false)
 const currentDetail = ref(null)
 const detailMaterialsList = ref([])
 const detailMaterialsLoading = ref(false)
 const applyFormRef = ref()
+const approveFormRef = ref()
 
 const query = reactive({ pageNum: 1, pageSize: 10, status: '', priority: '', relicName: '', repairExpert: '' })
 const applyForm = reactive({ 
@@ -335,7 +362,6 @@ const applyForm = reactive({
   repairReason: '', 
   damageDescription: '', 
   estimatedCost: 0, 
-  repairExpert: '', 
   beforeImages: '', 
   remark: '',
   materials: [] // 申请时的材料列表
@@ -349,11 +375,25 @@ const addMaterialForm = reactive({
   remark: ''
 })
 
+// 审批表单
+const approveForm = reactive({
+  id: null,
+  relicName: '',
+  repairReason: '',
+  approved: true,
+  repairExpert: '',
+  approveRemark: ''
+})
+
 const applyRules = {
   relicId: [{ required: true, message: t('validation.required'), trigger: 'change' }],
   priority: [{ required: true, message: t('validation.required'), trigger: 'change' }],
   repairReason: [{ required: true, message: t('validation.required'), trigger: 'blur' }],
   damageDescription: [{ required: true, message: t('validation.required'), trigger: 'blur' }]
+}
+
+const approveRules = {
+  repairExpert: [{ required: true, message: '审批通过时必须分配修复专家', trigger: 'change' }]
 }
 
 const getStatusType = (status) => {
@@ -421,7 +461,6 @@ const openApply = () => {
     repairReason: '', 
     damageDescription: '', 
     estimatedCost: 0, 
-    repairExpert: '', 
     beforeImages: '', 
     remark: '',
     materials: []
@@ -466,7 +505,6 @@ const openEdit = async (row) => {
     repairReason: row.repairReason,
     damageDescription: row.damageDescription,
     estimatedCost: row.estimatedCost || 0,
-    repairExpert: row.repairExpert || '',
     beforeImages: row.beforeImages || '',
     remark: row.remark || '',
     materials: existingMaterials
@@ -535,6 +573,12 @@ const calculateTotalCost = () => {
 const submitApply = async () => {
   await applyFormRef.value?.validate()
   
+  // 验证必须至少添加一个材料
+  if (applyForm.materials.length === 0) {
+    ElMessage.warning(t('repair.materialRequired'))
+    return
+  }
+  
   // 自动计算预估费用
   applyForm.estimatedCost = calculateTotalCost()
   
@@ -585,9 +629,82 @@ const submitApply = async () => {
   loadData()
 }
 
-const openApprove = (row) => {
-  Object.assign(approveForm, { id: row.id, approved: true, repairExpert: '', approveRemark: '' })
-  approveDialogVisible.value = true
+const quickApprove = async (row, approved) => {
+  try {
+    if (approved) {
+      // 批准操作：需要选择修复专家
+      approveForm.id = row.id
+      approveForm.relicName = row.relicName
+      approveForm.repairReason = row.repairReason
+      approveForm.approved = true
+      approveForm.repairExpert = ''
+      approveForm.approveRemark = ''
+      
+      approveDialogVisible.value = true
+    } else {
+      // 驳回操作：可选填写驳回原因
+      await ElMessageBox.confirm(
+        '确定要驳回此修复申请吗？',
+        t('message.warning'),
+        {
+          type: 'warning',
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        }
+      )
+      
+      const { value: approveRemark } = await ElMessageBox.prompt(
+        '请填写驳回原因（选填）',
+        '驳回原因',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputType: 'textarea',
+          inputPlaceholder: '请输入驳回原因'
+        }
+      ).catch(() => ({ value: '' }))
+      
+      // 调用审批API
+      await approveRepairApi({
+        id: row.id,
+        approved: false,
+        approveRemark: approveRemark || ''
+      })
+      
+      ElMessage.success('已驳回')
+      loadData()
+    }
+  } catch (e) {
+    if (e !== 'cancel') {
+      const msg = e?.response?.data?.message || e?.message
+      if (msg) {
+        ElMessage.error(msg)
+      }
+    }
+  }
+}
+
+const submitApprove = async () => {
+  try {
+    await approveFormRef.value?.validate()
+    
+    // 调用审批API
+    await approveRepairApi({
+      id: approveForm.id,
+      approved: approveForm.approved,
+      repairExpert: approveForm.repairExpert,
+      approveRemark: approveForm.approveRemark
+    })
+    
+    ElMessage.success('批准成功')
+    approveDialogVisible.value = false
+    loadData()
+  } catch (e) {
+    const msg = e?.response?.data?.message || e?.message
+    if (msg) {
+      ElMessage.error(msg)
+    }
+  }
 }
 
 const viewDetail = async (row) => {

@@ -10,7 +10,7 @@ spring:
     # - 使用QQ邮箱：include: mail-qq
     # - 使用163邮箱：include: mail-163
     # 修改后需要重启服务
-    include: mail-163
+    include: mail-qq
   datasource:
     url: jdbc:mysql://localhost:3306/cultural_relics?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root

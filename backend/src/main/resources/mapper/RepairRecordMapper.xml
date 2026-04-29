@@ -35,10 +35,13 @@
     </resultMap>
 
     <select id="selectPage" resultMap="BaseResultMap">
-        SELECT rr.*, cr.relic_name, cr.relic_code, su.real_name as applicant_name
+        SELECT rr.*, cr.relic_name, cr.relic_code, 
+               su.real_name as applicant_name,
+               approver_user.real_name as approver
         FROM repair_record rr
         LEFT JOIN cultural_relic cr ON rr.relic_id = cr.id
         LEFT JOIN sys_user su ON rr.applicant_id = su.id
+        LEFT JOIN sys_user approver_user ON rr.approver = approver_user.username
         <where>
             <if test="status != null and status != ''">
                 AND rr.status = #{status}
@@ -84,18 +87,24 @@
     </select>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT rr.*, cr.relic_name, cr.relic_code, su.real_name as applicant_name
+        SELECT rr.*, cr.relic_name, cr.relic_code, 
+               su.real_name as applicant_name,
+               approver_user.real_name as approver
         FROM repair_record rr
         LEFT JOIN cultural_relic cr ON rr.relic_id = cr.id
         LEFT JOIN sys_user su ON rr.applicant_id = su.id
+        LEFT JOIN sys_user approver_user ON rr.approver = approver_user.username
         WHERE rr.id = #{id}
     </select>
 
     <select id="selectByRelicId" resultMap="BaseResultMap">
-        SELECT rr.*, cr.relic_name, cr.relic_code, su.real_name as applicant_name
+        SELECT rr.*, cr.relic_name, cr.relic_code, 
+               su.real_name as applicant_name,
+               approver_user.real_name as approver
         FROM repair_record rr
         LEFT JOIN cultural_relic cr ON rr.relic_id = cr.id
         LEFT JOIN sys_user su ON rr.applicant_id = su.id
+        LEFT JOIN sys_user approver_user ON rr.approver = approver_user.username
         WHERE rr.relic_id = #{relicId}
         ORDER BY rr.apply_date DESC
     </select>

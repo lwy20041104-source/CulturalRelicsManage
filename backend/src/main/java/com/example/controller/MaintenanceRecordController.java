@@ -307,13 +307,14 @@ public class MaintenanceRecordController {
             try {
                 String relicName = oldRecord.getRelicName() != null ? oldRecord.getRelicName() : "未知文物";
                 boolean approved = "已通过".equals(record.getStatus());
+                String approverRealName = userContextUtil.getCurrentUserRealName();
                 
                 notificationService.sendMaintenanceApprovalNotification(
                     record.getId(),
                     oldRecord.getMaintainerId(),
                     relicName,
                     approved,
-                    approver
+                    approverRealName
                 );
                 System.out.println("维护审批通知已发送：maintenanceId=" + record.getId() + 
                                  ", maintainerId=" + oldRecord.getMaintainerId() + 
