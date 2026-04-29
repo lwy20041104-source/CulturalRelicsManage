@@ -889,7 +889,7 @@
       </section>
     </main>
 
-    <!-- 文物详情对话框 -->
+    <!-- 文物详情对话框 - 增强版 -->
     <el-dialog 
       v-model="relicDetailVisible" 
       :title="t('relicDetail')" 
@@ -897,57 +897,146 @@
       class="detail-dialog"
       :close-on-click-modal="false"
     >
-      <div v-if="currentRelic">
-        <div class="detail-container">
-          <!-- 左侧：图片展示 -->
-          <div class="detail-left">
-            <div class="detail-image-wrapper">
+      <div v-if="currentRelic" class="detail-container">
+        <!-- 左侧：图片轮播 -->
+        <div class="detail-left">
+          <el-carousel 
+            v-if="detailImages.length > 0" 
+            height="400px" 
+            indicator-position="outside"
+            class="detail-carousel"
+            :autoplay="detailImages.length > 1"
+          >
+            <el-carousel-item v-for="(img, index) in detailImages" :key="index">
               <el-image
-                v-if="currentRelic.imagePath"
-                :src="resolveImageUrl(currentRelic.imagePath)"
+                :src="img"
                 fit="contain"
-                class="detail-main-image"
-                :preview-src-list="[resolveImageUrl(currentRelic.imagePath)]"
-                :initial-index="0"
+                class="carousel-image"
+                :preview-src-list="detailImages"
+                :initial-index="index"
                 preview-teleported
                 :z-index="3000"
+              />
+            </el-carousel-item>
+          </el-carousel>
+          <div v-else class="no-image-placeholder">
+            <el-icon :size="80"><Box /></el-icon>
+            <p>{{ t('noImage') }}</p>
+          </div>
+          
+          <!-- 操作按钮 -->
+          <div class="detail-actions">
+            <el-button type="primary" @click="handleShare">
+              <el-icon><Link /></el-icon>
+              {{ t('share') }}
+            </el-button>
+            <el-button type="success" @click="handlePrintDetail">
+              <el-icon><Document /></el-icon>
+              {{ t('print') }}
+            </el-button>
+            <el-button 
+              v-if="currentRelic.model3dUrl" 
+              type="warning" 
+              @click="view3DModel(currentRelic)"
+            >
+              <el-icon><View /></el-icon>
+              {{ t('view3DModel') }}
+            </el-button>
+          </div>
+        </div>
+
+        <!-- 右侧：详细信息 -->
+        <div class="detail-right">
+          <!-- 基本信息 -->
+          <div class="detail-section">
+            <h3 class="section-title">{{ t('basicInfo') }}</h3>
+            <el-descriptions :column="2" border>
+              <el-descriptions-item :label="t('relicCode')">{{ currentRelic.relicCode }}</el-descriptions-item>
+              <el-descriptions-item :label="t('relicName')">{{ currentRelic.relicName }}</el-descriptions-item>
+              <el-descriptions-item :label="t('era')">{{ currentRelic.era }}</el-descriptions-item>
+              <el-descriptions-item :label="t('material')">{{ currentRelic.material }}</el-descriptions-item>
+              <el-descriptions-item :label="t('category')">{{ currentRelic.categoryName || '—' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('status')">
+                <el-tag :type="getStatusType(currentRelic.status)">
+                  {{ currentRelic.status }}
+                </el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item :label="t('dimensions')">{{ currentRelic.dimensions || '—' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('weight')">{{ formatWeight(currentRelic.weight) }}</el-descriptions-item>
+              <el-descriptions-item :label="t('origin')" :span="2">{{ currentRelic.origin || '—' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('description')" :span="2">{{ currentRelic.description || '—' }}</el-descriptions-item>
+            </el-descriptions>
+          </div>
+
+          <!-- 时间轴 -->
+          <div class="detail-section">
+            <h3 class="section-title">{{ t('historyRecords') }}</h3>
+            <el-timeline class="detail-timeline">
+              <el-timeline-item
+                v-for="item in relicTimeline"
+                :key="item.id"
+                :timestamp="item.time"
+                :type="item.type"
+                placement="top"
               >
-                <template #error>
-                  <div class="image-error">
-                    <el-icon :size="80"><Box /></el-icon>
-                    <p>{{ t('imageLoadFailed') }}</p>
-                  </div>
-                </template>
-              </el-image>
-              <div v-else class="no-image-placeholder">
-                <el-icon :size="80"><Box /></el-icon>
-                <p>{{ t('noImage') }}</p>
+                <div class="timeline-content">
+                  <strong>{{ item.title }}</strong>
+                  <p>{{ item.content }}</p>
+                </div>
+              </el-timeline-item>
+            </el-timeline>
+          </div>
+
+          <!-- 关联文物推荐 -->
+          <div class="detail-section" v-if="relatedRelics.length">
+            <h3 class="section-title">{{ t('relatedRelics') }}</h3>
+            <div class="related-relics">
+              <div 
+                v-for="relic in relatedRelics" 
+                :key="relic.id" 
+                class="related-item"
+                @click="viewRelatedDetail(relic)"
+              >
+                <el-image
+                  v-if="relic.imagePath"
+                  :src="resolveImageUrl(relic.imagePath)"
+                  fit="cover"
+                  class="related-image"
+                />
+                <div v-else class="related-image related-no-image">
+                  <el-icon><Box /></el-icon>
+                </div>
+                <div class="related-info">
+                  <div class="related-name">{{ relic.relicName }}</div>
+                  <div class="related-meta">{{ relic.era }} · {{ relic.material }}</div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </el-dialog>
 
-          <!-- 右侧：详细信息 -->
-          <div class="detail-right">
-            <div class="detail-section">
-              <h3 class="section-title">{{ t('basicInfo') }}</h3>
-              <el-descriptions :column="2" border>
-                <el-descriptions-item :label="t('relicCode')">{{ currentRelic.relicCode }}</el-descriptions-item>
-                <el-descriptions-item :label="t('relicName')">{{ currentRelic.relicName }}</el-descriptions-item>
-                <el-descriptions-item :label="t('era')">{{ currentRelic.era }}</el-descriptions-item>
-                <el-descriptions-item :label="t('material')">{{ currentRelic.material }}</el-descriptions-item>
-                <el-descriptions-item :label="t('category')">{{ currentRelic.categoryName || '—' }}</el-descriptions-item>
-                <el-descriptions-item :label="t('status')">
-                  <el-tag :type="currentRelic.status === '在库' ? 'success' : 'warning'">
-                    {{ currentRelic.status === '在库' ? t('inStockStatus') : t('loaningStatus') }}
-                  </el-tag>
-                </el-descriptions-item>
-                <el-descriptions-item :label="t('dimensions')">{{ currentRelic.dimensions || '—' }}</el-descriptions-item>
-                <el-descriptions-item :label="t('weight')">{{ formatWeight(currentRelic.weight) }}</el-descriptions-item>
-                <el-descriptions-item :label="t('origin')" :span="2">{{ currentRelic.origin || '—' }}</el-descriptions-item>
-                <el-descriptions-item :label="t('description')" :span="2">{{ currentRelic.description || '—' }}</el-descriptions-item>
-              </el-descriptions>
-            </div>
-          </div>
+    <!-- 分享对话框 -->
+    <el-dialog v-model="shareDialogVisible" :title="t('shareRelic')" width="500px">
+      <div class="share-content">
+        <div class="share-info">
+          <h4>{{ currentRelic?.relicName }}</h4>
+          <p>{{ currentRelic?.era }} · {{ currentRelic?.material }}</p>
+        </div>
+        <el-divider />
+        <div class="share-options">
+          <el-button type="primary" @click="copyShareLink">
+            <el-icon><Link /></el-icon>
+            {{ t('copyLink') }}
+          </el-button>
+          <el-button type="success" @click="downloadQRCode">
+            <el-icon><Download /></el-icon>
+            {{ t('downloadQRCode') }}
+          </el-button>
+        </div>
+        <div class="qrcode-container">
+          <canvas ref="qrcodeCanvas" width="200" height="200"></canvas>
         </div>
       </div>
     </el-dialog>
@@ -982,7 +1071,9 @@ import {
   List,
   Clock,
   Check,
-  Refresh
+  Refresh,
+  Download,
+  Picture
 } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import NotificationBell from '../components/NotificationBell.vue'
@@ -1129,7 +1220,17 @@ const translations = {
     footer: '文物数字化管理系统 | Cultural Relics Digital Management System',
     basicInfo: '基本信息',
     noImage: '暂无图片',
-    imageLoadFailed: '图片加载失败'
+    imageLoadFailed: '图片加载失败',
+    share: '分享',
+    print: '打印',
+    view3DModel: '查看3D模型',
+    historyRecords: '历史记录',
+    relatedRelics: '相关文物',
+    shareRelic: '分享文物',
+    copyLink: '复制链接',
+    downloadQRCode: '下载二维码',
+    linkCopied: '链接已复制',
+    qrCodeDownloaded: '二维码已下载'
   },
   en: {
     systemTitle: 'Cultural Relics Digital Management System',
@@ -1223,7 +1324,17 @@ const translations = {
     footer: 'Cultural Relics Digital Management System',
     basicInfo: 'Basic Information',
     noImage: 'No Image',
-    imageLoadFailed: 'Image Load Failed'
+    imageLoadFailed: 'Image Load Failed',
+    share: 'Share',
+    print: 'Print',
+    view3DModel: 'View 3D Model',
+    historyRecords: 'History Records',
+    relatedRelics: 'Related Relics',
+    shareRelic: 'Share Relic',
+    copyLink: 'Copy Link',
+    downloadQRCode: 'Download QR Code',
+    linkCopied: 'Link Copied',
+    qrCodeDownloaded: 'QR Code Downloaded'
   }
 }
 
@@ -1334,6 +1445,11 @@ const relicTotal = ref(0)
 const availableRelics = ref([])
 const currentRelic = ref(null)
 const relicDetailVisible = ref(false)
+const detailImages = ref([])
+const relicTimeline = ref([])
+const relatedRelics = ref([])
+const shareDialogVisible = ref(false)
+const qrcodeCanvas = ref(null)
 const aiLoading = ref(false)
 const aiQuery = ref('')
 const chatHistory = ref([])
@@ -1732,6 +1848,191 @@ const formatWeight = (weight) => {
   return `${Number(weight).toFixed(2)} kg`
 }
 
+const formatDateTime = (value) => {
+  if (!value) return ''
+  return String(value).replace('T', ' ').substring(0, 19)
+}
+
+const getStatusType = (status) => {
+  const statusMap = {
+    '在库': 'success',
+    'In Stock': 'success',
+    '借展中': 'warning',
+    'On Loan': 'warning',
+    '修复中': 'danger',
+    'Repairing': 'danger'
+  }
+  return statusMap[status] || 'info'
+}
+
+const viewRelatedDetail = async (relic) => {
+  // 查看关联文物详情
+  await viewRelicDetail(relic)
+}
+
+const view3DModel = (relic) => {
+  if (relic.model3dUrl) {
+    window.open(relic.model3dUrl, '_blank')
+  }
+}
+
+const handleShare = () => {
+  shareDialogVisible.value = true
+  // 生成二维码
+  nextTick(() => {
+    if (qrcodeCanvas.value) {
+      const canvas = qrcodeCanvas.value
+      const ctx = canvas.getContext('2d')
+      
+      // 清空画布
+      ctx.clearRect(0, 0, 200, 200)
+      
+      // 绘制白色背景
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, 200, 200)
+      
+      // 绘制简单的二维码占位符
+      ctx.fillStyle = '#000000'
+      ctx.fillRect(50, 50, 100, 100)
+      
+      // 绘制文字
+      ctx.fillStyle = '#333333'
+      ctx.font = '12px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText(locale.value === 'zh' ? '文物编号' : 'Relic Code', 100, 170)
+      ctx.fillText(currentRelic.value.relicCode, 100, 185)
+    }
+  })
+}
+
+const copyShareLink = () => {
+  const link = `${window.location.origin}/relics/${currentRelic.value.id}`
+  navigator.clipboard.writeText(link).then(() => {
+    ElMessage.success(t('linkCopied'))
+  }).catch(() => {
+    ElMessage.error(locale.value === 'zh' ? '复制失败' : 'Copy failed')
+  })
+}
+
+const downloadQRCode = () => {
+  const canvas = qrcodeCanvas.value
+  const link = document.createElement('a')
+  link.download = `${locale.value === 'zh' ? '二维码' : 'QRCode'}_${currentRelic.value.relicCode}.png`
+  link.href = canvas.toDataURL()
+  link.click()
+  ElMessage.success(t('qrCodeDownloaded'))
+}
+
+const handlePrintDetail = () => {
+  if (!currentRelic.value) return
+  
+  const printWindow = window.open('', '_blank')
+  const content = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>${locale.value === 'zh' ? '文物详情' : 'Relic Details'} - ${currentRelic.value.relicName}</title>
+      <style>
+        @page { size: A4; margin: 20mm; }
+        body {
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 2px solid #333;
+          padding-bottom: 10px;
+          margin-bottom: 20px;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 24px;
+        }
+        .header .code {
+          color: #666;
+          font-size: 14px;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+        .info-item {
+          border: 1px solid #ddd;
+          padding: 10px;
+          border-radius: 4px;
+        }
+        .info-label {
+          font-weight: bold;
+          color: #666;
+          font-size: 12px;
+          margin-bottom: 5px;
+        }
+        .info-value {
+          font-size: 14px;
+        }
+        .description {
+          border: 1px solid #ddd;
+          padding: 15px;
+          border-radius: 4px;
+          margin-top: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>${currentRelic.value.relicName}</h1>
+        <div class="code">${locale.value === 'zh' ? '文物编号：' : 'Relic Code: '}${currentRelic.value.relicCode}</div>
+      </div>
+      
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">${locale.value === 'zh' ? '年代' : 'Era'}</div>
+          <div class="info-value">${currentRelic.value.era || '—'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">${locale.value === 'zh' ? '材质' : 'Material'}</div>
+          <div class="info-value">${currentRelic.value.material || '—'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">${locale.value === 'zh' ? '类别' : 'Category'}</div>
+          <div class="info-value">${currentRelic.value.categoryName || '—'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">${locale.value === 'zh' ? '状态' : 'Status'}</div>
+          <div class="info-value">${currentRelic.value.status || '—'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">${locale.value === 'zh' ? '尺寸' : 'Dimensions'}</div>
+          <div class="info-value">${currentRelic.value.dimensions || '—'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">${locale.value === 'zh' ? '重量' : 'Weight'}</div>
+          <div class="info-value">${formatWeight(currentRelic.value.weight)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">${locale.value === 'zh' ? '来源' : 'Origin'}</div>
+          <div class="info-value">${currentRelic.value.origin || '—'}</div>
+        </div>
+      </div>
+      
+      <div class="description">
+        <div class="info-label">${locale.value === 'zh' ? '描述' : 'Description'}</div>
+        <div class="info-value">${currentRelic.value.description || '—'}</div>
+      </div>
+    </body>
+    </html>
+  `
+  printWindow.document.write(content)
+  printWindow.document.close()
+  printWindow.onload = () => {
+    printWindow.print()
+  }
+}
+
 const loadStatistics = async () => {
   try {
     console.log('开始加载统计数据...')
@@ -1777,9 +2078,130 @@ const handleRelicPageChange = (page) => {
   searchRelics()
 }
 
-const viewRelicDetail = (relic) => {
+const viewRelicDetail = async (relic) => {
   currentRelic.value = relic
   relicDetailVisible.value = true
+  
+  // 加载文物的所有图片用于轮播
+  detailImages.value = []
+  if (relic.imagePath) {
+    detailImages.value.push(resolveImageUrl(relic.imagePath))
+    console.log('添加主图片:', resolveImageUrl(relic.imagePath))
+  }
+  
+  // 尝试加载更多图片（如果有关联图片API）
+  try {
+    // 使用 /list/ 端点获取所有图片，而不是 /relic/ 端点（只返回主图）
+    const response = await request.get(`/relic-images/list/${relic.id}`)
+    console.log('关联图片API响应:', response)
+    
+    // 处理返回的数据（可能是对象或数组）
+    let relicImages = []
+    if (response.data) {
+      // 如果是数组，直接使用
+      if (Array.isArray(response.data)) {
+        relicImages = response.data
+      } 
+      // 如果是单个对象，转换为数组
+      else if (typeof response.data === 'object') {
+        relicImages = [response.data]
+      }
+    }
+    
+    console.log('处理后的图片列表:', relicImages)
+    
+    if (relicImages.length > 0) {
+      relicImages.forEach(item => {
+        // 尝试从不同的字段获取图片路径
+        let imagePath = null
+        
+        // 方式1：从 image.filePath 获取
+        if (item.image && item.image.filePath) {
+          imagePath = item.image.filePath
+        }
+        // 方式2：从 imagePath 获取
+        else if (item.imagePath) {
+          imagePath = item.imagePath
+        }
+        // 方式3：从 filePath 获取
+        else if (item.filePath) {
+          imagePath = item.filePath
+        }
+        
+        if (imagePath) {
+          const url = resolveImageUrl(imagePath)
+          if (!detailImages.value.includes(url)) {
+            detailImages.value.push(url)
+            console.log('添加关联图片:', url)
+          }
+        }
+      })
+    }
+  } catch (e) {
+    console.log('加载关联图片失败（这是正常的，如果没有关联图片）:', e.message)
+  }
+  
+  console.log('最终图片列表:', detailImages.value)
+  console.log('图片数量:', detailImages.value.length)
+  
+  // 构建时间轴数据
+  relicTimeline.value = [
+    {
+      id: 1,
+      time: formatDateTime(relic.createTime),
+      type: 'primary',
+      title: locale.value === 'zh' ? '文物入库' : 'Relic Registered',
+      content: locale.value === 'zh' 
+        ? `文物正式入库登记，编号：${relic.relicCode}` 
+        : `Relic registered with code: ${relic.relicCode}`
+    }
+  ]
+  
+  // 如果有更新时间，添加更新记录
+  if (relic.updateTime && relic.updateTime !== relic.createTime) {
+    relicTimeline.value.push({
+      id: 2,
+      time: formatDateTime(relic.updateTime),
+      type: 'success',
+      title: locale.value === 'zh' ? '信息更新' : 'Information Updated',
+      content: locale.value === 'zh' ? '文物信息已更新' : 'Relic information updated'
+    })
+  }
+  
+  // 根据状态添加相应记录
+  if (relic.status === '借展中' || relic.status === 'On Loan') {
+    relicTimeline.value.push({
+      id: 3,
+      time: formatDateTime(relic.updateTime),
+      type: 'warning',
+      title: locale.value === 'zh' ? '借展出库' : 'Loaned Out',
+      content: locale.value === 'zh' ? '文物已借出展览' : 'Relic loaned for exhibition'
+    })
+  } else if (relic.status === '修复中' || relic.status === 'Repairing') {
+    relicTimeline.value.push({
+      id: 4,
+      time: formatDateTime(relic.updateTime),
+      type: 'danger',
+      title: locale.value === 'zh' ? '送修' : 'Under Repair',
+      content: locale.value === 'zh' ? '文物送修中' : 'Relic under repair'
+    })
+  }
+  
+  // 加载关联文物（同类别或同年代）
+  try {
+    const response = await getRelicsPageApi({
+      pageNum: 1,
+      pageSize: 4,
+      categoryId: relic.categoryId
+    })
+    relatedRelics.value = (response.data.records || [])
+      .filter(r => r.id !== relic.id)
+      .slice(0, 3)
+    console.log('关联文物:', relatedRelics.value.length, '个')
+  } catch (e) {
+    console.log('加载关联文物失败:', e.message)
+    relatedRelics.value = []
+  }
 }
 
 const viewCategoryRelics = (category) => {
@@ -4418,6 +4840,30 @@ onUnmounted(() => {
   gap: 20px;
 }
 
+.detail-carousel {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f7efe4;
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detail-actions .el-button {
+  flex: 1;
+  min-width: 100px;
+}
+
 .detail-image-wrapper {
   width: 100%;
   height: 400px;
@@ -4455,6 +4901,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .detail-section {
@@ -4474,6 +4922,110 @@ onUnmounted(() => {
   border-bottom: 2px solid rgba(181, 136, 82, 0.2);
 }
 
+.detail-timeline {
+  padding-left: 10px;
+}
+
+.timeline-content {
+  padding: 8px 0;
+}
+
+.timeline-content strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #3d2a1d;
+}
+
+.timeline-content p {
+  margin: 0;
+  color: #6b5744;
+  font-size: 14px;
+}
+
+.related-relics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.related-item {
+  cursor: pointer;
+  border: 1px solid #e6d8c4;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.related-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.related-image {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+}
+
+.related-no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7efe4;
+  color: #9b8d7d;
+}
+
+.related-info {
+  padding: 10px;
+}
+
+.related-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3d2a1d;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.related-meta {
+  font-size: 12px;
+  color: #9b8d7d;
+}
+
+.share-content {
+  text-align: center;
+}
+
+.share-info h4 {
+  margin: 0 0 8px 0;
+  color: #3d2a1d;
+}
+
+.share-info p {
+  margin: 0;
+  color: #6b5744;
+}
+
+.share-options {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.qrcode-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.qrcode-container canvas {
+  border: 1px solid #e6d8c4;
+  border-radius: 8px;
+}
+
 /* 响应式 - 详情对话框 */
 @media (max-width: 768px) {
   .detail-container {
@@ -4486,6 +5038,10 @@ onUnmounted(() => {
   
   .detail-right {
     order: 2;
+  }
+  
+  .related-relics {
+    grid-template-columns: 1fr;
   }
 }
 </style>

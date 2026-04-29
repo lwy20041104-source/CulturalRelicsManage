@@ -89,7 +89,8 @@ public class SecurityConfig {
                 .antMatchers("/users/**").hasRole("ADMIN")
                 .antMatchers("/relics/**", "/categories/**").hasAnyRole("ADMIN", "CURATOR")
                 .antMatchers("/images/**").hasAnyRole("ADMIN", "CURATOR")
-                .antMatchers("/relic-images/**").hasAnyRole("ADMIN", "CURATOR")
+                .antMatchers(HttpMethod.GET, "/relic-images/**").authenticated()  // 所有已登录用户可以查看文物图片
+                .antMatchers("/relic-images/**").hasAnyRole("ADMIN", "CURATOR")  // 只有管理员和保管员可以管理图片
                 .antMatchers("/loans/**").hasAnyRole("ADMIN", "APPROVER")
                 .antMatchers("/maintenance/**").hasAnyRole("ADMIN", "CURATOR", "APPROVER")
                 .anyRequest().authenticated()
