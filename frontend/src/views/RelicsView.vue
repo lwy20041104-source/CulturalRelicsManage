@@ -79,6 +79,20 @@
       <el-table-column prop="era" :label="$t('relic.era')" width="120" />
       <el-table-column prop="material" :label="$t('relic.material')" width="120" />
       <el-table-column prop="status" :label="$t('relic.status')" width="100" />
+      <el-table-column label="3D模型" width="90" align="center">
+        <template #default="scope">
+          <el-tooltip v-if="scope.row.model3dUrl" content="查看3D模型" placement="top">
+            <el-button 
+              link 
+              type="primary" 
+              @click="view3DModel(scope.row)"
+            >
+              <el-icon><View /></el-icon>
+            </el-button>
+          </el-tooltip>
+          <el-tag v-else type="info" size="small">无</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="categoryName" :label="$t('relic.category')" width="140" />
       <el-table-column :label="$t('relic.dimensions')" width="150">
         <template #default="scope">
@@ -228,6 +242,72 @@
           </div>
         </el-form-item>
         
+        <!-- 3D模型上传区域 -->
+        <el-form-item :label="$t('relic.model3d')">
+          <div class="model3d-upload-wrapper">
+            <!-- 编辑模式：显示已有3D模型 -->
+            <div v-if="form.id && form.model3dUrl" class="existing-model">
+              <el-alert 
+                :title="$t('relic.has3DModel')" 
+                type="success" 
+                :closable="false"
+                show-icon
+              >
+                <template #default>
+                  <div class="model-info">
+                    <p><strong>{{ $t('relic.modelType') }}:</strong> {{ form.model3dType?.toUpperCase() }}</p>
+                    <p><strong>{{ $t('relic.modelSize') }}:</strong> {{ formatFileSize(form.model3dSize) }}</p>
+                    <p><strong>{{ $t('relic.uploadTime') }}:</strong> {{ formatDateTime(form.model3dUploadTime) }}</p>
+                  </div>
+                  <div class="model-actions">
+                    <el-button 
+                      type="primary" 
+                      size="small" 
+                      @click="view3DModel(form)"
+                      :icon="View"
+                    >
+                      {{ $t('relic.view3DModel') }}
+                    </el-button>
+                    <el-button 
+                      type="danger" 
+                      size="small" 
+                      @click="delete3DModel"
+                      :icon="Delete"
+                    >
+                      {{ $t('relic.delete3DModel') }}
+                    </el-button>
+                  </div>
+                </template>
+              </el-alert>
+            </div>
+            
+            <!-- 上传3D模型 -->
+            <div v-if="!form.model3dUrl" class="upload-3d-section">
+              <el-upload
+                ref="model3dUploadRef"
+                :auto-upload="false"
+                :on-change="handle3DModelChange"
+                :on-remove="handle3DModelRemove"
+                accept=".gltf,.glb,.obj"
+                :limit="1"
+                :file-list="model3dFileList"
+                drag
+              >
+                <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+                <div class="el-upload__text">
+                  {{ $t('relic.drag3DModelHere') }}<em>{{ $t('relic.clickToUpload') }}</em>
+                </div>
+                <template #tip>
+                  <div class="el-upload__tip">
+                    {{ $t('relic.support3DFormats') }}: GLTF (.gltf, .glb), OBJ (.obj)<br>
+                    {{ $t('relic.maxFileSize') }}: 50MB
+                  </div>
+                </template>
+              </el-upload>
+            </div>
+          </div>
+        </el-form-item>
+        
         <el-form-item :label="$t('relic.description')"><el-input v-model="form.description" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
@@ -278,6 +358,14 @@
             <el-button type="success" @click="handlePrintDetail">
               <el-icon><Printer /></el-icon>
               {{ $t('relic.print') }}
+            </el-button>
+            <el-button 
+              v-if="currentDetail.model3dUrl" 
+              type="warning" 
+              @click="view3DModel(currentDetail)"
+            >
+              <el-icon><View /></el-icon>
+              查看3D模型
             </el-button>
           </div>
         </div>
@@ -476,8 +564,9 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { UploadFilled, Link, Loading, InfoFilled, Download, Printer, Plus } from '@element-plus/icons-vue'
+import { UploadFilled, Link, Loading, InfoFilled, Download, Printer, Plus, View, Delete } from '@element-plus/icons-vue'
 import request from '../api/request'
 import { getCategoriesApi } from '../api/categories'
 import { 
@@ -501,6 +590,7 @@ import {
 } from '../api/relicImages'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const tableData = ref([])
 const total = ref(0)
@@ -523,6 +613,8 @@ const relatedRelics = ref([])
 const submitting = ref(false)
 const existingImages = ref([])  // 已有图片列表（编辑时）
 const newImageFileList = ref([])  // 新上传的图片文件列表
+const model3dFileList = ref([])  // 3D模型文件列表
+const model3dUploadRef = ref()  // 3D模型上传组件引用
 const qrcodeDialogVisible = ref(false)
 const currentQRCode = ref(null)
 const qrcodeImageData = ref('')
@@ -581,13 +673,22 @@ const openAdd = () => {
     weight: null,
     origin: '',
     imagePath: '',
-    description: ''
+    description: '',
+    model3dUrl: null,
+    model3dType: null,
+    model3dSize: null,
+    model3dUploadTime: null
   })
   // 清空图片列表
   existingImages.value = []
   newImageFileList.value = []
   if (uploadRef.value) {
     uploadRef.value.clearFiles()
+  }
+  // 清空3D模型列表
+  model3dFileList.value = []
+  if (model3dUploadRef.value) {
+    model3dUploadRef.value.clearFiles()
   }
   dialogVisible.value = true
 }
@@ -599,6 +700,12 @@ const openEdit = async (row) => {
   newImageFileList.value = []
   if (uploadRef.value) {
     uploadRef.value.clearFiles()
+  }
+  
+  // 清空3D模型上传列表（编辑时如果已有模型，不显示上传框）
+  model3dFileList.value = []
+  if (model3dUploadRef.value) {
+    model3dUploadRef.value.clearFiles()
   }
   
   // 加载已有图片
@@ -739,6 +846,11 @@ const handleShare = () => {
   setTimeout(() => {
     generateQRCode()
   }, 100)
+}
+
+// 查看3D模型
+const view3DModel = (row) => {
+  router.push(`/relics/${row.id}/3d`)
 }
 
 const generateQRCode = () => {
@@ -937,6 +1049,25 @@ const submit = async () => {
         }
       }
       
+      // 处理3D模型上传
+      if (model3dFileList.value.length > 0) {
+        const model3dFile = model3dFileList.value[0].raw
+        if (model3dFile) {
+          const formData = new FormData()
+          formData.append('file', model3dFile)
+          
+          try {
+            await request.post(`/relics/${form.id}/3d-model`, formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            })
+            ElMessage.success(t('relic.upload3DModelSuccess'))
+          } catch (error) {
+            console.error('3D模型上传失败:', error)
+            ElMessage.warning(t('relic.upload3DModelFailed'))
+          }
+        }
+      }
+      
       ElMessage.success(t('message.updateSuccess'))
       dialogVisible.value = false
       loadData()
@@ -953,6 +1084,25 @@ const submit = async () => {
           const files = newImageFileList.value.map(file => file.raw).filter(f => f)
           if (files.length > 0) {
             await batchUploadImagesApi(relicId, files)
+          }
+        }
+        
+        // 如果有3D模型，上传
+        if (model3dFileList.value.length > 0) {
+          const model3dFile = model3dFileList.value[0].raw
+          if (model3dFile) {
+            const formData = new FormData()
+            formData.append('file', model3dFile)
+            
+            try {
+              await request.post(`/relics/${relicId}/3d-model`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              })
+              ElMessage.success(t('relic.upload3DModelSuccess'))
+            } catch (error) {
+              console.error('3D模型上传失败:', error)
+              ElMessage.warning(t('relic.upload3DModelFailed'))
+            }
           }
         }
         
@@ -1003,6 +1153,72 @@ const handleMultiImageChange = (file, fileList) => {
 // 处理图片移除
 const handleImageRemove = (file, fileList) => {
   newImageFileList.value = fileList
+}
+
+// 处理3D模型选择
+const handle3DModelChange = (file, fileList) => {
+  // 验证文件类型
+  const fileName = file.name.toLowerCase()
+  const validExtensions = ['.gltf', '.glb', '.obj']
+  const isValidType = validExtensions.some(ext => fileName.endsWith(ext))
+  
+  if (!isValidType) {
+    ElMessage.error(t('relic.invalid3DFormat'))
+    fileList.pop()
+    return
+  }
+  
+  // 验证文件大小（50MB）
+  const isLt50M = file.size / 1024 / 1024 < 50
+  if (!isLt50M) {
+    ElMessage.error(t('relic.fileSizeExceeds50MB'))
+    fileList.pop()
+    return
+  }
+  
+  model3dFileList.value = fileList
+}
+
+// 处理3D模型移除
+const handle3DModelRemove = (file, fileList) => {
+  model3dFileList.value = fileList
+}
+
+// 删除已有的3D模型
+const delete3DModel = async () => {
+  try {
+    await ElMessageBox.confirm(
+      t('relic.delete3DModelConfirm'),
+      t('message.tip'),
+      { type: 'warning' }
+    )
+    
+    const filename = form.model3dUrl.split('/').pop()
+    await request.delete(`/relics/${form.id}/3d-model`, {
+      params: { filename }
+    })
+    
+    // 清除表单中的3D模型信息
+    form.model3dUrl = null
+    form.model3dType = null
+    form.model3dSize = null
+    form.model3dUploadTime = null
+    
+    ElMessage.success(t('relic.delete3DModelSuccess'))
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(t('relic.delete3DModelFailed'))
+    }
+  }
+}
+
+// 格式化文件大小
+const formatFileSize = (bytes) => {
+  if (!bytes) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
 const remove = async (id) => {
@@ -1520,6 +1736,47 @@ onMounted(async () => {
 
 .upload-box {
   width: 100%;
+}
+
+/* 3D模型上传样式 */
+.model3d-upload-wrapper {
+  width: 100%;
+}
+
+.existing-model {
+  margin-bottom: 15px;
+}
+
+.model-info {
+  margin: 10px 0;
+  line-height: 1.8;
+}
+
+.model-info p {
+  margin: 5px 0;
+  color: #606266;
+  font-size: 14px;
+}
+
+.model-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.upload-3d-section {
+  width: 100%;
+}
+
+.upload-3d-section :deep(.el-upload-dragger) {
+  width: 100%;
+  padding: 40px 20px;
+}
+
+.upload-3d-section :deep(.el-icon--upload) {
+  font-size: 60px;
+  color: #8b7355;
+  margin-bottom: 16px;
 }
 
 /* URL输入框样式 */

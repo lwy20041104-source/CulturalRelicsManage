@@ -26,6 +26,7 @@ import PublicGuestView from '../views/PublicGuestView.vue'
 import ImageLibraryView from '../views/ImageLibraryView.vue'
 import QRCodeScanView from '../views/QRCodeScanView.vue'
 import PublicRelicsView from '../views/PublicRelicsView.vue'
+import Relic3DView from '../views/Relic3DView.vue'
 
 const routes = [
   { path: '/login', component: LoginView },
@@ -66,7 +67,8 @@ const routes = [
       { path: '/archives', component: () => import('../views/ArchivesView.vue'), meta: { perm: 'archives:manage' } },
       { path: '/archives/:id', component: () => import('../views/ArchiveDetailView.vue'), meta: { perm: 'archives:manage' } },
       { path: '/profile', component: () => import('../views/ProfileView.vue') },
-      { path: '/museums', component: () => import('../views/MuseumsView.vue'), meta: { perm: 'users:manage' } }
+      { path: '/museums', component: () => import('../views/MuseumsView.vue'), meta: { perm: 'users:manage' } },
+      { path: '/relics/:id/3d', component: Relic3DView }
     ]
   },
   {
