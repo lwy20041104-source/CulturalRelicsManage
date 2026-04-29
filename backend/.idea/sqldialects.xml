@@ -4,6 +4,7 @@
     <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/8176a956-1ac2-47c1-82b4-3256f85650f2/console_22.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/add_repair_apply_permission.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/audit_log_enhancement.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/fix_approver_permissions.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/image_management_tables.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/museum_tables.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/operation_log_update.sql" dialect="MySQL" />

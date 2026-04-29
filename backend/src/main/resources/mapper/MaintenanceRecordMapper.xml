@@ -5,29 +5,61 @@
 <mapper namespace="com.example.mapper.MaintenanceRecordMapper">
 
     <select id="selectById" resultType="com.example.entity.MaintenanceRecord">
-        SELECT mr.*, cr.relic_name AS relicName
+        SELECT mr.*, cr.relic_name AS relicName, su.real_name AS maintainerName
         FROM maintenance_record mr
-                 LEFT JOIN cultural_relic cr ON mr.relic_id = cr.id
+        LEFT JOIN cultural_relic cr ON mr.relic_id = cr.id
+        LEFT JOIN sys_user su ON mr.maintainer_id = su.id
         WHERE mr.id = #{id}
     </select>
 
     <select id="selectPage" resultType="com.example.entity.MaintenanceRecord">
-        SELECT mr.*, cr.relic_name AS relicName
+        SELECT mr.*, cr.relic_name AS relicName, su.real_name AS maintainerName
         FROM maintenance_record mr
-                 LEFT JOIN cultural_relic cr ON mr.relic_id = cr.id
-        ORDER BY mr.id ASC
+        LEFT JOIN cultural_relic cr ON mr.relic_id = cr.id
+        LEFT JOIN sys_user su ON mr.maintainer_id = su.id
+        <where>
+            <if test="maintainerId != null">
+                AND mr.maintainer_id = #{maintainerId}
+            </if>
+            <if test="status != null and status != ''">
+                AND mr.status = #{status}
+            </if>
+            <if test="maintenanceType != null and maintenanceType != ''">
+                AND mr.maintenance_type = #{maintenanceType}
+            </if>
+            <if test="relicName != null and relicName != ''">
+                AND cr.relic_name LIKE CONCAT('%', #{relicName}, '%')
+            </if>
+        </where>
+        ORDER BY mr.create_time DESC, mr.id DESC
         LIMIT #{offset}, #{pageSize}
     </select>
 
     <select id="countAll" resultType="long">
-        SELECT COUNT(1) FROM maintenance_record
+        SELECT COUNT(1) 
+        FROM maintenance_record mr
+        LEFT JOIN cultural_relic cr ON mr.relic_id = cr.id
+        <where>
+            <if test="maintainerId != null">
+                AND mr.maintainer_id = #{maintainerId}
+            </if>
+            <if test="status != null and status != ''">
+                AND mr.status = #{status}
+            </if>
+            <if test="maintenanceType != null and maintenanceType != ''">
+                AND mr.maintenance_type = #{maintenanceType}
+            </if>
+            <if test="relicName != null and relicName != ''">
+                AND cr.relic_name LIKE CONCAT('%', #{relicName}, '%')
+            </if>
+        </where>
     </select>
 
     <insert id="insert" parameterType="com.example.entity.MaintenanceRecord" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO maintenance_record
-        (relic_id, maintenance_type, maintenance_date, maintenance_content, maintainer, remark, create_time, update_time)
+        (relic_id, maintenance_type, maintenance_date, maintenance_content, maintainer_id, status, remark, create_time, update_time)
         VALUES
-        (#{relicId}, #{maintenanceType}, #{maintenanceDate}, #{maintenanceContent}, #{maintainer}, #{remark}, #{createTime}, #{updateTime})
+        (#{relicId}, #{maintenanceType}, #{maintenanceDate}, #{maintenanceContent}, #{maintainerId}, #{status}, #{remark}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="updateById" parameterType="com.example.entity.MaintenanceRecord">
@@ -37,9 +69,13 @@
             <if test="maintenanceType != null">maintenance_type = #{maintenanceType},</if>
             <if test="maintenanceDate != null">maintenance_date = #{maintenanceDate},</if>
             <if test="maintenanceContent != null">maintenance_content = #{maintenanceContent},</if>
-            <if test="maintainer != null">maintainer = #{maintainer},</if>
+            <if test="maintainerId != null">maintainer_id = #{maintainerId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="approver != null">approver = #{approver},</if>
+            <if test="approveDate != null">approve_date = #{approveDate},</if>
+            <if test="approveRemark != null">approve_remark = #{approveRemark},</if>
             <if test="remark != null">remark = #{remark},</if>
-            <if test="updateTime != null">update_time = #{updateTime},</if>
+            update_time = NOW()
         </set>
         WHERE id = #{id}
     </update>

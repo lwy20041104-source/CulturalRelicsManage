@@ -120,7 +120,7 @@ public class ReportServiceImpl implements ReportService {
         log.info("热力图数据: {}", heatmapData);
         
         // 近30天维护记录数 - 简化实现
-        long maintenanceCount = maintenanceRecordMapper.countAll();
+        long maintenanceCount = maintenanceRecordMapper.countAll(null, null, null, null);
         data.put("recentMaintenanceCount", maintenanceCount);
         
         return data;

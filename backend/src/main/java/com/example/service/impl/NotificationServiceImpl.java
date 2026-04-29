@@ -262,6 +262,64 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
+    public void sendMaintenanceApplyNotification(Long maintenanceId, String relicName, String maintenanceType, Long senderId) {
+        log.info("开始发送维护申请通知：maintenanceId={}, relicName={}, maintenanceType={}, senderId={}", 
+                maintenanceId, relicName, maintenanceType, senderId);
+        
+        SystemNotification notification = new SystemNotification();
+        notification.setTitle("新的维护申请");
+        notification.setContent(String.format("文物\"%s\"提交了维护申请，维护类型：%s，请及时审批。", relicName, maintenanceType));
+        notification.setType("MAINTENANCE_APPLY");
+        notification.setPriority("NORMAL");
+        notification.setRelatedType("MAINTENANCE");
+        notification.setRelatedId(maintenanceId);
+        notification.setSenderId(senderId);
+        
+        // 发送给系统管理员
+        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+        log.info("维护申请通知发送完成：maintenanceId={}", maintenanceId);
+    }
+    
+    @Override
+    public void sendMaintenanceApprovalNotification(Long maintenanceId, Long maintainerId, String relicName, boolean approved, String approverName) {
+        SystemNotification notification = new SystemNotification();
+        notification.setTitle(approved ? "维护申请已通过" : "维护申请已拒绝");
+        notification.setContent(String.format("文物\"%s\"的维护申请已被 %s %s。", 
+                relicName, approverName, approved ? "审批通过" : "拒绝"));
+        notification.setType(approved ? "MAINTENANCE_APPROVED" : "MAINTENANCE_REJECTED");
+        notification.setPriority("NORMAL");
+        notification.setRelatedType("MAINTENANCE");
+        notification.setRelatedId(maintenanceId);
+        notification.setSenderName(approverName);
+        notification.setCreateTime(LocalDateTime.now());
+        
+        // 发送给维护人
+        notificationMapper.insert(notification);
+        
+        UserNotification userNotification = new UserNotification();
+        userNotification.setNotificationId(notification.getId());
+        userNotification.setUserId(maintainerId);
+        userNotification.setIsRead(0);
+        userNotification.setCreateTime(LocalDateTime.now());
+        userNotificationMapper.insert(userNotification);
+    }
+    
+    @Override
+    public void sendMaintenanceWithdrawNotification(Long maintenanceId, String relicName, String maintenanceType, Long senderId) {
+        SystemNotification notification = new SystemNotification();
+        notification.setTitle("维护申请已撤回");
+        notification.setContent(String.format("文物\"%s\"的维护申请已被撤回，原维护类型：%s。", relicName, maintenanceType));
+        notification.setType("MAINTENANCE_WITHDRAW");
+        notification.setPriority("NORMAL");
+        notification.setRelatedType("MAINTENANCE");
+        notification.setRelatedId(maintenanceId);
+        notification.setSenderId(senderId);
+        
+        // 发送给系统管理员
+        createAndSendNotification(notification, Arrays.asList("ADMIN"));
+    }
+    
+    @Override
     public void sendLoanApprovalNotification(Long loanId, Long borrowerId, String relicName, boolean approved, String approverName) {
         SystemNotification notification = new SystemNotification();
         notification.setTitle(approved ? "借展申请已通过" : "借展申请已驳回");

@@ -210,8 +210,9 @@ public class AuthController {
                     perms.add("ai:query");
                 } else if ("APPROVER".equals(code)) {
                     perms.add("dashboard:view");
-                    perms.add("archives:view");
                     perms.add("loans:manage");
+                    perms.add("maintenance:manage");
+                    perms.add("repairs:manage");
                     perms.add("ai:query");
                 }
             }

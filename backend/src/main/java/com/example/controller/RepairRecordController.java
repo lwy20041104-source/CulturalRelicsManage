@@ -67,14 +67,14 @@ public class RepairRecordController {
                 .map(a -> a.getAuthority())
                 .collect(java.util.stream.Collectors.joining(", ")));
             
-            // 检查是否是管理员角色（ADMIN可以查看所有记录）
-            boolean isAdmin = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            // 检查是否是管理员或审批员角色（ADMIN和APPROVER可以查看所有记录）
+            boolean isAdminOrApprover = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_APPROVER"));
             
-            System.out.println("是否是管理员: " + isAdmin);
+            System.out.println("是否是管理员或审批员: " + isAdminOrApprover);
             
-            // 如果不是管理员（即CURATOR等角色），只查询自己申请的
-            if (!isAdmin) {
+            // 如果不是管理员或审批员（即CURATOR等角色），只查询自己申请的
+            if (!isAdminOrApprover) {
                 try {
                     applicantIdFilter = userContextUtil.getCurrentUserId();
                     System.out.println("保管员权限过滤：只显示申请人ID=" + applicantIdFilter + "的记录");
@@ -110,17 +110,17 @@ public class RepairRecordController {
             return Result.error("修复记录不存在");
         }
         
-        // 权限检查：保管员只能查看自己的记录
+        // 权限检查：保管员只能查看自己的记录，管理员和审批员可以查看所有记录
         if (authentication != null) {
             java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
                 authentication.getAuthorities();
             
-            // 检查是否是管理员角色
-            boolean isAdmin = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            // 检查是否是管理员或审批员角色
+            boolean isAdminOrApprover = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_APPROVER"));
             
-            // 如果不是管理员，检查是否是自己的记录
-            if (!isAdmin) {
+            // 如果不是管理员或审批员，检查是否是自己的记录
+            if (!isAdminOrApprover) {
                 try {
                     Long currentUserId = userContextUtil.getCurrentUserId();
                     if (record.getApplicantId() == null || !record.getApplicantId().equals(currentUserId)) {
@@ -488,26 +488,20 @@ public class RepairRecordController {
             return Result.error("修复记录不存在");
         }
         
-        // 权限检查：保管员只能删除自己的记录
+        // 权限检查：只能删除自己的记录（管理员和审批员也不能删除他人记录）
         if (authentication != null) {
             java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
                 authentication.getAuthorities();
             
-            // 检查是否是管理员角色
-            boolean isAdmin = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-            
-            // 如果不是管理员，检查是否是自己的记录
-            if (!isAdmin) {
-                try {
-                    Long currentUserId = userContextUtil.getCurrentUserId();
-                    if (oldRecord.getApplicantId() == null || !oldRecord.getApplicantId().equals(currentUserId)) {
-                        return Result.error("无权删除此记录");
-                    }
-                } catch (Exception e) {
-                    System.err.println("权限检查失败: " + e.getMessage());
-                    return Result.error("权限验证失败");
+            // 所有人都只能删除自己的记录
+            try {
+                Long currentUserId = userContextUtil.getCurrentUserId();
+                if (oldRecord.getApplicantId() == null || !oldRecord.getApplicantId().equals(currentUserId)) {
+                    return Result.error("无权删除此记录");
                 }
+            } catch (Exception e) {
+                System.err.println("权限检查失败: " + e.getMessage());
+                return Result.error("权限验证失败");
             }
         }
         

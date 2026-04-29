@@ -4,3 +4,4 @@ export const getMaintenancePageApi = (params) => request.get('/maintenance', { p
 export const addMaintenanceApi = (data) => request.post('/maintenance', data)
 export const updateMaintenanceApi = (data) => request.put('/maintenance', data)
 export const deleteMaintenanceApi = (id) => request.delete(`/maintenance/${id}`)
+export const approveMaintenanceApi = (data) => request.put('/maintenance/approve', data)

@@ -65,11 +65,16 @@
           {{ formatCost(scope.row.actualCost) }}
         </template>
       </el-table-column>
-      <el-table-column :label="$t('common.operation')" width="250" fixed="right">
+      <el-table-column :label="$t('common.operation')" :width="isAdminOrApprover ? 210 : 250" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <el-button v-if="scope.row.status === '待审批'" link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
-          <el-button v-if="scope.row.status === '待审批'" link type="warning" @click="remove(scope.row.id)">{{ $t('repair.withdraw') }}</el-button>
+          <!-- 管理员和审批员：只显示审批按钮 -->
+          <el-button v-if="isAdminOrApprover && scope.row.status === '待审批'" link type="warning" @click="openApprove(scope.row)">审批</el-button>
+          <!-- 保管员：只显示编辑和撤回按钮 -->
+          <template v-if="!isAdminOrApprover && scope.row.status === '待审批'">
+            <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
+            <el-button link type="danger" @click="remove(scope.row.id)">{{ $t('repair.withdraw') }}</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -291,7 +296,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRepairsPageApi, applyRepairApi, updateRepairApplyApi, deleteRepairApi, getEnabledExpertsApi } from '../api/repairs'
@@ -302,6 +307,12 @@ const { t } = useI18n()
 
 const tableData = ref([])
 const total = ref(0)
+
+// 判断当前用户是否是管理员或审批员
+const isAdminOrApprover = computed(() => {
+  const role = sessionStorage.getItem('role')
+  return role === 'ADMIN' || role === 'APPROVER'
+})
 
 // 材料对话框相关
 const materialsDialogVisible = ref(false)

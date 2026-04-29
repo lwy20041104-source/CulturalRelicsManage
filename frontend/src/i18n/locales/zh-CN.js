@@ -661,7 +661,7 @@ export default {
     inactive: '禁用',
     admin: '系统管理员',
     curator: '文物管理员',
-    approver: '借展审批员',
+    approver: '申请审批员',
     staff: '工作人员',
     addUser: '新增用户',
     editUser: '编辑用户',

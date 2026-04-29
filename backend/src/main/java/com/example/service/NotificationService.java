@@ -159,6 +159,37 @@ public interface NotificationService {
     void sendRepairCompletionNotification(Long repairId, Long applicantId, String relicName, Integer qualityScore);
     
     /**
+     * 发送维护申请通知
+     * 
+     * @param maintenanceId 维护记录ID
+     * @param relicName 文物名称
+     * @param maintenanceType 维护类型
+     * @param senderId 发送人ID
+     */
+    void sendMaintenanceApplyNotification(Long maintenanceId, String relicName, String maintenanceType, Long senderId);
+    
+    /**
+     * 发送维护审批结果通知
+     * 
+     * @param maintenanceId 维护记录ID
+     * @param maintainerId 维护人ID
+     * @param relicName 文物名称
+     * @param approved 是否通过
+     * @param approverName 审批人姓名
+     */
+    void sendMaintenanceApprovalNotification(Long maintenanceId, Long maintainerId, String relicName, boolean approved, String approverName);
+    
+    /**
+     * 发送维护申请撤回通知
+     * 
+     * @param maintenanceId 维护记录ID
+     * @param relicName 文物名称
+     * @param maintenanceType 维护类型
+     * @param senderId 发送人ID
+     */
+    void sendMaintenanceWithdrawNotification(Long maintenanceId, String relicName, String maintenanceType, Long senderId);
+    
+    /**
      * 获取通知统计信息
      * 
      * @param startDate 开始日期

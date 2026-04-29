@@ -18,7 +18,13 @@ public class MaintenanceRecord {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime maintenanceDate;
     private String maintenanceContent;
-    private String maintainer;
+    private Long maintainerId;              // 维护人员ID
+    private String maintainerName;          // 维护人员姓名（用于显示）
+    private String status;                  // 状态：待审批、已通过、已拒绝
+    private String approver;                // 审批人
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime approveDate;      // 审批日期
+    private String approveRemark;           // 审批意见
     private String remark;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
