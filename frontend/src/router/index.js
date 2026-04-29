@@ -17,8 +17,6 @@ import OperationLogsView from '../views/OperationLogsView.vue'
 import BackupView from '../views/BackupView.vue'
 import RepairsView from '../views/RepairsView.vue'
 import RepairApplyView from '../views/RepairApplyView.vue'
-import ExpertsView from '../views/ExpertsView.vue'
-import RepairMaterialsView from '../views/RepairMaterialsView.vue'
 import DataScreenView from '../views/DataScreenView.vue'
 import ReportsView from '../views/ReportsView.vue'
 import PublicPortalView from '../views/PublicPortalView.vue'
@@ -58,8 +56,6 @@ const routes = [
       { path: '/maintenance', component: MaintenanceView, meta: { perm: 'maintenance:manage' } },
       { path: '/repairs', component: RepairsView, meta: { perm: 'repairs:manage' } },
       { path: '/repair-apply', component: RepairApplyView, meta: { perm: 'repairs:apply' } },
-      { path: '/experts', component: ExpertsView, meta: { perm: 'repairs:manage' } },
-      { path: '/repair-materials', component: RepairMaterialsView, meta: { perm: 'repairs:manage' } },
       { path: '/images', component: ImageLibraryView, meta: { perm: 'images:manage' } },
       { path: '/data-screen', component: DataScreenView },
       { path: '/reports', component: ReportsView },

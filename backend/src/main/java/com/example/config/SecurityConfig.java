@@ -91,7 +91,7 @@ public class SecurityConfig {
                 .antMatchers("/images/**").hasAnyRole("ADMIN", "CURATOR")
                 .antMatchers("/relic-images/**").hasAnyRole("ADMIN", "CURATOR")
                 .antMatchers("/loans/**").hasAnyRole("ADMIN", "APPROVER")
-                .antMatchers("/maintenance/**").hasAnyRole("ADMIN", "CURATOR")
+                .antMatchers("/maintenance/**").hasAnyRole("ADMIN", "CURATOR", "APPROVER")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin().disable()

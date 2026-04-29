@@ -23,8 +23,6 @@
         <el-menu-item v-if="hasPerm('maintenance:manage')" index="/maintenance">{{ $t('nav.maintenance') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('repairs:manage')" index="/repairs">{{ $t('nav.repairs') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('repairs:apply')" index="/repair-apply">{{ $t('nav.repairApply') }}</el-menu-item>
-        <el-menu-item v-if="hasPerm('repairs:manage')" index="/experts">{{ $t('nav.experts') }}</el-menu-item>
-        <el-menu-item v-if="hasPerm('repairs:manage')" index="/repair-materials">{{ $t('nav.repairMaterials') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('users:manage')" index="/operation-logs">{{ $t('nav.operationLogs') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('users:manage')" index="/ai-chat-history">{{ $t('nav.aiChatHistory') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('users:manage')" index="/backup">{{ $t('nav.backup') }}</el-menu-item>

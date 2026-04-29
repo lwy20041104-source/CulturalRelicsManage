@@ -37,11 +37,14 @@
           <el-tag v-else type="info">{{ scope.row.status || '—' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('common.operation')" :width="isAdminOrApprover ? 180 : 220">
+      <el-table-column :label="$t('common.operation')" :width="isAdminOrApprover ? 240 : 220">
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <!-- 管理员和审批员：只显示审批按钮 -->
-          <el-button v-if="isAdminOrApprover && scope.row.status === '待审批'" link type="warning" @click="openApprove(scope.row)">审批</el-button>
+          <!-- 管理员和审批员：显示批准和拒绝按钮 -->
+          <template v-if="isAdminOrApprover && scope.row.status === '待审批'">
+            <el-button link type="success" @click="quickApprove(scope.row, '已通过')">批准</el-button>
+            <el-button link type="danger" @click="quickApprove(scope.row, '已拒绝')">拒绝</el-button>
+          </template>
           <!-- 保管员：只显示编辑和撤回按钮 -->
           <template v-if="!isAdminOrApprover && scope.row.status === '待审批'">
             <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
@@ -296,6 +299,53 @@ const openApprove = (row) => {
   })
   approveFormRef.value?.clearValidate()
   approveDialogVisible.value = true
+}
+
+const quickApprove = async (row, status) => {
+  try {
+    const action = status === '已通过' ? '批准' : '拒绝'
+    await ElMessageBox.confirm(
+      `确定要${action}此维护申请吗？`,
+      t('message.warning'),
+      {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
+    
+    // 如果是拒绝，可以选择填写拒绝原因
+    let approveRemark = ''
+    if (status === '已拒绝') {
+      const { value } = await ElMessageBox.prompt(
+        '请填写拒绝原因（选填）',
+        '拒绝原因',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputType: 'textarea',
+          inputPlaceholder: '请输入拒绝原因'
+        }
+      ).catch(() => ({ value: '' }))
+      approveRemark = value || ''
+    }
+    
+    await approveMaintenanceApi({
+      id: row.id,
+      status: status,
+      approveRemark: approveRemark
+    })
+    
+    ElMessage.success(status === '已通过' ? '批准成功' : '已拒绝')
+    loadData()
+  } catch (e) {
+    if (e !== 'cancel') {
+      const msg = e?.response?.data?.message || e?.message
+      if (msg) {
+        ElMessage.error(msg)
+      }
+    }
+  }
 }
 
 const viewDetail = (row) => {

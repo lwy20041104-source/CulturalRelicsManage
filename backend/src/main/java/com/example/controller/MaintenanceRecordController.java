@@ -41,9 +41,20 @@ public class MaintenanceRecordController {
             java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
                 authentication.getAuthorities();
             
+            // 打印所有权限信息用于调试
+            System.out.println("=== 维护记录查询权限检查 ===");
+            System.out.println("用户名: " + authentication.getName());
+            System.out.println("权限列表: " + authorities);
+            authorities.forEach(a -> System.out.println("  - " + a.getAuthority()));
+            
             // 检查是否是管理员或审批员角色（ADMIN和APPROVER可以查看所有记录）
             boolean isAdminOrApprover = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_APPROVER"));
+                .anyMatch(a -> {
+                    String authority = a.getAuthority();
+                    boolean match = authority.equals("ROLE_ADMIN") || authority.equals("ROLE_APPROVER");
+                    System.out.println("检查权限: " + authority + " -> " + match);
+                    return match;
+                });
             
             System.out.println("是否是管理员或审批员: " + isAdminOrApprover);
             
@@ -55,7 +66,12 @@ public class MaintenanceRecordController {
                 } catch (Exception e) {
                     System.err.println("获取当前用户ID失败: " + e.getMessage());
                 }
+            } else {
+                System.out.println("管理员/审批员权限：显示所有维护记录");
             }
+            System.out.println("=== 权限检查完成 ===");
+        } else {
+            System.out.println("警告: authentication 为 null");
         }
         
         PageResult<MaintenanceRecord> page = maintenanceRecordService.pageRecords(
