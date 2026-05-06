@@ -105,8 +105,29 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
 
     @Override
     @CacheEvict(value = CacheConstants.STATISTICS_CACHE, allEntries = true)
+    @Transactional
     public boolean removeById(Long id) {
-        return culturalRelicMapper.deleteById(id) > 0;
+        log.info("开始删除文物：id={}", id);
+        
+        // 1. 删除文物关联的所有图片（包括关联关系和图片库记录）
+        try {
+            relicImageRelationService.deleteAllImagesByRelicId(id);
+            log.info("已删除文物关联的所有图片：relicId={}", id);
+        } catch (Exception e) {
+            log.error("删除文物关联图片失败：relicId={}, error={}", id, e.getMessage(), e);
+            throw new RuntimeException("删除文物关联图片失败", e);
+        }
+        
+        // 2. 删除文物记录
+        boolean success = culturalRelicMapper.deleteById(id) > 0;
+        
+        if (success) {
+            log.info("文物删除成功：id={}", id);
+        } else {
+            log.warn("文物删除失败：id={}", id);
+        }
+        
+        return success;
     }
 
     @Override
@@ -130,11 +151,23 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
         if (ids == null || ids.isEmpty()) {
             return false;
         }
+        
+        log.info("开始批量删除文物：ids={}, count={}", ids, ids.size());
+        
         int count = 0;
         for (Long id : ids) {
-            count += culturalRelicMapper.deleteById(id);
+            try {
+                // 删除每个文物（包括其关联的图片）
+                if (removeById(id)) {
+                    count++;
+                }
+            } catch (Exception e) {
+                log.error("删除文物失败：id={}, error={}", id, e.getMessage(), e);
+                // 继续删除其他文物
+            }
         }
-        log.info("批量删除文物：ids={}, count={}", ids, count);
+        
+        log.info("批量删除文物完成：总数={}, 成功={}", ids.size(), count);
         return count > 0;
     }
 

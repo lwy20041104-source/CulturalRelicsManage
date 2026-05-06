@@ -23,7 +23,7 @@ import java.util.UUID;
  * 3D文物模型管理控制器
  */
 @RestController
-@RequestMapping("/api/relics")
+@RequestMapping("/relics")
 @CrossOrigin
 public class Relic3DController {
 
@@ -87,8 +87,6 @@ public class Relic3DController {
                 CulturalRelic relic = culturalRelicService.getById(id);
                 if (relic != null) {
                     relic.setModel3dUrl(modelUrl);
-                    relic.setModel3dType(extension.substring(1)); // 去掉点号
-                    relic.setModel3dSize(file.getSize());
                     relic.setModel3dUploadTime(LocalDateTime.now());
                     culturalRelicService.updateById(relic);
                 }
@@ -100,7 +98,6 @@ public class Relic3DController {
             result.put("modelUrl", modelUrl);
             result.put("filename", filename);
             result.put("fileSize", file.getSize());
-            result.put("modelType", extension.substring(1));
 
             return Result.success(result);
 
@@ -125,8 +122,6 @@ public class Relic3DController {
                 CulturalRelic relic = culturalRelicService.getById(id);
                 if (relic != null) {
                     relic.setModel3dUrl(null);
-                    relic.setModel3dType(null);
-                    relic.setModel3dSize(null);
                     relic.setModel3dUploadTime(null);
                     culturalRelicService.updateById(relic);
                 }
@@ -151,8 +146,6 @@ public class Relic3DController {
             CulturalRelic relic = culturalRelicService.getById(id);
             if (relic != null && relic.getModel3dUrl() != null) {
                 result.put("modelUrl", relic.getModel3dUrl());
-                result.put("modelType", relic.getModel3dType());
-                result.put("modelSize", relic.getModel3dSize());
                 result.put("uploadTime", relic.getModel3dUploadTime());
                 result.put("hasModel", true);
             } else {
@@ -165,5 +158,83 @@ public class Relic3DController {
         }
 
         return Result.success(result);
+    }
+
+    /**
+     * 保存3D模型链接
+     */
+    @PostMapping("/{id}/3d-model-url")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
+    public Result<Map<String, Object>> save3DModelUrl(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        
+        String modelUrl = request.get("modelUrl");
+        if (modelUrl == null || modelUrl.trim().isEmpty()) {
+            return Result.error("模型链接不能为空");
+        }
+
+        try {
+            // 更新数据库中的文物记录
+            if (culturalRelicService != null) {
+                CulturalRelic relic = culturalRelicService.getById(id);
+                if (relic != null) {
+                    relic.setModel3dUrl(modelUrl.trim());
+                    relic.setModel3dUploadTime(LocalDateTime.now());
+                    culturalRelicService.updateById(relic);
+                    
+                    // 返回结果
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("relicId", id);
+                    result.put("modelUrl", modelUrl.trim());
+                    result.put("uploadTime", relic.getModel3dUploadTime());
+                    
+                    return Result.success(result);
+                } else {
+                    return Result.error("文物不存在");
+                }
+            }
+            
+            return Result.error("服务不可用");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("保存失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除3D模型（智能删除：支持文件和链接）
+     */
+    @DeleteMapping("/{id}/3d-model-url")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
+    public Result<String> delete3DModelUrl(@PathVariable Long id) {
+        try {
+            // 更新数据库中的文物记录
+            if (culturalRelicService != null) {
+                CulturalRelic relic = culturalRelicService.getById(id);
+                if (relic != null) {
+                    // 如果是本地上传的文件，尝试删除文件
+                    String modelUrl = relic.getModel3dUrl();
+                    if (modelUrl != null && modelUrl.startsWith(urlPrefix)) {
+                        String filename = modelUrl.substring(modelUrl.lastIndexOf("/") + 1);
+                        Path filePath = Paths.get(uploadPath, filename);
+                        Files.deleteIfExists(filePath);
+                    }
+                    
+                    relic.setModel3dUrl(null);
+                    relic.setModel3dUploadTime(null);
+                    culturalRelicService.updateById(relic);
+                    
+                    return Result.success("删除成功");
+                } else {
+                    return Result.error("文物不存在");
+                }
+            }
+            
+            return Result.error("服务不可用");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("删除失败: " + e.getMessage());
+        }
     }
 }

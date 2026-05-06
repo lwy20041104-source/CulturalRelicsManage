@@ -1,60 +1,81 @@
 <template>
   <div class="relic-3d-viewer">
-    <div ref="containerRef" class="viewer-container"></div>
-    
-    <!-- 控制面板 -->
-    <div class="control-panel">
-      <div class="control-group">
-        <el-button-group>
-          <el-button :icon="VideoPlay" @click="toggleAutoRotate" :type="autoRotate ? 'primary' : ''">
-            {{ autoRotate ? '停止旋转' : '自动旋转' }}
-          </el-button>
-          <el-button :icon="Refresh" @click="resetCamera">重置视角</el-button>
-          <el-button :icon="FullScreen" @click="toggleFullscreen">全屏</el-button>
-        </el-button-group>
-      </div>
-      
-      <div class="control-group">
-        <span class="control-label">光照强度</span>
-        <el-slider v-model="lightIntensity" :min="0" :max="3" :step="0.1" @input="updateLighting" style="width: 150px" />
-      </div>
-      
-      <div class="control-group">
-        <span class="control-label">背景颜色</span>
-        <el-color-picker v-model="backgroundColor" @change="updateBackground" />
-      </div>
-      
-      <div class="control-group">
-        <span class="control-label">显示网格</span>
-        <el-switch v-model="showGrid" @change="toggleGrid" />
-      </div>
+    <!-- Sketchfab iframe嵌入 -->
+    <div v-if="isSketchfabUrl" class="sketchfab-container">
+      <iframe
+        :src="sketchfabEmbedUrl"
+        frameborder="0"
+        allowfullscreen
+        mozallowfullscreen="true"
+        webkitallowfullscreen="true"
+        allow="autoplay; fullscreen; xr-spatial-tracking"
+        xr-spatial-tracking
+        execution-while-out-of-viewport
+        execution-while-not-rendered
+        web-share
+        width="100%"
+        height="100%"
+      ></iframe>
     </div>
     
-    <!-- 加载提示 -->
-    <div v-if="loading" class="loading-overlay">
-      <el-icon class="is-loading" :size="50"><Loading /></el-icon>
-      <p>加载3D模型中...</p>
-    </div>
-    
-    <!-- 错误提示 -->
-    <div v-if="error" class="error-overlay">
-      <el-icon :size="50"><WarningFilled /></el-icon>
-      <p>{{ error }}</p>
-      <el-button @click="loadDefaultModel">加载默认模型</el-button>
-    </div>
-    
-    <!-- 信息面板 -->
-    <div class="info-panel" v-if="modelInfo">
-      <h4>模型信息</h4>
-      <p><strong>顶点数:</strong> {{ modelInfo.vertices }}</p>
-      <p><strong>面数:</strong> {{ modelInfo.faces }}</p>
-      <p><strong>材质:</strong> {{ modelInfo.materials }}</p>
+    <!-- Three.js 3D查看器 -->
+    <div v-else>
+      <div ref="containerRef" class="viewer-container"></div>
+      
+      <!-- 控制面板 -->
+      <div class="control-panel">
+        <div class="control-group">
+          <el-button-group>
+            <el-button :icon="VideoPlay" @click="toggleAutoRotate" :type="autoRotate ? 'primary' : ''">
+              {{ autoRotate ? '停止旋转' : '自动旋转' }}
+            </el-button>
+            <el-button :icon="Refresh" @click="resetCamera">重置视角</el-button>
+            <el-button :icon="FullScreen" @click="toggleFullscreen">全屏</el-button>
+          </el-button-group>
+        </div>
+        
+        <div class="control-group">
+          <span class="control-label">光照强度</span>
+          <el-slider v-model="lightIntensity" :min="0" :max="3" :step="0.1" @input="updateLighting" style="width: 150px" />
+        </div>
+        
+        <div class="control-group">
+          <span class="control-label">背景颜色</span>
+          <el-color-picker v-model="backgroundColor" @change="updateBackground" />
+        </div>
+        
+        <div class="control-group">
+          <span class="control-label">显示网格</span>
+          <el-switch v-model="showGrid" @change="toggleGrid" />
+        </div>
+      </div>
+      
+      <!-- 加载提示 -->
+      <div v-if="loading" class="loading-overlay">
+        <el-icon class="is-loading" :size="50"><Loading /></el-icon>
+        <p>加载3D模型中...</p>
+      </div>
+      
+      <!-- 错误提示 -->
+      <div v-if="error" class="error-overlay">
+        <el-icon :size="50"><WarningFilled /></el-icon>
+        <p>{{ error }}</p>
+        <el-button @click="loadDefaultModel(true)">加载默认模型</el-button>
+      </div>
+      
+      <!-- 信息面板 -->
+      <div class="info-panel" v-if="modelInfo">
+        <h4>模型信息</h4>
+        <p><strong>顶点数:</strong> {{ modelInfo.vertices }}</p>
+        <p><strong>面数:</strong> {{ modelInfo.faces }}</p>
+        <p><strong>材质:</strong> {{ modelInfo.materials }}</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -93,6 +114,40 @@ const modelInfo = ref(null)
 
 let scene, camera, renderer, controls, model, gridHelper
 let animationId = null
+
+// 检测是否为Sketchfab链接
+const isSketchfabUrl = computed(() => {
+  return props.modelUrl && props.modelUrl.includes('sketchfab.com')
+})
+
+// 生成Sketchfab嵌入URL
+const sketchfabEmbedUrl = computed(() => {
+  if (!isSketchfabUrl.value) return ''
+  
+  // 如果已经是embed链接，直接使用
+  if (props.modelUrl.includes('/embed')) {
+    return props.modelUrl
+  }
+  
+  // 从Sketchfab URL中提取模型ID
+  // 格式1: https://sketchfab.com/3d-models/name-{modelId}
+  // 格式2: https://sketchfab.com/models/{modelId}/embed
+  let match = props.modelUrl.match(/\/3d-models\/[^\/]+-([a-f0-9]+)/)
+  if (match && match[1]) {
+    const modelId = match[1]
+    return `https://sketchfab.com/models/${modelId}/embed?autostart=1&ui_theme=dark`
+  }
+  
+  // 格式3: 直接是模型ID链接
+  match = props.modelUrl.match(/\/models\/([a-f0-9]+)/)
+  if (match && match[1]) {
+    const modelId = match[1]
+    return `https://sketchfab.com/models/${modelId}/embed?autostart=1&ui_theme=dark`
+  }
+  
+  // 如果无法解析，直接返回原URL
+  return props.modelUrl
+})
 
 // 初始化场景
 const initScene = () => {
@@ -174,7 +229,7 @@ const addGrid = () => {
 }
 
 // 加载默认模型（立方体）
-const loadDefaultModel = () => {
+const loadDefaultModel = (showMessage = false) => {
   loading.value = true
   error.value = ''
   
@@ -205,7 +260,11 @@ const loadDefaultModel = () => {
     }
     
     loading.value = false
-    ElMessage.success('默认模型加载成功')
+    
+    // 只在明确要求时才显示成功消息
+    if (showMessage) {
+      ElMessage.success('默认模型加载成功')
+    }
   } catch (err) {
     error.value = '加载默认模型失败: ' + err.message
     loading.value = false
@@ -264,9 +323,14 @@ const loadGLTFModel = (url) => {
       console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%')
     },
     (err) => {
+      console.error('加载GLTF模型失败:', err)
       error.value = '加载GLTF模型失败: ' + err.message
       loading.value = false
       ElMessage.error('模型加载失败')
+      // 加载失败时自动加载默认模型（不显示提示）
+      setTimeout(() => {
+        loadDefaultModel(false)
+      }, 1000)
     }
   )
 }
@@ -316,9 +380,14 @@ const loadOBJModel = (url) => {
       console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%')
     },
     (err) => {
+      console.error('加载OBJ模型失败:', err)
       error.value = '加载OBJ模型失败: ' + err.message
       loading.value = false
       ElMessage.error('模型加载失败')
+      // 加载失败时自动加载默认模型（不显示提示）
+      setTimeout(() => {
+        loadDefaultModel(false)
+      }, 1000)
     }
   )
 }
@@ -402,6 +471,11 @@ const handleResize = () => {
 
 // 监听模型URL变化
 watch(() => props.modelUrl, (newUrl) => {
+  // 如果是Sketchfab链接，不需要加载Three.js模型
+  if (isSketchfabUrl.value) {
+    return
+  }
+  
   if (newUrl) {
     if (props.modelType === 'gltf') {
       loadGLTFModel(newUrl)
@@ -409,11 +483,17 @@ watch(() => props.modelUrl, (newUrl) => {
       loadOBJModel(newUrl)
     }
   } else {
-    loadDefaultModel()
+    // 没有URL时加载默认模型（不显示提示）
+    loadDefaultModel(false)
   }
 })
 
 onMounted(() => {
+  // 如果是Sketchfab链接，不初始化Three.js场景
+  if (isSketchfabUrl.value) {
+    return
+  }
+  
   initScene()
   
   // 加载模型
@@ -424,7 +504,8 @@ onMounted(() => {
       loadOBJModel(props.modelUrl)
     }
   } else {
-    loadDefaultModel()
+    // 没有URL时加载默认模型（不显示提示）
+    loadDefaultModel(false)
   }
   
   window.addEventListener('resize', handleResize)
@@ -455,6 +536,18 @@ onUnmounted(() => {
   background: #000;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.sketchfab-container {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+}
+
+.sketchfab-container iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
 }
 
 .viewer-container {

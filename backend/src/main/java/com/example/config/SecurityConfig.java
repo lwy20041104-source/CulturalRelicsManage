@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers("/auth/**", "/doc.html", "/webjars/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll()
                 .antMatchers("/proxy/**").permitAll()
-                .antMatchers("/uploads/**").permitAll()  // 允许访问上传的图片（/api/uploads/**）
+                .antMatchers("/uploads/**").permitAll()  // 允许访问上传的图片
                 .antMatchers(HttpMethod.GET, "/museums/active").permitAll()
                 .antMatchers(HttpMethod.GET, "/relics").permitAll()  // 允许公开访问文物列表（不带ID）
                 .antMatchers(HttpMethod.GET, "/relics/{id}").permitAll()  // 允许公开访问单个文物详情

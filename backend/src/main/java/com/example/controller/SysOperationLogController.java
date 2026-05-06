@@ -7,7 +7,7 @@ import com.example.service.SysOperationLogService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/operation-logs")
+@RequestMapping("/operation-logs")
 public class SysOperationLogController {
     
     private final SysOperationLogService logService;

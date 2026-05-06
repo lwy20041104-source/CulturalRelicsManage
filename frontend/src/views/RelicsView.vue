@@ -160,9 +160,20 @@
         </el-form-item>
         <el-form-item :label="$t('relic.material')" prop="material"><el-input v-model="form.material" /></el-form-item>
         <el-form-item :label="$t('relic.category')" prop="categoryId">
-          <el-select v-model="form.categoryId" style="width: 100%" clearable>
-            <el-option v-for="item in categoryOptions" :key="item.id" :label="item.categoryName" :value="item.id" />
-          </el-select>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <el-select v-model="form.categoryId" style="flex: 1" clearable>
+              <el-option v-for="item in categoryOptions" :key="item.id" :label="item.categoryName" :value="item.id" />
+            </el-select>
+            <el-button 
+              type="primary" 
+              :icon="MagicStick" 
+              @click="openAIRecognition"
+              :disabled="newImageFileList.length === 0"
+            >
+              AI识别
+            </el-button>
+          </div>
+          <div class="form-tip">提示：上传图片后可使用AI自动识别分类</div>
         </el-form-item>
         <el-form-item :label="$t('relic.status')" prop="status">
           <el-select v-model="form.status">
@@ -255,8 +266,7 @@
               >
                 <template #default>
                   <div class="model-info">
-                    <p><strong>{{ $t('relic.modelType') }}:</strong> {{ form.model3dType?.toUpperCase() }}</p>
-                    <p><strong>{{ $t('relic.modelSize') }}:</strong> {{ formatFileSize(form.model3dSize) }}</p>
+                    <p><strong>{{ $t('relic.modelUrl') }}:</strong> {{ form.model3dUrl }}</p>
                     <p><strong>{{ $t('relic.uploadTime') }}:</strong> {{ formatDateTime(form.model3dUploadTime) }}</p>
                   </div>
                   <div class="model-actions">
@@ -281,29 +291,50 @@
               </el-alert>
             </div>
             
-            <!-- 上传3D模型 -->
-            <div v-if="!form.model3dUrl" class="upload-3d-section">
-              <el-upload
-                ref="model3dUploadRef"
-                :auto-upload="false"
-                :on-change="handle3DModelChange"
-                :on-remove="handle3DModelRemove"
-                accept=".gltf,.glb,.obj"
-                :limit="1"
-                :file-list="model3dFileList"
-                drag
-              >
-                <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-                <div class="el-upload__text">
-                  {{ $t('relic.drag3DModelHere') }}<em>{{ $t('relic.clickToUpload') }}</em>
-                </div>
-                <template #tip>
-                  <div class="el-upload__tip">
-                    {{ $t('relic.support3DFormats') }}: GLTF (.gltf, .glb), OBJ (.obj)<br>
-                    {{ $t('relic.maxFileSize') }}: 50MB
+            <!-- 上传3D模型或输入链接 -->
+            <div v-if="!form.model3dUrl">
+              <el-tabs v-model="model3dUploadMode" class="model3d-tabs">
+                <!-- 上传文件 -->
+                <el-tab-pane :label="$t('relic.uploadFile')" name="file">
+                  <el-upload
+                    ref="model3dUploadRef"
+                    :auto-upload="false"
+                    :on-change="handle3DModelChange"
+                    :on-remove="handle3DModelRemove"
+                    accept=".gltf,.glb,.obj"
+                    :limit="1"
+                    :file-list="model3dFileList"
+                    drag
+                  >
+                    <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+                    <div class="el-upload__text">
+                      {{ $t('relic.drag3DModelHere') }}<em>{{ $t('relic.clickToUpload') }}</em>
+                    </div>
+                    <template #tip>
+                      <div class="el-upload__tip">
+                        {{ $t('relic.support3DFormats') }}: GLTF (.gltf, .glb), OBJ (.obj)<br>
+                        {{ $t('relic.maxFileSize') }}: 50MB
+                      </div>
+                    </template>
+                  </el-upload>
+                </el-tab-pane>
+                
+                <!-- 输入链接 -->
+                <el-tab-pane :label="$t('relic.inputLink')" name="url">
+                  <el-input
+                    v-model="model3dUrlInput"
+                    :placeholder="$t('relic.input3DModelLink')"
+                    clearable
+                  >
+                    <template #prepend>
+                      <el-icon><Link /></el-icon>
+                    </template>
+                  </el-input>
+                  <div class="upload-tip">
+                    {{ $t('relic.support3DLinks') }}
                   </div>
-                </template>
-              </el-upload>
+                </el-tab-pane>
+              </el-tabs>
             </div>
           </div>
         </el-form-item>
@@ -558,6 +589,133 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- AI识别对话框 -->
+    <el-dialog v-model="aiRecognitionDialogVisible" title="AI图像识别" width="700px" class="ai-recognition-dialog">
+      <div v-if="recognizing" class="recognition-loading">
+        <el-icon class="is-loading" :size="60"><Loading /></el-icon>
+        <p>AI正在分析图片，请稍候...</p>
+      </div>
+      
+      <div v-else-if="recognitionResult" class="recognition-result">
+        <!-- 识别成功 -->
+        <div v-if="recognitionResult.success">
+          <el-alert 
+            title="识别完成" 
+            type="success" 
+            :closable="false"
+            style="margin-bottom: 20px"
+          >
+            <template #default>
+              {{ recognitionResult.description }}
+            </template>
+          </el-alert>
+          
+          <!-- 主要分类 -->
+          <div class="primary-category" v-if="recognitionResult.primaryCategory">
+            <h3>推荐分类</h3>
+            <el-card class="category-card primary">
+              <div class="category-header">
+                <span class="category-name">{{ recognitionResult.primaryCategory.categoryName }}</span>
+                <el-tag type="success" size="large">
+                  置信度: {{ recognitionResult.primaryCategory.confidence.toFixed(1) }}%
+                </el-tag>
+              </div>
+              <p class="category-reason">{{ recognitionResult.primaryCategory.reason }}</p>
+              <el-button 
+                type="primary" 
+                @click="applyCategory(recognitionResult.primaryCategory)"
+                style="margin-top: 10px"
+              >
+                应用此分类
+              </el-button>
+            </el-card>
+          </div>
+          
+          <!-- 其他可能的分类 -->
+          <div class="alternative-categories" v-if="recognitionResult.alternativeCategories && recognitionResult.alternativeCategories.length > 0">
+            <h3>其他可能的分类</h3>
+            <div class="categories-grid">
+              <el-card 
+                v-for="cat in recognitionResult.alternativeCategories" 
+                :key="cat.categoryId"
+                class="category-card alternative"
+                @click="applyCategory(cat)"
+              >
+                <div class="category-header">
+                  <span class="category-name">{{ cat.categoryName }}</span>
+                  <el-tag type="info" size="small">
+                    {{ cat.confidence.toFixed(1) }}%
+                  </el-tag>
+                </div>
+                <p class="category-reason">{{ cat.reason }}</p>
+              </el-card>
+            </div>
+          </div>
+          
+          <!-- 其他建议 -->
+          <div class="suggestions" v-if="recognitionResult.suggestedEra || recognitionResult.suggestedMaterial">
+            <h3>其他建议</h3>
+            <el-descriptions :column="2" border>
+              <el-descriptions-item label="建议年代" v-if="recognitionResult.suggestedEra">
+                {{ recognitionResult.suggestedEra }}
+                <el-button 
+                  link 
+                  type="primary" 
+                  size="small"
+                  @click="form.era = recognitionResult.suggestedEra"
+                >
+                  应用
+                </el-button>
+              </el-descriptions-item>
+              <el-descriptions-item label="建议材质" v-if="recognitionResult.suggestedMaterial">
+                {{ recognitionResult.suggestedMaterial }}
+                <el-button 
+                  link 
+                  type="primary" 
+                  size="small"
+                  @click="form.material = recognitionResult.suggestedMaterial"
+                >
+                  应用
+                </el-button>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+          
+          <!-- 识别特征 -->
+          <div class="features" v-if="recognitionResult.features && recognitionResult.features.length > 0">
+            <h3>识别特征</h3>
+            <el-tag 
+              v-for="(feature, index) in recognitionResult.features" 
+              :key="index"
+              style="margin-right: 10px; margin-bottom: 10px"
+            >
+              {{ feature }}
+            </el-tag>
+          </div>
+        </div>
+        
+        <!-- 识别失败 -->
+        <div v-else>
+          <el-alert 
+            title="识别失败" 
+            type="error" 
+            :closable="false"
+          >
+            <template #default>
+              {{ recognitionResult.errorMessage }}
+            </template>
+          </el-alert>
+        </div>
+      </div>
+      
+      <template #footer>
+        <el-button @click="aiRecognitionDialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="retryRecognition" v-if="recognitionResult && !recognitionResult.success">
+          重试
+        </el-button>
+      </template>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -566,9 +724,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { UploadFilled, Link, Loading, InfoFilled, Download, Printer, Plus, View, Delete } from '@element-plus/icons-vue'
+import { UploadFilled, Link, Loading, InfoFilled, Download, Printer, Plus, View, Delete, ArrowDown, Picture, Share, ChatDotRound, MagicStick } from '@element-plus/icons-vue'
 import request from '../api/request'
 import { getCategoriesApi } from '../api/categories'
+import { recognizeImageApi } from '../api/recognition'
 import { 
   getRelicsPageApi, 
   addRelicApi,
@@ -615,9 +774,16 @@ const existingImages = ref([])  // 已有图片列表（编辑时）
 const newImageFileList = ref([])  // 新上传的图片文件列表
 const model3dFileList = ref([])  // 3D模型文件列表
 const model3dUploadRef = ref()  // 3D模型上传组件引用
+const model3dUploadMode = ref('file')  // 3D模型上传模式：'file' 或 'url'
+const model3dUrlInput = ref('')  // 3D模型链接输入
 const qrcodeDialogVisible = ref(false)
 const currentQRCode = ref(null)
 const qrcodeImageData = ref('')
+
+// AI识别相关
+const aiRecognitionDialogVisible = ref(false)
+const recognizing = ref(false)
+const recognitionResult = ref(null)
 
 const query = reactive({ pageNum: 1, pageSize: 10, relicName: '', categoryId: null, status: '', era: '' })
 const form = reactive({})
@@ -675,8 +841,6 @@ const openAdd = () => {
     imagePath: '',
     description: '',
     model3dUrl: null,
-    model3dType: null,
-    model3dSize: null,
     model3dUploadTime: null
   })
   // 清空图片列表
@@ -685,8 +849,10 @@ const openAdd = () => {
   if (uploadRef.value) {
     uploadRef.value.clearFiles()
   }
-  // 清空3D模型列表
+  // 清空3D模型列表和链接
   model3dFileList.value = []
+  model3dUrlInput.value = ''
+  model3dUploadMode.value = 'file'
   if (model3dUploadRef.value) {
     model3dUploadRef.value.clearFiles()
   }
@@ -702,8 +868,10 @@ const openEdit = async (row) => {
     uploadRef.value.clearFiles()
   }
   
-  // 清空3D模型上传列表（编辑时如果已有模型，不显示上传框）
+  // 清空3D模型上传列表和链接（编辑时如果已有模型，不显示上传框）
   model3dFileList.value = []
+  model3dUrlInput.value = ''
+  model3dUploadMode.value = 'file'
   if (model3dUploadRef.value) {
     model3dUploadRef.value.clearFiles()
   }
@@ -1049,8 +1217,9 @@ const submit = async () => {
         }
       }
       
-      // 处理3D模型上传
-      if (model3dFileList.value.length > 0) {
+      // 处理3D模型上传或链接
+      if (model3dUploadMode.value === 'file' && model3dFileList.value.length > 0) {
+        // 文件上传模式
         const model3dFile = model3dFileList.value[0].raw
         if (model3dFile) {
           const formData = new FormData()
@@ -1065,6 +1234,17 @@ const submit = async () => {
             console.error('3D模型上传失败:', error)
             ElMessage.warning(t('relic.upload3DModelFailed'))
           }
+        }
+      } else if (model3dUploadMode.value === 'url' && model3dUrlInput.value) {
+        // 链接模式
+        try {
+          await request.post(`/relics/${form.id}/3d-model-url`, {
+            modelUrl: model3dUrlInput.value
+          })
+          ElMessage.success(t('relic.save3DModelLinkSuccess'))
+        } catch (error) {
+          console.error('保存3D模型链接失败:', error)
+          ElMessage.warning(t('relic.save3DModelLinkFailed'))
         }
       }
       
@@ -1087,8 +1267,9 @@ const submit = async () => {
           }
         }
         
-        // 如果有3D模型，上传
-        if (model3dFileList.value.length > 0) {
+        // 处理3D模型上传或链接
+        if (model3dUploadMode.value === 'file' && model3dFileList.value.length > 0) {
+          // 文件上传模式
           const model3dFile = model3dFileList.value[0].raw
           if (model3dFile) {
             const formData = new FormData()
@@ -1103,6 +1284,17 @@ const submit = async () => {
               console.error('3D模型上传失败:', error)
               ElMessage.warning(t('relic.upload3DModelFailed'))
             }
+          }
+        } else if (model3dUploadMode.value === 'url' && model3dUrlInput.value) {
+          // 链接模式
+          try {
+            await request.post(`/relics/${relicId}/3d-model-url`, {
+              modelUrl: model3dUrlInput.value
+            })
+            ElMessage.success(t('relic.save3DModelLinkSuccess'))
+          } catch (error) {
+            console.error('保存3D模型链接失败:', error)
+            ElMessage.warning(t('relic.save3DModelLinkFailed'))
           }
         }
         
@@ -1193,20 +1385,17 @@ const delete3DModel = async () => {
       { type: 'warning' }
     )
     
-    const filename = form.model3dUrl.split('/').pop()
-    await request.delete(`/relics/${form.id}/3d-model`, {
-      params: { filename }
-    })
+    // 使用新的删除端点（智能删除，不需要filename参数）
+    await request.delete(`/relics/${form.id}/3d-model-url`)
     
     // 清除表单中的3D模型信息
     form.model3dUrl = null
-    form.model3dType = null
-    form.model3dSize = null
     form.model3dUploadTime = null
     
     ElMessage.success(t('relic.delete3DModelSuccess'))
   } catch (error) {
     if (error !== 'cancel') {
+      console.error('删除3D模型失败:', error)
       ElMessage.error(t('relic.delete3DModelFailed'))
     }
   }
@@ -1581,6 +1770,66 @@ const printQRCode = () => {
   printWindow.document.close()
   
   ElMessage.success(t('relic.printPreviewGenerated'))
+}
+
+// ========================================
+// AI图像识别功能
+// ========================================
+
+// 打开AI识别对话框
+const openAIRecognition = async () => {
+  if (newImageFileList.value.length === 0) {
+    ElMessage.warning('请先上传图片')
+    return
+  }
+  
+  aiRecognitionDialogVisible.value = true
+  recognizing.value = true
+  recognitionResult.value = null
+  
+  try {
+    // 使用第一张图片进行识别
+    const firstImage = newImageFileList.value[0].raw
+    
+    const response = await recognizeImageApi(firstImage)
+    
+    if (response.code === 200) {
+      recognitionResult.value = response.data
+      
+      if (response.data.success) {
+        ElMessage.success('图像识别完成')
+      } else {
+        ElMessage.error('图像识别失败')
+      }
+    } else {
+      ElMessage.error(response.message || '识别失败')
+      recognitionResult.value = {
+        success: false,
+        errorMessage: response.message || '识别失败'
+      }
+    }
+  } catch (error) {
+    console.error('AI识别失败:', error)
+    ElMessage.error('识别失败：' + (error.message || '未知错误'))
+    recognitionResult.value = {
+      success: false,
+      errorMessage: error.message || '识别失败'
+    }
+  } finally {
+    recognizing.value = false
+  }
+}
+
+// 应用分类
+const applyCategory = (category) => {
+  form.categoryId = category.categoryId
+  ElMessage.success(`已应用分类：${category.categoryName}`)
+  aiRecognitionDialogVisible.value = false
+}
+
+// 重试识别
+const retryRecognition = () => {
+  openAIRecognition()
 }
 
 // ========================================
@@ -2099,5 +2348,94 @@ onMounted(async () => {
 
 .qrcode-actions .el-button {
   min-width: 140px;
+}
+
+/* AI识别对话框样式 */
+.ai-recognition-dialog :deep(.el-dialog__body) {
+  padding: 30px;
+  min-height: 300px;
+}
+
+.recognition-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.recognition-loading p {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.recognition-result h3 {
+  margin: 20px 0 15px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.primary-category {
+  margin-bottom: 25px;
+}
+
+.category-card {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.category-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-card.primary {
+  border: 2px solid #67c23a;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.category-card.alternative {
+  border: 1px solid #e4e7ed;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.category-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.category-reason {
+  color: #606266;
+  font-size: 14px;
+  margin: 0;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.suggestions {
+  margin-top: 25px;
+}
+
+.features {
+  margin-top: 25px;
+}
+
+.form-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 5px;
 }
 </style>

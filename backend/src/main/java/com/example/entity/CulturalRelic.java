@@ -24,8 +24,6 @@ public class CulturalRelic {
     private String status;
     private String imagePath;
     private String model3dUrl;
-    private String model3dType;
-    private Long model3dSize;
     private LocalDateTime model3dUploadTime;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

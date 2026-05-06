@@ -453,4 +453,60 @@ public class RelicImageRelationServiceImpl implements RelicImageRelationService 
     public List<RelicImageRelation> listAll() {
         return relationMapper.selectAll();
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteAllImagesByRelicId(Long relicId) {
+        try {
+            // 1. 获取该文物的所有图片关联
+            List<RelicImageRelation> relations = relationMapper.selectAllByRelicId(relicId);
+            
+            if (relations == null || relations.isEmpty()) {
+                System.out.println("文物没有关联的图片：relicId=" + relicId);
+                return true;
+            }
+            
+            System.out.println("开始删除文物的所有图片：relicId=" + relicId + ", 图片数量=" + relations.size());
+            
+            // 2. 遍历删除每张图片
+            for (RelicImageRelation relation : relations) {
+                Long imageId = relation.getImageId();
+                
+                try {
+                    // 2.1 获取图片信息（用于日志）
+                    ImageLibrary image = imageLibraryMapper.selectById(imageId);
+                    
+                    if (image != null) {
+                        System.out.println("准备删除图片：imageId=" + imageId + ", filePath=" + image.getFilePath());
+                        
+                        // 2.2 删除图片库记录（物理文件由文件系统管理，这里只删除数据库记录）
+                        imageLibraryMapper.deleteById(imageId);
+                        System.out.println("已删除图片库记录：imageId=" + imageId);
+                    }
+                    
+                    // 2.3 删除关联记录（如果外键约束没有自动删除）
+                    try {
+                        relationMapper.deleteByRelicIdAndImageId(relicId, imageId);
+                        System.out.println("已删除图片关联记录：relicId=" + relicId + ", imageId=" + imageId);
+                    } catch (Exception e) {
+                        // 外键约束可能已经自动删除，忽略错误
+                        System.out.println("关联记录可能已被外键约束自动删除：relicId=" + relicId + ", imageId=" + imageId);
+                    }
+                    
+                } catch (Exception e) {
+                    System.err.println("删除图片失败：imageId=" + imageId + ", error=" + e.getMessage());
+                    e.printStackTrace();
+                    // 继续删除其他图片
+                }
+            }
+            
+            System.out.println("文物的所有图片删除完成：relicId=" + relicId);
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("删除文物图片失败：relicId=" + relicId + ", error=" + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("删除文物图片失败", e);
+        }
+    }
 }

@@ -124,4 +124,11 @@ public interface RelicImageRelationService {
      * @return 关联列表
      */
     List<RelicImageRelation> listAll();
+    
+    /**
+     * 删除文物的所有图片（包括关联关系和图片库记录）
+     * @param relicId 文物ID
+     * @return 是否成功
+     */
+    boolean deleteAllImagesByRelicId(Long relicId);
 }

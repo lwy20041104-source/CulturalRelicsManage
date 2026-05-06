@@ -341,6 +341,7 @@
 import { onMounted, reactive, ref, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Picture, View, Edit, Download, Delete, UploadFilled } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import request from '../api/request'
 import {

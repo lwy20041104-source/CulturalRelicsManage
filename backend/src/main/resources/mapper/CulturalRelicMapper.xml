@@ -117,9 +117,9 @@
 
     <insert id="insert" parameterType="com.example.entity.CulturalRelic" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO cultural_relic
-        (relic_code, relic_name, category_id, era, material, origin, dimensions, weight, description, status, image_path, create_time, update_time)
+        (relic_code, relic_name, category_id, era, material, origin, dimensions, weight, description, status, image_path, model_3d_url, model_3d_upload_time, create_time, update_time)
         VALUES
-        (#{relicCode}, #{relicName}, #{categoryId}, #{era}, #{material}, #{origin}, #{dimensions}, #{weight}, #{description}, #{status}, #{imagePath}, #{createTime}, #{updateTime})
+        (#{relicCode}, #{relicName}, #{categoryId}, #{era}, #{material}, #{origin}, #{dimensions}, #{weight}, #{description}, #{status}, #{imagePath}, #{model3dUrl}, #{model3dUploadTime}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="updateById" parameterType="com.example.entity.CulturalRelic">
@@ -136,6 +136,8 @@
             <if test="description != null">description = #{description},</if>
             <if test="status != null">status = #{status},</if>
             <if test="imagePath != null">image_path = #{imagePath},</if>
+            <if test="model3dUrl != null">model_3d_url = #{model3dUrl},</if>
+            <if test="model3dUploadTime != null">model_3d_upload_time = #{model3dUploadTime},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </set>
         WHERE id = #{id}

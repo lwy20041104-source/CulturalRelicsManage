@@ -69,6 +69,25 @@
 
         <div class="model-upload-section">
           <h4>3D模型管理</h4>
+          
+          <!-- 当前模型信息（在选项卡外显示） -->
+          <div v-if="relic?.model3dUrl" class="current-model-info-top">
+            <el-alert type="info" :closable="false">
+              <template #title>
+                <div class="model-info-content">
+                  <span>当前模型：</span>
+                  <el-link :href="relic.model3dUrl" target="_blank" type="primary" style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
+                    {{ relic.model3dUrl }}
+                  </el-link>
+                  <el-button type="danger" size="small" @click="deleteModel">
+                    删除模型
+                  </el-button>
+                </div>
+              </template>
+            </el-alert>
+          </div>
+          
+          <!-- 上传3D模型 -->
           <el-upload
             class="upload-demo"
             :action="uploadUrl"
@@ -79,7 +98,7 @@
             accept=".gltf,.glb,.obj"
             :show-file-list="false"
           >
-            <el-button type="primary" :icon="Upload">上传3D模型</el-button>
+            <el-button type="primary" :icon="Upload">选择文件上传</el-button>
           </el-upload>
           <p class="upload-tip">支持 GLTF (.gltf, .glb) 和 OBJ (.obj) 格式，文件大小不超过 50MB</p>
         </div>
@@ -91,7 +110,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Upload } from '@element-plus/icons-vue'
 import Relic3DViewer from '../components/Relic3DViewer.vue'
 import { getRelicByIdApi } from '../api/relics'
@@ -131,11 +150,17 @@ const fetchRelicInfo = async () => {
       // 如果有3D模型URL，加载它
       if (relic.value.model3dUrl) {
         modelUrl.value = relic.value.model3dUrl
-        // 根据文件扩展名判断模型类型
-        if (relic.value.model3dUrl.endsWith('.gltf') || relic.value.model3dUrl.endsWith('.glb')) {
+        
+        // 根据文件扩展名判断模型类型，如果没有扩展名则默认使用gltf
+        const url = relic.value.model3dUrl.toLowerCase()
+        if (url.endsWith('.gltf') || url.endsWith('.glb')) {
           modelType.value = 'gltf'
-        } else if (relic.value.model3dUrl.endsWith('.obj')) {
+        } else if (url.endsWith('.obj')) {
           modelType.value = 'obj'
+        } else {
+          // 对于没有扩展名的链接，默认尝试作为GLTF/GLB格式加载
+          modelType.value = 'gltf'
+          console.log('链接没有扩展名，默认使用GLTF格式加载')
         }
       }
     }
@@ -180,11 +205,14 @@ const handleUploadSuccess = (response) => {
     ElMessage.success('3D模型上传成功')
     modelUrl.value = response.data.modelUrl
     
-    // 更新模型类型
-    if (response.data.modelUrl.endsWith('.gltf') || response.data.modelUrl.endsWith('.glb')) {
+    // 更新模型类型，如果没有扩展名则默认使用gltf
+    const url = response.data.modelUrl.toLowerCase()
+    if (url.endsWith('.gltf') || url.endsWith('.glb')) {
       modelType.value = 'gltf'
-    } else if (response.data.modelUrl.endsWith('.obj')) {
+    } else if (url.endsWith('.obj')) {
       modelType.value = 'obj'
+    } else {
+      modelType.value = 'gltf'
     }
     
     // 刷新文物信息
@@ -197,6 +225,56 @@ const handleUploadSuccess = (response) => {
 // 上传失败
 const handleUploadError = () => {
   ElMessage.error('上传失败，请重试')
+}
+
+// 删除模型
+const deleteModel = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除当前3D模型吗？',
+      '确认删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    // 从URL中提取文件名
+    if (!modelUrl.value) {
+      ElMessage.error('没有可删除的模型')
+      return
+    }
+    
+    const filename = modelUrl.value.substring(modelUrl.value.lastIndexOf('/') + 1)
+    const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/relics/${route.params.id}/3d-model?filename=${encodeURIComponent(filename)}`
+    
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    const result = await response.json()
+    
+    if (result.code === 200) {
+      ElMessage.success('模型删除成功')
+      modelUrl.value = ''
+      modelType.value = 'default'
+      
+      // 刷新文物信息
+      await fetchRelicInfo()
+    } else {
+      ElMessage.error(result.message || '删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除模型失败:', error)
+      ElMessage.error('删除失败，请重试')
+    }
+  }
 }
 
 // 返回
@@ -300,6 +378,31 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.current-model-info-top {
+  margin-bottom: 15px;
+}
+
+.upload-tabs {
+  margin-top: 10px;
+}
+
+.url-input {
+  margin-bottom: 15px;
+}
+
+.url-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.model-info-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .upload-tip {
