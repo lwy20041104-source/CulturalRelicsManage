@@ -1789,7 +1789,24 @@ const openAIRecognition = async () => {
   
   try {
     // 使用第一张图片进行识别
-    const firstImage = newImageFileList.value[0].raw
+    const fileItem = newImageFileList.value[0]
+    console.log('文件对象:', fileItem)
+    
+    // 获取原始文件对象
+    const firstImage = fileItem.raw || fileItem
+    console.log('原始文件:', firstImage)
+    console.log('文件类型:', firstImage.type)
+    console.log('文件大小:', firstImage.size)
+    
+    if (!firstImage || !(firstImage instanceof File)) {
+      ElMessage.error('无效的文件对象')
+      recognitionResult.value = {
+        success: false,
+        errorMessage: '无效的文件对象'
+      }
+      recognizing.value = false
+      return
+    }
     
     const response = await recognizeImageApi(firstImage)
     

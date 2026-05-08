@@ -68,3 +68,17 @@ jwt:
 file:
   upload-path: ./uploads/
   max-size: 10485760
+
+# 百度AI配置
+baidu:
+  ai:
+    # 是否启用百度AI识别（false则使用规则识别）
+    enabled: true
+    # 百度AI应用的APP_ID
+    app-id: 123167153
+    # 百度AI应用的API_KEY
+    api-key: 07e6YDQgDAXfMj84a86h9xWR
+    # 百度AI应用的SECRET_KEY
+    secret-key: RsnP0zSkekccmCVhX5XcqNOOXhVcQKOS
+    # 识别置信度阈值（0-1之间，低于此值将使用规则识别作为补充）
+    confidence-threshold: 0.6

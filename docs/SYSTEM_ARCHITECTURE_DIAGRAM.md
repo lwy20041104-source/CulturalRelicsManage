@@ -218,6 +218,7 @@
 │  Spring Boot 2.7.14  │  Spring Security  │  MyBatis-Plus       │
 │  Spring WebSocket    │  JWT              │  Apache POI         │
 │  iText 7             │  Spring Mail      │  阿里云SMS          │
+│  百度AI SDK 4.16.18  │  TwelveMonkeys    │  Google ZXing       │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼

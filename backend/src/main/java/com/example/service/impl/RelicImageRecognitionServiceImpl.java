@@ -1,15 +1,18 @@
 package com.example.service.impl;
 
+import com.example.config.BaiduAiConfig;
 import com.example.dto.ImageRecognitionResult;
 import com.example.dto.ImageRecognitionResult.CategorySuggestion;
 import com.example.service.RelicImageRecognitionService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -20,12 +23,20 @@ import java.util.Map;
 /**
  * 文物图像识别服务实现
  * 
- * 注意：这是一个基于规则的简化实现，用于演示功能
- * 在生产环境中，应该集成真实的AI图像识别服务（如百度AI、阿里云视觉智能、腾讯云AI等）
+ * 混合识别策略：
+ * 1. 优先使用百度AI识别（如果已启用且配置正确）
+ * 2. 如果百度AI不可用或识别失败，回退到规则识别
+ * 3. 如果百度AI置信度较低，结合规则识别结果
  */
 @Slf4j
 @Service
 public class RelicImageRecognitionServiceImpl implements RelicImageRecognitionService {
+    
+    @Autowired(required = false)
+    private BaiduAiRecognitionServiceImpl baiduAiRecognitionService;
+    
+    @Autowired
+    private BaiduAiConfig baiduAiConfig;
     
     // 文物分类映射
     private static final Map<Long, String> CATEGORY_MAP = new HashMap<>();
@@ -47,19 +58,53 @@ public class RelicImageRecognitionServiceImpl implements RelicImageRecognitionSe
     public ImageRecognitionResult recognizeRelic(MultipartFile imageFile) {
         try {
             if (imageFile == null || imageFile.isEmpty()) {
+                log.warn("图片文件为空");
                 return createErrorResult("图片文件为空");
             }
             
+            log.info("开始识别图片，文件名：{}，大小：{} bytes，类型：{}", 
+                imageFile.getOriginalFilename(), 
+                imageFile.getSize(), 
+                imageFile.getContentType());
+            
             // 读取图片
-            BufferedImage image = ImageIO.read(imageFile.getInputStream());
-            if (image == null) {
-                return createErrorResult("无法读取图片文件");
+            BufferedImage image = null;
+            byte[] imageData = null;
+            
+            try {
+                // 读取图片数据
+                imageData = imageFile.getBytes();
+                
+                // 尝试读取为BufferedImage
+                image = ImageIO.read(imageFile.getInputStream());
+                
+                // 如果读取失败，尝试重置流并再次读取
+                if (image == null) {
+                    log.warn("首次读取失败，尝试重新获取输入流");
+                    image = ImageIO.read(imageFile.getInputStream());
+                }
+            } catch (Exception e) {
+                log.error("读取图片流失败", e);
+                return createErrorResult("读取图片流失败: " + e.getMessage());
             }
             
-            // 分析图片特征
-            return analyzeImage(image);
+            if (image == null) {
+                log.error("ImageIO.read返回null，可能是不支持的图片格式。文件类型：{}", 
+                    imageFile.getContentType());
+                
+                // 列出支持的格式
+                String[] readerFormats = ImageIO.getReaderFormatNames();
+                log.info("支持的图片格式：{}", String.join(", ", readerFormats));
+                
+                return createErrorResult("无法读取图片文件，可能是不支持的格式。请使用JPG、PNG等常见格式");
+            }
             
-        } catch (IOException e) {
+            log.info("图片读取成功，尺寸：{}x{}", image.getWidth(), image.getHeight());
+            
+            // 混合识别策略
+            return hybridRecognition(image, imageData);
+            
+        } catch (Exception e) {
             log.error("图片识别失败", e);
             return createErrorResult("图片识别失败: " + e.getMessage());
         }
@@ -72,6 +117,8 @@ public class RelicImageRecognitionServiceImpl implements RelicImageRecognitionSe
                 return createErrorResult("图片URL为空");
             }
             
+            log.info("通过URL识别图片：{}", imageUrl);
+            
             // 从URL读取图片
             URL url = new URL(imageUrl);
             BufferedImage image = ImageIO.read(url);
@@ -79,8 +126,18 @@ public class RelicImageRecognitionServiceImpl implements RelicImageRecognitionSe
                 return createErrorResult("无法从URL读取图片");
             }
             
-            // 分析图片特征
-            return analyzeImage(image);
+            // 将图片转换为字节数组（用于百度AI）
+            byte[] imageData = null;
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "jpg", baos);
+                imageData = baos.toByteArray();
+            } catch (Exception e) {
+                log.warn("转换图片为字节数组失败，将只使用规则识别", e);
+            }
+            
+            // 混合识别策略
+            return hybridRecognition(image, imageData);
             
         } catch (Exception e) {
             log.error("通过URL识别图片失败", e);
@@ -89,12 +146,114 @@ public class RelicImageRecognitionServiceImpl implements RelicImageRecognitionSe
     }
     
     /**
-     * 分析图片特征并返回识别结果
+     * 混合识别策略：结合百度AI和规则识别
+     */
+    private ImageRecognitionResult hybridRecognition(BufferedImage image, byte[] imageData) {
+        ImageRecognitionResult result = null;
+        
+        // 1. 尝试使用百度AI识别
+        if (baiduAiRecognitionService != null && baiduAiRecognitionService.isAvailable() && imageData != null) {
+            log.info("使用百度AI进行识别");
+            result = baiduAiRecognitionService.recognizeWithBaiduAi(imageData);
+            
+            if (result != null && result.getSuccess()) {
+                // 检查置信度
+                if (result.getPrimaryCategory() != null) {
+                    double confidence = result.getPrimaryCategory().getConfidence();
+                    log.info("百度AI识别成功，主要分类：{}，置信度：{}%", 
+                        result.getPrimaryCategory().getCategoryName(), confidence);
+                    
+                    // 如果置信度足够高，直接返回
+                    if (confidence >= baiduAiConfig.getConfidenceThreshold() * 100) {
+                        log.info("百度AI识别置信度较高，直接使用AI结果");
+                        return result;
+                    } else {
+                        log.info("百度AI识别置信度较低，将结合规则识别");
+                    }
+                }
+            } else {
+                log.warn("百度AI识别失败或未返回结果，回退到规则识别");
+                result = null;
+            }
+        } else {
+            log.info("百度AI不可用，使用规则识别");
+        }
+        
+        // 2. 使用规则识别（作为主要方法或补充）
+        ImageRecognitionResult ruleResult = analyzeImageByRules(image);
+        
+        // 3. 合并结果
+        if (result == null) {
+            // 百度AI不可用或失败，直接使用规则识别结果
+            log.info("使用规则识别结果");
+            return ruleResult;
+        } else {
+            // 百度AI置信度较低，结合规则识别
+            log.info("结合百度AI和规则识别结果");
+            return mergeResults(result, ruleResult);
+        }
+    }
+    
+    /**
+     * 合并百度AI和规则识别的结果
+     */
+    private ImageRecognitionResult mergeResults(ImageRecognitionResult aiResult, ImageRecognitionResult ruleResult) {
+        // 以AI结果为主，添加规则识别的备选分类
+        if (ruleResult.getPrimaryCategory() != null) {
+            // 检查规则识别的主要分类是否已在AI结果中
+            Long ruleCategoryId = ruleResult.getPrimaryCategory().getCategoryId();
+            boolean alreadyExists = false;
+            
+            if (aiResult.getPrimaryCategory() != null && 
+                aiResult.getPrimaryCategory().getCategoryId().equals(ruleCategoryId)) {
+                alreadyExists = true;
+            }
+            
+            if (!alreadyExists && aiResult.getAlternativeCategories() != null) {
+                for (CategorySuggestion alt : aiResult.getAlternativeCategories()) {
+                    if (alt.getCategoryId().equals(ruleCategoryId)) {
+                        alreadyExists = true;
+                        break;
+                    }
+                }
+            }
+            
+            // 如果不存在，添加到备选分类
+            if (!alreadyExists) {
+                List<CategorySuggestion> alternatives = new ArrayList<>(aiResult.getAlternativeCategories());
+                CategorySuggestion ruleSuggestion = ruleResult.getPrimaryCategory();
+                // 降低规则识别的置信度
+                ruleSuggestion = new CategorySuggestion(
+                    ruleSuggestion.getCategoryId(),
+                    ruleSuggestion.getCategoryName(),
+                    ruleSuggestion.getConfidence() * 0.8, // 降低20%
+                    "规则识别：" + ruleSuggestion.getReason()
+                );
+                alternatives.add(ruleSuggestion);
+                aiResult.setAlternativeCategories(alternatives);
+            }
+        }
+        
+        // 合并特征
+        List<String> mergedFeatures = new ArrayList<>(aiResult.getFeatures());
+        mergedFeatures.add("已结合规则识别结果");
+        aiResult.setFeatures(mergedFeatures);
+        
+        // 更新描述
+        String description = aiResult.getDescription();
+        description = description.replace("建议人工复核确认。", 
+            "已结合规则识别进行补充。建议人工复核确认。");
+        aiResult.setDescription(description);
+        
+        return aiResult;
+    }
+    
+    /**
+     * 使用规则分析图片特征并返回识别结果
      * 
      * 这是一个简化的实现，基于颜色和形状特征进行基本分类
-     * 实际应用中应该使用深度学习模型
      */
-    private ImageRecognitionResult analyzeImage(BufferedImage image) {
+    private ImageRecognitionResult analyzeImageByRules(BufferedImage image) {
         ImageRecognitionResult result = new ImageRecognitionResult();
         result.setSuccess(true);
         
