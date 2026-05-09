@@ -29,11 +29,6 @@
           clearable
         />
         <el-button type="primary" @click="loadData">{{ $t('common.search') }}</el-button>
-        <el-button type="success" @click="openUploadDialog">{{ $t('image.uploadImage') }}</el-button>
-        <el-button type="warning" @click="openBatchUploadDialog">{{ $t('image.batchUpload') }}</el-button>
-        <el-button type="danger" @click="handleBatchDelete" :disabled="!selectedIds.length">
-          {{ $t('image.batchDelete') }}
-        </el-button>
         <el-button type="info" @click="showStatistics">{{ $t('image.statistics') }}</el-button>
       </div>
     </template>
@@ -44,8 +39,6 @@
         v-for="image in tableData" 
         :key="image.id" 
         class="image-card"
-        :class="{ selected: selectedIds.includes(image.id) }"
-        @click="toggleSelection(image)"
       >
         <div class="image-wrapper">
           <el-image
@@ -67,26 +60,12 @@
                 <el-icon><View /></el-icon>
                 <span class="button-text">{{ $t('common.detail') }}</span>
               </el-button>
-              <el-button size="small" @click.stop="openEdit(image)">
-                <el-icon><Edit /></el-icon>
-                <span class="button-text">{{ $t('common.edit') }}</span>
-              </el-button>
               <el-button size="small" @click.stop="handleDownload(image.id)">
                 <el-icon><Download /></el-icon>
                 <span class="button-text">{{ $t('image.download') }}</span>
               </el-button>
-              <el-button size="small" type="danger" @click.stop="remove(image.id)">
-                <el-icon><Delete /></el-icon>
-                <span class="button-text">{{ $t('common.delete') }}</span>
-              </el-button>
             </el-button-group>
           </div>
-          <el-checkbox 
-            v-model="selectedIds" 
-            :label="image.id" 
-            class="image-checkbox"
-            @click.stop
-          />
         </div>
         <div class="image-info">
           <div class="image-name" :title="image.imageName">{{ formatImageName(image.imageName) }}</div>
@@ -113,153 +92,6 @@
       @size-change="(size) => { query.pageSize = size; loadData(); }"
       @current-change="(page) => { query.pageNum = page; loadData(); }"
     />
-
-    <!-- 上传对话框 -->
-    <el-dialog v-model="uploadDialogVisible" :title="$t('image.uploadImage')" width="600px">
-      <el-form :model="uploadForm" :rules="uploadRules" ref="uploadFormRef" label-width="120px">
-        <el-form-item :label="$t('image.relatedRelic')" prop="relicId" required>
-          <el-select 
-            v-model="uploadForm.relicId" 
-            :placeholder="$t('image.selectRelic')"
-            filterable
-            style="width: 100%"
-            @focus="loadRelicsList"
-          >
-            <el-option
-              v-for="relic in relicsList"
-              :key="relic.id"
-              :label="`${relic.relicName} (${relic.relicCode})`"
-              :value="relic.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('image.selectFile')" prop="file" required>
-          <el-upload
-            ref="uploadRef"
-            :auto-upload="false"
-            :limit="1"
-            :on-change="handleFileChange"
-            :file-list="fileList"
-            accept="image/*"
-            drag
-          >
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-            <div class="el-upload__text">
-              {{ $t('image.dragFileHere') }}<em>{{ $t('image.clickToUpload') }}</em>
-            </div>
-            <template #tip>
-              <div class="el-upload__tip">{{ $t('image.uploadTip') }}</div>
-            </template>
-          </el-upload>
-        </el-form-item>
-        <el-form-item :label="$t('image.imageName')">
-          <el-input v-model="uploadForm.imageName" :placeholder="$t('image.imageNamePlaceholder')" />
-        </el-form-item>
-        <el-form-item :label="$t('image.category')">
-          <el-select v-model="uploadForm.category" style="width: 100%" disabled>
-            <el-option :label="$t('image.relic')" value="relic" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('image.tags')">
-          <el-input v-model="uploadForm.tags" :placeholder="$t('image.tagsPlaceholder')" />
-        </el-form-item>
-        <el-form-item :label="$t('image.description')">
-          <el-input v-model="uploadForm.description" type="textarea" :rows="3" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="uploadDialogVisible = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submitUpload">{{ $t('common.confirm') }}</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 批量上传对话框 -->
-    <el-dialog v-model="batchUploadDialogVisible" :title="$t('image.batchUpload')" width="600px">
-      <el-form :model="batchUploadForm" :rules="batchUploadRules" ref="batchUploadFormRef" label-width="120px">
-        <el-form-item :label="$t('image.relatedRelic')" prop="relicId" required>
-          <el-select 
-            v-model="batchUploadForm.relicId" 
-            :placeholder="$t('image.selectRelic')"
-            filterable
-            style="width: 100%"
-            @focus="loadRelicsList"
-          >
-            <el-option
-              v-for="relic in relicsList"
-              :key="relic.id"
-              :label="`${relic.relicName} (${relic.relicCode})`"
-              :value="relic.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('image.selectFiles')" prop="files" required>
-          <el-upload
-            ref="batchUploadRef"
-            :auto-upload="false"
-            :multiple="true"
-            :on-change="handleBatchFileChange"
-            :file-list="batchFileList"
-            accept="image/*"
-            drag
-          >
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-            <div class="el-upload__text">
-              {{ $t('image.dragFilesHere') }}<em>{{ $t('image.clickToUpload') }}</em>
-            </div>
-            <template #tip>
-              <div class="el-upload__tip">{{ $t('image.batchUploadTip') }}</div>
-            </template>
-          </el-upload>
-        </el-form-item>
-        <el-form-item :label="$t('image.category')">
-          <el-select v-model="batchUploadForm.category" style="width: 100%" disabled>
-            <el-option :label="$t('image.relic')" value="relic" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="batchUploadDialogVisible = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submitBatchUpload">{{ $t('common.confirm') }}</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 编辑对话框 -->
-    <el-dialog v-model="editDialogVisible" :title="$t('image.editImage')" width="600px">
-      <el-form :model="editForm" label-width="100px">
-        <el-form-item :label="$t('image.preview')">
-          <el-image
-            :src="resolveImageUrl(editForm.filePath)"
-            fit="contain"
-            style="width: 100%; max-height: 300px"
-          />
-        </el-form-item>
-        <el-form-item :label="$t('image.imageName')">
-          <el-input v-model="editForm.imageName" />
-        </el-form-item>
-        <el-form-item :label="$t('image.category')">
-          <el-select v-model="editForm.category" style="width: 100%">
-            <el-option :label="$t('image.relic')" value="relic" />
-            <el-option :label="$t('image.exhibition')" value="exhibition" />
-            <el-option :label="$t('image.document')" value="document" />
-            <el-option :label="$t('image.other')" value="other" />
-            <el-option :label="$t('image.uncategorized')" value="uncategorized" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="$t('image.tags')">
-          <el-input v-model="editForm.tags" />
-        </el-form-item>
-        <el-form-item :label="$t('image.description')">
-          <el-input v-model="editForm.description" type="textarea" :rows="3" />
-        </el-form-item>
-        <el-form-item :label="$t('image.isPublic')">
-          <el-switch v-model="editForm.isPublic" :active-value="1" :inactive-value="0" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editDialogVisible = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submitEdit">{{ $t('common.confirm') }}</el-button>
-      </template>
-    </el-dialog>
 
     <!-- 详情对话框 -->
     <el-dialog v-model="detailDialogVisible" :title="$t('image.imageDetail')" width="800px">
@@ -341,43 +173,26 @@
 import { onMounted, reactive, ref, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Picture, View, Edit, Download, Delete, UploadFilled } from '@element-plus/icons-vue'
+import { Picture, View, Download } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import request from '../api/request'
 import {
   getImagesPageApi,
-  uploadImageApi,
-  batchUploadImagesApi,
-  updateImageApi,
-  deleteImageApi,
-  batchDeleteImagesApi,
   downloadImageApi,
   getImageByIdApi,
   getImageStatisticsApi
 } from '../api/images'
-import { getRelicsPageApi } from '../api/relics'
 
 const { t } = useI18n()
 
 const tableData = ref([])
 const total = ref(0)
-const selectedIds = ref([])
-const uploadDialogVisible = ref(false)
-const batchUploadDialogVisible = ref(false)
-const editDialogVisible = ref(false)
 const detailDialogVisible = ref(false)
 const statisticsDialogVisible = ref(false)
 const currentDetail = ref(null)
 const statistics = ref(null)
-const uploadRef = ref()
-const batchUploadRef = ref()
-const uploadFormRef = ref()
-const batchUploadFormRef = ref()
-const fileList = ref([])
-const batchFileList = ref([])
 const categoryChartRef = ref()
 const uploaderChartRef = ref()
-const relicsList = ref([])
 let categoryChart = null
 let uploaderChart = null
 
@@ -388,47 +203,6 @@ const query = reactive({
   category: '',
   tags: ''
 })
-
-const uploadForm = reactive({
-  relicId: null,
-  imageName: '',
-  category: 'relic',
-  tags: '',
-  description: ''
-})
-
-const uploadRules = {
-  relicId: [
-    { required: true, message: t('image.relicRequired'), trigger: 'change' }
-  ],
-  file: [
-    { required: true, message: t('image.fileRequired'), trigger: 'change' }
-  ]
-}
-
-const editForm = reactive({
-  id: null,
-  imageName: '',
-  category: '',
-  tags: '',
-  description: '',
-  isPublic: 1,
-  filePath: ''
-})
-
-const batchUploadForm = reactive({
-  relicId: null,
-  category: 'relic'
-})
-
-const batchUploadRules = {
-  relicId: [
-    { required: true, message: t('image.relicRequired'), trigger: 'change' }
-  ],
-  files: [
-    { required: true, message: t('image.filesRequired'), trigger: 'change' }
-  ]
-}
 const backendBaseURL = request.defaults.baseURL  // http://localhost:8080/api
 
 const resolveImageUrl = (imagePath) => {
@@ -481,166 +255,6 @@ const loadData = async () => {
   }
 }
 
-const toggleSelection = (image) => {
-  const index = selectedIds.value.indexOf(image.id)
-  if (index > -1) {
-    selectedIds.value.splice(index, 1)
-  } else {
-    selectedIds.value.push(image.id)
-  }
-}
-
-const loadRelicsList = async () => {
-  if (relicsList.value.length > 0) return
-  
-  try {
-    const res = await getRelicsPageApi({ pageNum: 1, pageSize: 1000 })
-    relicsList.value = res.data.records || []
-  } catch (error) {
-    console.error('加载文物列表失败:', error)
-    ElMessage.error(t('message.loadFailed'))
-  }
-}
-
-const openUploadDialog = () => {
-  Object.assign(uploadForm, {
-    relicId: null,
-    imageName: '',
-    category: 'relic',
-    tags: '',
-    description: ''
-  })
-  fileList.value = []
-  uploadDialogVisible.value = true
-  nextTick(() => {
-    uploadFormRef.value?.clearValidate()
-  })
-}
-
-const openBatchUploadDialog = () => {
-  Object.assign(batchUploadForm, {
-    relicId: null,
-    category: 'relic'
-  })
-  batchFileList.value = []
-  batchUploadDialogVisible.value = true
-  nextTick(() => {
-    batchUploadFormRef.value?.clearValidate()
-  })
-}
-
-const handleFileChange = (file, files) => {
-  fileList.value = files
-}
-
-const handleBatchFileChange = (file, files) => {
-  batchFileList.value = files
-}
-
-const submitUpload = async () => {
-  // 验证表单
-  const valid = await uploadFormRef.value?.validate().catch(() => false)
-  if (!valid) {
-    return
-  }
-
-  if (fileList.value.length === 0) {
-    ElMessage.warning(t('image.selectFile'))
-    return
-  }
-
-  if (!uploadForm.relicId) {
-    ElMessage.error(t('image.relicRequired'))
-    return
-  }
-
-  try {
-    const formData = new FormData()
-    formData.append('file', fileList.value[0].raw)
-    formData.append('imageName', uploadForm.imageName)
-    formData.append('category', uploadForm.category)
-    formData.append('tags', uploadForm.tags)
-    formData.append('description', uploadForm.description)
-    formData.append('relicId', uploadForm.relicId)
-
-    await uploadImageApi(formData)
-    ElMessage.success(t('message.saveSuccess'))
-    uploadDialogVisible.value = false
-    loadData()
-  } catch (error) {
-    console.error('上传失败:', error)
-    const errorMsg = error.response?.data?.message || t('message.saveFailed')
-    ElMessage.error(errorMsg)
-  }
-}
-
-const submitBatchUpload = async () => {
-  // 验证表单
-  const valid = await batchUploadFormRef.value?.validate().catch(() => false)
-  if (!valid) {
-    return
-  }
-
-  if (batchFileList.value.length === 0) {
-    ElMessage.warning(t('image.selectFiles'))
-    return
-  }
-
-  if (!batchUploadForm.relicId) {
-    ElMessage.error(t('image.relicRequired'))
-    return
-  }
-
-  try {
-    const formData = new FormData()
-    batchFileList.value.forEach(file => {
-      formData.append('files', file.raw)
-    })
-    formData.append('category', batchUploadForm.category)
-    formData.append('relicId', batchUploadForm.relicId)
-
-    await batchUploadImagesApi(formData)
-    ElMessage.success(t('message.saveSuccess'))
-    batchUploadDialogVisible.value = false
-    loadData()
-  } catch (error) {
-    console.error('批量上传失败:', error)
-    const errorMsg = error.response?.data?.message || t('message.saveFailed')
-    ElMessage.error(errorMsg)
-  }
-}
-
-const openEdit = (row) => {
-  Object.assign(editForm, {
-    id: row.id,
-    imageName: row.imageName,
-    category: row.category,
-    tags: row.tags,
-    description: row.description,
-    isPublic: row.isPublic,
-    filePath: row.filePath
-  })
-  editDialogVisible.value = true
-}
-
-const submitEdit = async () => {
-  try {
-    await updateImageApi(editForm.id, {
-      imageName: editForm.imageName,
-      category: editForm.category,
-      tags: editForm.tags,
-      description: editForm.description,
-      isPublic: editForm.isPublic
-    })
-    ElMessage.success(t('message.updateSuccess'))
-    editDialogVisible.value = false
-    loadData()
-  } catch (error) {
-    console.error('更新失败:', error)
-    ElMessage.error(t('message.updateFailed'))
-  }
-}
-
 const viewDetail = async (row) => {
   try {
     const res = await getImageByIdApi(row.id)
@@ -649,39 +263,6 @@ const viewDetail = async (row) => {
   } catch (error) {
     console.error('加载详情失败:', error)
     ElMessage.error(t('message.loadFailed'))
-  }
-}
-
-const remove = async (id) => {
-  try {
-    await ElMessageBox.confirm(t('image.deleteConfirm'), t('message.tip'), { type: 'warning' })
-    await deleteImageApi(id)
-    ElMessage.success(t('message.deleteSuccess'))
-    loadData()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除失败:', error)
-      ElMessage.error(t('message.deleteFailed'))
-    }
-  }
-}
-
-const handleBatchDelete = async () => {
-  try {
-    await ElMessageBox.confirm(
-      t('image.batchDeleteConfirm', { count: selectedIds.value.length }),
-      t('message.tip'),
-      { type: 'warning' }
-    )
-    await batchDeleteImagesApi(selectedIds.value)
-    ElMessage.success(t('message.deleteSuccess'))
-    selectedIds.value = []
-    loadData()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('批量删除失败:', error)
-      ElMessage.error(t('message.deleteFailed'))
-    }
   }
 }
 
@@ -795,7 +376,6 @@ onMounted(() => {
   border: 2px solid #e4e7ed;
   border-radius: 8px;
   overflow: hidden;
-  cursor: pointer;
   transition: all 0.3s;
   background: #fff;
 }
@@ -804,11 +384,6 @@ onMounted(() => {
   border-color: #409eff;
   box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
   transform: translateY(-2px);
-}
-
-.image-card.selected {
-  border-color: #409eff;
-  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
 
 .image-wrapper {
@@ -860,13 +435,6 @@ onMounted(() => {
 .image-overlay .button-text {
   margin-left: 4px;
   font-size: 12px;
-}
-
-.image-checkbox {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
 }
 
 .image-info {

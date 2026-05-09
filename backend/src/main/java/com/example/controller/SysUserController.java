@@ -136,15 +136,13 @@ public class SysUserController {
         if (success && oldUser != null) {
             try {
                 SysUser newUser = sysUserService.getUserById(userId);
-                org.springframework.security.core.Authentication authentication = 
-                    org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-                String username = authentication != null ? authentication.getName() : "系统";
-                Long operatorId = 1L;
+                String realName = userContextUtil.getCurrentUserRealName();
+                Long operatorId = userContextUtil.getCurrentUserId();
                 String ipAddress = getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     operatorId,
-                    username,
+                    realName,
                     "修改",
                     "用户管理",
                     "USER",
@@ -175,15 +173,13 @@ public class SysUserController {
         // 3. 记录审计日志
         if (success && oldUser != null) {
             try {
-                org.springframework.security.core.Authentication authentication = 
-                    org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-                String username = authentication != null ? authentication.getName() : "系统";
-                Long userId = 1L;
+                String realName = userContextUtil.getCurrentUserRealName();
+                Long userId = userContextUtil.getCurrentUserId();
                 String ipAddress = getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
-                    username,
+                    realName,
                     "删除",
                     "用户管理",
                     "USER",

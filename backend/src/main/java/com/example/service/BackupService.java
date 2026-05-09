@@ -19,6 +19,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -38,6 +39,12 @@ public class BackupService {
     
     @Autowired
     private SysRestoreMapper restoreMapper;
+    
+    @Autowired
+    private DatabaseBackupUtil databaseBackupUtil;
+    
+    @Autowired
+    private javax.sql.DataSource dataSource;
     
     @Value("${spring.datasource.url}")
     private String dbUrl;
@@ -85,6 +92,10 @@ public class BackupService {
         String fileName = "backup_" + timestamp + ".sql";
         backup.setFileName(fileName);
         
+        // 设置文件路径（在插入数据库前设置，避免 file_path 为 null）
+        String filePath = BACKUP_DIR + File.separator + fileName;
+        backup.setFilePath(filePath);
+        
         // 保存备份记录
         backupMapper.insert(backup);
         
@@ -100,61 +111,172 @@ public class BackupService {
     private void executeBackup(SysBackup backup) {
         new Thread(() -> {
             try {
+                log.info("开始执行备份: {}", backup.getFileName());
+                
                 // 创建备份目录
                 Path backupPath = Paths.get(BACKUP_DIR);
                 if (!Files.exists(backupPath)) {
                     Files.createDirectories(backupPath);
+                    log.info("创建备份目录: {}", backupPath.toAbsolutePath());
                 }
                 
-                // 备份文件完整路径
-                String filePath = BACKUP_DIR + File.separator + backup.getFileName();
-                backup.setFilePath(filePath);
+                // 使用已设置的文件路径
+                String filePath = backup.getFilePath();
+                log.info("备份文件路径: {}", filePath);
                 
                 // 从数据库URL中提取数据库名
                 String dbName = extractDatabaseName(dbUrl);
+                log.info("数据库名: {}", dbName);
                 
-                // 执行mysqldump命令
-                String command = String.format(
-                    "mysqldump -u%s -p%s --databases %s --result-file=%s",
-                    dbUsername, dbPassword, dbName, filePath
-                );
+                // 尝试使用 Java 原生方式备份
+                boolean useNativeBackup = true; // 可以通过配置控制
                 
-                Process process = Runtime.getRuntime().exec(command);
-                int exitCode = process.waitFor();
-                
-                if (exitCode == 0) {
-                    // 备份成功
-                    File file = new File(filePath);
-                    backup.setFileSize(file.length());
-                    
-                    // 如果需要加密
-                    if (backup.getIsEncrypted()) {
-                        encryptFile(filePath);
-                    }
-                    
-                    backup.setBackupStatus("success");
-                    log.info("备份成功: {}", backup.getFileName());
+                if (useNativeBackup) {
+                    log.info("使用 Java 原生方式备份数据库");
+                    executeNativeBackup(backup, filePath, dbName);
                 } else {
-                    // 备份失败
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                    StringBuilder errorMsg = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        errorMsg.append(line).append("\n");
-                    }
-                    backup.setBackupStatus("failed");
-                    backup.setErrorMessage(errorMsg.toString());
-                    log.error("备份失败: {}", errorMsg);
+                    log.info("使用 mysqldump 命令备份数据库");
+                    executeMysqldumpBackup(backup, filePath, dbName);
                 }
+                
             } catch (Exception e) {
                 backup.setBackupStatus("failed");
                 backup.setErrorMessage(e.getMessage());
                 log.error("备份异常", e);
             } finally {
                 // 更新备份记录
-                backupMapper.updateById(backup);
+                try {
+                    backupMapper.updateById(backup);
+                    log.info("备份记录已更新: id={}, status={}", backup.getId(), backup.getBackupStatus());
+                } catch (Exception e) {
+                    log.error("更新备份记录失败", e);
+                }
             }
         }).start();
+    }
+    
+    /**
+     * 使用 Java 原生方式执行备份
+     */
+    private void executeNativeBackup(SysBackup backup, String filePath, String dbName) {
+        try (Connection connection = dataSource.getConnection()) {
+            // 使用 DatabaseBackupUtil 备份
+            databaseBackupUtil.backupDatabase(connection, filePath, dbName);
+            
+            // 备份成功
+            File file = new File(filePath);
+            if (file.exists() && file.length() > 0) {
+                backup.setFileSize(file.length());
+                
+                // 如果需要加密
+                if (backup.getIsEncrypted()) {
+                    log.info("开始加密备份文件");
+                    encryptFile(filePath);
+                    // 更新加密后的文件大小
+                    backup.setFileSize(file.length());
+                }
+                
+                backup.setBackupStatus("success");
+                log.info("备份成功: {}, 文件大小: {} bytes", backup.getFileName(), backup.getFileSize());
+            } else {
+                backup.setBackupStatus("failed");
+                backup.setErrorMessage("备份文件未创建或文件大小为0");
+                log.error("备份失败: 备份文件未创建或文件大小为0");
+            }
+        } catch (Exception e) {
+            backup.setBackupStatus("failed");
+            backup.setErrorMessage("Java原生备份失败: " + e.getMessage());
+            log.error("Java原生备份失败", e);
+        }
+    }
+    
+    /**
+     * 使用 mysqldump 命令执行备份
+     */
+    private void executeMysqldumpBackup(SysBackup backup, String filePath, String dbName) {
+        try {
+            // 构建mysqldump命令
+            // 注意：在Windows上需要使用不同的命令格式
+            String os = System.getProperty("os.name").toLowerCase();
+            Process process;
+            
+            if (os.contains("win")) {
+                // Windows系统
+                String command = String.format(
+                    "mysqldump -u%s -p%s --databases %s --result-file=\"%s\"",
+                    dbUsername, dbPassword, dbName, filePath
+                );
+                log.info("执行命令 (Windows): {}", command.replace(dbPassword, "****"));
+                process = Runtime.getRuntime().exec(new String[]{"cmd", "/c", command});
+            } else {
+                // Linux/Unix系统
+                String command = String.format(
+                    "mysqldump -u%s -p%s --databases %s --result-file=%s",
+                    dbUsername, dbPassword, dbName, filePath
+                );
+                log.info("执行命令 (Linux): {}", command.replace(dbPassword, "****"));
+                process = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
+            }
+            
+            // 读取标准输出
+            BufferedReader stdReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder stdOutput = new StringBuilder();
+            String line;
+            while ((line = stdReader.readLine()) != null) {
+                stdOutput.append(line).append("\n");
+            }
+            
+            // 读取错误输出
+            BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            StringBuilder errOutput = new StringBuilder();
+            while ((line = errReader.readLine()) != null) {
+                errOutput.append(line).append("\n");
+            }
+            
+            int exitCode = process.waitFor();
+            log.info("命令执行完成，退出码: {}", exitCode);
+            
+            if (stdOutput.length() > 0) {
+                log.info("标准输出: {}", stdOutput);
+            }
+            if (errOutput.length() > 0) {
+                log.warn("错误输出: {}", errOutput);
+            }
+            
+            // 检查文件是否创建成功
+            File file = new File(filePath);
+            if (file.exists() && file.length() > 0) {
+                // 备份成功
+                backup.setFileSize(file.length());
+                
+                // 如果需要加密
+                if (backup.getIsEncrypted()) {
+                    log.info("开始加密备份文件");
+                    encryptFile(filePath);
+                    // 更新加密后的文件大小
+                    backup.setFileSize(file.length());
+                }
+                
+                backup.setBackupStatus("success");
+                log.info("备份成功: {}, 文件大小: {} bytes", backup.getFileName(), backup.getFileSize());
+            } else {
+                // 备份失败
+                String errorMsg = "备份文件未创建或文件大小为0";
+                if (errOutput.length() > 0) {
+                    errorMsg += "\n错误信息: " + errOutput.toString();
+                }
+                if (exitCode != 0) {
+                    errorMsg += "\n退出码: " + exitCode;
+                }
+                backup.setBackupStatus("failed");
+                backup.setErrorMessage(errorMsg);
+                log.error("备份失败: {}", errorMsg);
+            }
+        } catch (Exception e) {
+            backup.setBackupStatus("failed");
+            backup.setErrorMessage("mysqldump备份失败: " + e.getMessage());
+            log.error("mysqldump备份失败", e);
+        }
     }
     
     /**
@@ -282,43 +404,43 @@ public class BackupService {
         new Thread(() -> {
             String tempFilePath = null;
             try {
+                log.info("开始执行恢复: backup_id={}", backup.getId());
+                
                 String filePath = backup.getFilePath();
+                
+                // 检查备份文件是否存在
+                File backupFile = new File(filePath);
+                if (!backupFile.exists()) {
+                    throw new RuntimeException("备份文件不存在: " + filePath);
+                }
+                
+                log.info("备份文件大小: {} bytes", backupFile.length());
                 
                 // 如果文件已加密，先解密
                 if (backup.getIsEncrypted()) {
+                    log.info("备份文件已加密，开始解密");
                     tempFilePath = filePath + ".restore_temp";
                     Files.copy(Paths.get(filePath), Paths.get(tempFilePath));
                     decryptFile(tempFilePath);
                     filePath = tempFilePath;
+                    log.info("解密完成");
                 }
                 
                 // 从数据库URL中提取数据库名
                 String dbName = extractDatabaseName(dbUrl);
+                log.info("恢复数据库: {}", dbName);
                 
-                // 执行mysql命令恢复数据库
-                String command = String.format(
-                    "mysql -u%s -p%s %s < %s",
-                    dbUsername, dbPassword, dbName, filePath
-                );
+                // 尝试使用 Java 原生方式恢复
+                boolean useNativeRestore = true; // 可以通过配置控制
                 
-                Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
-                int exitCode = process.waitFor();
-                
-                if (exitCode == 0) {
-                    restore.setRestoreStatus("success");
-                    restore.setCompletedTime(LocalDateTime.now());
-                    log.info("恢复成功: backup_id={}", backup.getId());
+                if (useNativeRestore) {
+                    log.info("使用 Java 原生方式恢复数据库");
+                    executeNativeRestore(restore, filePath);
                 } else {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                    StringBuilder errorMsg = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        errorMsg.append(line).append("\n");
-                    }
-                    restore.setRestoreStatus("failed");
-                    restore.setErrorMessage(errorMsg.toString());
-                    log.error("恢复失败: {}", errorMsg);
+                    log.info("使用 mysql 命令恢复数据库");
+                    executeMysqlRestore(restore, filePath, dbName);
                 }
+                
             } catch (Exception e) {
                 restore.setRestoreStatus("failed");
                 restore.setErrorMessage(e.getMessage());
@@ -326,12 +448,98 @@ public class BackupService {
             } finally {
                 // 删除临时文件
                 if (tempFilePath != null) {
-                    new File(tempFilePath).delete();
+                    try {
+                        new File(tempFilePath).delete();
+                        log.info("临时文件已删除: {}", tempFilePath);
+                    } catch (Exception e) {
+                        log.warn("删除临时文件失败: {}", tempFilePath, e);
+                    }
                 }
                 // 更新恢复记录
-                restoreMapper.updateById(restore);
+                try {
+                    restoreMapper.updateById(restore);
+                    log.info("恢复记录已更新: id={}, status={}", restore.getId(), restore.getRestoreStatus());
+                } catch (Exception e) {
+                    log.error("更新恢复记录失败", e);
+                }
             }
         }).start();
+    }
+    
+    /**
+     * 使用 Java 原生方式执行恢复
+     */
+    private void executeNativeRestore(SysRestore restore, String filePath) {
+        try (Connection connection = dataSource.getConnection()) {
+            // 使用 DatabaseBackupUtil 恢复
+            databaseBackupUtil.restoreDatabase(connection, filePath);
+            
+            restore.setRestoreStatus("success");
+            restore.setCompletedTime(LocalDateTime.now());
+            log.info("恢复成功");
+        } catch (Exception e) {
+            restore.setRestoreStatus("failed");
+            restore.setErrorMessage("Java原生恢复失败: " + e.getMessage());
+            log.error("Java原生恢复失败", e);
+        }
+    }
+    
+    /**
+     * 使用 mysql 命令执行恢复
+     */
+    private void executeMysqlRestore(SysRestore restore, String filePath, String dbName) {
+        try {
+            // 构建mysql命令
+            String os = System.getProperty("os.name").toLowerCase();
+            Process process;
+            
+            if (os.contains("win")) {
+                // Windows系统
+                String command = String.format(
+                    "mysql -u%s -p%s %s < \"%s\"",
+                    dbUsername, dbPassword, dbName, filePath
+                );
+                log.info("执行命令 (Windows): {}", command.replace(dbPassword, "****"));
+                process = Runtime.getRuntime().exec(new String[]{"cmd", "/c", command});
+            } else {
+                // Linux/Unix系统
+                String command = String.format(
+                    "mysql -u%s -p%s %s < %s",
+                    dbUsername, dbPassword, dbName, filePath
+                );
+                log.info("执行命令 (Linux): {}", command.replace(dbPassword, "****"));
+                process = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
+            }
+            
+            // 读取错误输出
+            BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            StringBuilder errOutput = new StringBuilder();
+            String line;
+            while ((line = errReader.readLine()) != null) {
+                errOutput.append(line).append("\n");
+            }
+            
+            int exitCode = process.waitFor();
+            log.info("命令执行完成，退出码: {}", exitCode);
+            
+            if (exitCode == 0) {
+                restore.setRestoreStatus("success");
+                restore.setCompletedTime(LocalDateTime.now());
+                log.info("恢复成功");
+            } else {
+                String errorMsg = "恢复失败，退出码: " + exitCode;
+                if (errOutput.length() > 0) {
+                    errorMsg += "\n错误信息: " + errOutput.toString();
+                }
+                restore.setRestoreStatus("failed");
+                restore.setErrorMessage(errorMsg);
+                log.error("恢复失败: {}", errorMsg);
+            }
+        } catch (Exception e) {
+            restore.setRestoreStatus("failed");
+            restore.setErrorMessage("mysql命令恢复失败: " + e.getMessage());
+            log.error("mysql命令恢复失败", e);
+        }
     }
     
     /**

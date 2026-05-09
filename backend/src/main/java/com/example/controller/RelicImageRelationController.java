@@ -43,9 +43,8 @@ public class RelicImageRelationController {
             @RequestParam("file") MultipartFile file) {
         try {
             // 获取当前登录用户信息
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String uploaderName = authentication != null ? authentication.getName() : "系统";
-            Long uploaderId = 1L; // 这里应该从authentication中获取用户ID
+            String uploaderName = userContextUtil.getCurrentUserRealName();
+            Long uploaderId = userContextUtil.getCurrentUserId();
             
             String imagePath = relicImageRelationService.uploadAndSetRelicMainImage(
                     relicId, file, uploaderId, uploaderName);

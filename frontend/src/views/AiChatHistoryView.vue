@@ -108,7 +108,7 @@
                 <div class="message-content">{{ msg.content }}</div>
                 <div class="message-meta">
                   <el-tag size="small" type="success">{{$t('aiChatHistory.resultNumber')}}: {{ msg.resultCount || 0 }}</el-tag>
-                  <el-tag v-if="msg.hasExternalResult" size="small" type="warning">{{$t('AiChatHistory.includeExternalResults')}}</el-tag>
+                  <el-tag v-if="msg.hasExternalResult" size="small" type="warning">{{$t('aiChatHistory.includeExternalResults')}}</el-tag>
                   <el-tag v-if="msg.relicIds" size="small" type="info">{{$t('aiChatHistory.relicID')}}: {{ msg.relicIds }}</el-tag>
                 </div>
               </div>

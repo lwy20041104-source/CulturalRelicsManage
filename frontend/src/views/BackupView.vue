@@ -73,6 +73,15 @@
           {{ formatDateTime(scope.row.createdTime) }}
         </template>
       </el-table-column>
+      <el-table-column prop="description" :label="$t('backup.description')" min-width="200" show-overflow-tooltip />
+      <el-table-column :label="$t('backup.errorMessage')" min-width="200" show-overflow-tooltip>
+        <template #default="scope">
+          <span v-if="scope.row.errorMessage" style="color: #F56C6C;">
+            {{ scope.row.errorMessage }}
+          </span>
+          <span v-else style="color: #909399;">—</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('common.action')" width="280" fixed="right">
         <template #default="scope">
           <el-button 

@@ -108,10 +108,8 @@ public class CulturalRelicController {
             relic.setUpdateTime(LocalDateTime.now());
             
             // 获取当前登录用户信息
-            org.springframework.security.core.Authentication authentication = 
-                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-            String uploaderName = authentication != null ? authentication.getName() : "系统";
-            Long uploaderId = 1L; // 这里应该从authentication中获取用户ID
+            String uploaderName = userContextUtil.getCurrentUserRealName();
+            Long uploaderId = userContextUtil.getCurrentUserId();
             
             // 保存文物和图片
             Long relicId = culturalRelicService.saveWithImage(relic, imageFile, imageId, uploaderId, uploaderName);
@@ -175,15 +173,13 @@ public class CulturalRelicController {
         // 3. 记录审计日志
         if (success && oldRelic != null) {
             try {
-                org.springframework.security.core.Authentication authentication = 
-                    org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-                String username = authentication != null ? authentication.getName() : "系统";
-                Long userId = 1L;
+                String realName = userContextUtil.getCurrentUserRealName();
+                Long userId = userContextUtil.getCurrentUserId();
                 String ipAddress = getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
-                    username,
+                    realName,
                     "删除",
                     "文物管理",
                     "RELIC",
@@ -211,10 +207,8 @@ public class CulturalRelicController {
         }
         
         // 获取当前登录用户信息
-        org.springframework.security.core.Authentication authentication = 
-            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        String uploaderName = authentication != null ? authentication.getName() : "系统";
-        Long uploaderId = 1L; // 这里应该从authentication中获取用户ID
+        String uploaderName = userContextUtil.getCurrentUserRealName();
+        Long uploaderId = userContextUtil.getCurrentUserId();
         
         // 使用新的关联服务上传图片
         String path = relicImageRelationService.uploadAndSetRelicMainImage(id, file, uploaderId, uploaderName);

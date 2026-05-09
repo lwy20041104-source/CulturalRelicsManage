@@ -67,12 +67,12 @@ public class BackupController {
     @OperationLog(operationType = "新增", operationModule = "备份管理", operationContent = "创建手动备份")
     public Result<SysBackup> createBackup(@RequestBody SysBackup backup) {
         try {
-            String username = "admin"; // 从SecurityContext获取当前用户
+            String realName = userContextUtil.getCurrentUserRealName();
             SysBackup result = backupService.createManualBackup(
                 backup.getBackupName(),
                 backup.getDescription(),
                 backup.getIsEncrypted(),
-                username
+                realName
             );
             return Result.success(result);
         } catch (Exception e) {
@@ -160,8 +160,8 @@ public class BackupController {
     @OperationLog(operationType = "恢复", operationModule = "备份管理", operationContent = "恢复数据库")
     public Result<SysRestore> restoreDatabase(@PathVariable Long id) {
         try {
-            String username = "admin"; // 从SecurityContext获取当前用户
-            SysRestore result = backupService.restoreDatabase(id, username);
+            String realName = userContextUtil.getCurrentUserRealName();
+            SysRestore result = backupService.restoreDatabase(id, realName);
             return Result.success(result);
         } catch (Exception e) {
             log.error("恢复数据库失败", e);
