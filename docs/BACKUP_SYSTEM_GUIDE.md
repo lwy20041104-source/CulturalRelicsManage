@@ -297,3 +297,245 @@
 ## 联系支持
 
 如有问题或建议，请联系系统管理员。
+
+
+---
+
+# DeepSeek AI 集成说明
+
+## 概述
+
+AI搜索功能已从关键字匹配升级为使用 DeepSeek AI 进行智能分析和推荐。
+
+## 新增文件
+
+### 1. 配置类
+**文件**: `backend/src/main/java/com/example/config/DeepSeekConfig.java`
+
+配置 DeepSeek API 的相关参数：
+- API Key
+- API URL
+- 模型名称
+- Token限制
+- 超时设置
+
+### 2. 服务接口
+**文件**: `backend/src/main/java/com/example/service/DeepSeekService.java`
+
+定义 DeepSeek AI 服务接口和分析结果数据结构。
+
+### 3. 服务实现
+**文件**: `backend/src/main/java/com/example/service/impl/DeepSeekServiceImpl.java`
+
+实现 DeepSeek API 调用逻辑：
+- 构建文物信息摘要
+- 生成AI提示词
+- 调用 DeepSeek API
+- 解析AI响应
+
+### 4. AI查询实现
+**文件**: `backend/src/main/java/com/example/service/impl/RelicAiServiceDeepSeekImpl.java`
+
+使用 DeepSeek AI 的文物查询服务实现，标记为 `@Primary` 优先使用。
+
+## 配置说明
+
+在 `application.yml` 中添加以下配置：
+
+```yaml
+deepseek:
+  api-key: your-deepseek-api-key-here  # 替换为实际的API Key
+  api-url: https://api.deepseek.com/v1/chat/completions
+  model: deepseek-chat
+  max-tokens: 2000
+  temperature: 0.7
+  connect-timeout: 10000
+  read-timeout: 30000
+```
+
+## 使用步骤
+
+### 1. 获取 DeepSeek API Key
+
+1. 访问 [DeepSeek 官网](https://www.deepseek.com/)
+2. 注册账号并登录
+3. 进入 API 管理页面
+4. 创建新的 API Key
+5. 复制 API Key
+
+### 2. 配置 API Key
+
+在 `application.yml` 中替换 `your-deepseek-api-key-here` 为实际的 API Key：
+
+```yaml
+deepseek:
+  api-key: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### 3. 启动应用
+
+启动后端服务，AI搜索功能会自动使用 DeepSeek AI。
+
+## 工作原理
+
+### 1. 用户提问
+用户在前端输入问题，例如："有哪些唐朝的青铜器？"
+
+### 2. 构建上下文
+系统将所有文物信息构建成摘要，包括：
+- 文物ID
+- 名称
+- 年代
+- 材质
+- 分类
+- 状态
+- 描述
+
+### 3. AI分析
+将用户问题和文物信息发送给 DeepSeek AI，AI会：
+- 理解用户意图
+- 分析文物特征
+- 推荐最相关的文物
+- 生成专业回答
+
+### 4. 返回结果
+系统根据AI推荐的文物ID，返回详细的文物信息。
+
+## 降级策略
+
+如果 DeepSeek API 调用失败（网络问题、API Key错误等），系统会自动降级到简单的关键字匹配搜索，确保功能可用。
+
+## API 响应格式
+
+DeepSeek AI 返回 JSON 格式：
+
+```json
+{
+  "answer": "为您找到2件唐朝的青铜器...",
+  "recommendedRelicIds": [1, 5, 8],
+  "reasoning": "这些文物都是唐朝时期的青铜器，符合您的查询条件",
+  "keywords": ["唐朝", "青铜器"]
+}
+```
+
+## 性能优化
+
+### 1. Token 限制
+- 最多发送100件文物信息给AI
+- 描述文字限制在100字以内
+- 避免超出 token 限制
+
+### 2. 超时设置
+- 连接超时：10秒
+- 读取超时：30秒
+- 确保用户体验
+
+### 3. 缓存策略
+建议在生产环境中添加缓存：
+- 相同问题的结果可以缓存
+- 减少API调用次数
+- 降低成本
+
+## 成本估算
+
+DeepSeek API 按 token 计费：
+- 输入 token：约 $0.14 / 1M tokens
+- 输出 token：约 $0.28 / 1M tokens
+
+每次查询大约消耗：
+- 输入：1000-3000 tokens（取决于文物数量）
+- 输出：200-500 tokens
+
+## 注意事项
+
+### 1. API Key 安全
+- 不要将 API Key 提交到版本控制
+- 使用环境变量或配置中心管理
+- 定期轮换 API Key
+
+### 2. 错误处理
+- API 调用失败会自动降级
+- 记录详细的错误日志
+- 监控 API 调用成功率
+
+### 3. 数据隐私
+- 文物信息会发送给 DeepSeek
+- 确保符合数据隐私政策
+- 敏感信息需要脱敏处理
+
+## 测试建议
+
+### 1. 功能测试
+```bash
+# 测试AI搜索
+curl -X POST http://localhost:8080/api/ai/relics/query \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{"question": "有哪些唐朝的青铜器？", "matchAll": false}'
+```
+
+### 2. 降级测试
+- 故意使用错误的 API Key
+- 验证降级到关键字搜索
+- 确保用户体验不受影响
+
+### 3. 性能测试
+- 测试不同文物数量的响应时间
+- 监控 API 调用延迟
+- 优化 token 使用
+
+## 故障排查
+
+### 问题1：API 调用失败
+**症状**：日志显示 "DeepSeek API 调用失败"
+
+**解决方案**：
+1. 检查 API Key 是否正确
+2. 检查网络连接
+3. 查看 DeepSeek 服务状态
+4. 检查防火墙设置
+
+### 问题2：响应时间过长
+**症状**：AI搜索响应超过10秒
+
+**解决方案**：
+1. 减少发送的文物数量
+2. 增加超时时间
+3. 使用缓存
+4. 考虑异步处理
+
+### 问题3：AI 回答不准确
+**症状**：推荐的文物不相关
+
+**解决方案**：
+1. 优化提示词（prompt）
+2. 调整 temperature 参数
+3. 增加文物描述信息
+4. 提供更多上下文
+
+## 未来优化
+
+### 1. 对话历史
+- 支持多轮对话
+- 记住上下文
+- 更智能的交互
+
+### 2. 个性化推荐
+- 根据用户历史
+- 学习用户偏好
+- 提供定制化服务
+
+### 3. 多模态支持
+- 支持图片输入
+- 以图搜图
+- 语音交互
+
+## 相关文档
+
+- DeepSeek 官方文档：https://platform.deepseek.com/docs
+- API 参考：https://platform.deepseek.com/api-docs
+
+---
+
+**更新日期**：2026-05-09  
+**版本**：v1.0

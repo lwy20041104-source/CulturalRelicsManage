@@ -82,3 +82,20 @@ baidu:
     secret-key: RsnP0zSkekccmCVhX5XcqNOOXhVcQKOS
     # 识别置信度阈值（0-1之间，低于此值将使用规则识别作为补充）
     confidence-threshold: 0.6
+
+# DeepSeek AI配置
+deepseek:
+  # DeepSeek API Key（请替换为您的实际API Key）
+  api-key: your-deepseek-api-key-here
+  # DeepSeek API地址
+  api-url: https://api.deepseek.com/v1/chat/completions
+  # 使用的模型
+  model: deepseek-chat
+  # 最大tokens数
+  max-tokens: 2000
+  # 温度参数（0-2，越高越随机）
+  temperature: 0.7
+  # 连接超时时间（毫秒）
+  connect-timeout: 10000
+  # 读取超时时间（毫秒）
+  read-timeout: 30000
