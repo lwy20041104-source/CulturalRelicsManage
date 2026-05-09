@@ -35,6 +35,12 @@ public class Relic3DController {
 
     @Autowired(required = false)
     private CulturalRelicService culturalRelicService;
+    
+    @Autowired(required = false)
+    private com.example.service.SysOperationLogService operationLogService;
+    
+    @Autowired(required = false)
+    private com.example.util.UserContextUtil userContextUtil;
 
     /**
      * 上传3D模型
@@ -43,7 +49,8 @@ public class Relic3DController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
     public Result<Map<String, Object>> upload3DModel(
             @PathVariable Long id,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            javax.servlet.http.HttpServletRequest httpRequest) {
         
         if (file.isEmpty()) {
             return Result.error("文件不能为空");
@@ -66,6 +73,17 @@ public class Relic3DController {
         }
 
         try {
+            // 1. 获取操作前的文物数据
+            CulturalRelic oldRelic = null;
+            if (culturalRelicService != null) {
+                oldRelic = culturalRelicService.getById(id);
+                if (oldRelic == null) {
+                    return Result.error("文物不存在");
+                }
+                // 创建副本用于审计日志
+                oldRelic = cloneRelic(oldRelic);
+            }
+            
             // 创建上传目录
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
@@ -82,13 +100,40 @@ public class Relic3DController {
             // 构建访问URL
             String modelUrl = urlPrefix + "/" + filename;
 
-            // 更新数据库中的文物记录
+            // 2. 更新数据库中的文物记录
             if (culturalRelicService != null) {
                 CulturalRelic relic = culturalRelicService.getById(id);
                 if (relic != null) {
                     relic.setModel3dUrl(modelUrl);
                     relic.setModel3dUploadTime(LocalDateTime.now());
                     culturalRelicService.updateById(relic);
+                }
+            }
+
+            // 3. 记录审计日志
+            if (oldRelic != null) {
+                try {
+                    CulturalRelic newRelic = culturalRelicService.getById(id);
+                    String realName = userContextUtil.getCurrentUserRealName();
+                    Long userId = userContextUtil.getCurrentUserId();
+                    String ipAddress = getClientIp(httpRequest);
+                    
+                    operationLogService.logDataChange(
+                        userId,
+                        realName,
+                        "上传3D模型",
+                        "3D模型管理",
+                        "RELIC",
+                        id,
+                        oldRelic,
+                        newRelic,
+                        ipAddress,
+                        "POST",
+                        "/relics/" + id + "/3d-model"
+                    );
+                } catch (Exception e) {
+                    System.err.println("记录审计日志失败: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
 
@@ -167,7 +212,8 @@ public class Relic3DController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
     public Result<Map<String, Object>> save3DModelUrl(
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            javax.servlet.http.HttpServletRequest httpRequest) {
         
         String modelUrl = request.get("modelUrl");
         if (modelUrl == null || modelUrl.trim().isEmpty()) {
@@ -175,27 +221,66 @@ public class Relic3DController {
         }
 
         try {
-            // 更新数据库中的文物记录
+            // 1. 获取操作前的文物数据
+            CulturalRelic oldRelic = null;
             if (culturalRelicService != null) {
-                CulturalRelic relic = culturalRelicService.getById(id);
-                if (relic != null) {
-                    relic.setModel3dUrl(modelUrl.trim());
-                    relic.setModel3dUploadTime(LocalDateTime.now());
-                    culturalRelicService.updateById(relic);
-                    
-                    // 返回结果
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("relicId", id);
-                    result.put("modelUrl", modelUrl.trim());
-                    result.put("uploadTime", relic.getModel3dUploadTime());
-                    
-                    return Result.success(result);
-                } else {
+                oldRelic = culturalRelicService.getById(id);
+                if (oldRelic == null) {
                     return Result.error("文物不存在");
                 }
+                // 创建副本用于审计日志
+                oldRelic = cloneRelic(oldRelic);
+            } else {
+                return Result.error("服务不可用");
             }
             
-            return Result.error("服务不可用");
+            // 2. 更新数据库中的文物记录
+            CulturalRelic relic = culturalRelicService.getById(id);
+            relic.setModel3dUrl(modelUrl.trim());
+            relic.setModel3dUploadTime(LocalDateTime.now());
+            culturalRelicService.updateById(relic);
+            
+            // 3. 记录审计日志
+            try {
+                CulturalRelic newRelic = culturalRelicService.getById(id);
+                String realName = userContextUtil.getCurrentUserRealName();
+                Long userId = userContextUtil.getCurrentUserId();
+                String ipAddress = getClientIp(httpRequest);
+                
+                System.out.println("========== 3D模型审计日志调试 ==========");
+                System.out.println("oldRelic: " + oldRelic);
+                System.out.println("oldRelic.model3dUrl: " + (oldRelic != null ? oldRelic.getModel3dUrl() : "null"));
+                System.out.println("newRelic: " + newRelic);
+                System.out.println("newRelic.model3dUrl: " + (newRelic != null ? newRelic.getModel3dUrl() : "null"));
+                System.out.println("userId: " + userId);
+                System.out.println("realName: " + realName);
+                System.out.println("========================================");
+                
+                operationLogService.logDataChange(
+                    userId,
+                    realName,
+                    "保存3D模型链接",
+                    "3D模型管理",
+                    "RELIC",
+                    id,
+                    oldRelic,
+                    newRelic,
+                    ipAddress,
+                    "POST",
+                    "/relics/" + id + "/3d-model-url"
+                );
+            } catch (Exception e) {
+                System.err.println("记录审计日志失败: " + e.getMessage());
+                e.printStackTrace();
+            }
+            
+            // 返回结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("relicId", id);
+            result.put("modelUrl", modelUrl.trim());
+            result.put("uploadTime", relic.getModel3dUploadTime());
+            
+            return Result.success(result);
         } catch (Exception e) {
             e.printStackTrace();
             return Result.error("保存失败: " + e.getMessage());
@@ -207,34 +292,111 @@ public class Relic3DController {
      */
     @DeleteMapping("/{id}/3d-model-url")
     @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
-    public Result<String> delete3DModelUrl(@PathVariable Long id) {
+    public Result<String> delete3DModelUrl(@PathVariable Long id,
+                                           javax.servlet.http.HttpServletRequest httpRequest) {
         try {
-            // 更新数据库中的文物记录
+            // 1. 获取操作前的文物数据
+            CulturalRelic oldRelic = null;
             if (culturalRelicService != null) {
-                CulturalRelic relic = culturalRelicService.getById(id);
-                if (relic != null) {
-                    // 如果是本地上传的文件，尝试删除文件
-                    String modelUrl = relic.getModel3dUrl();
-                    if (modelUrl != null && modelUrl.startsWith(urlPrefix)) {
-                        String filename = modelUrl.substring(modelUrl.lastIndexOf("/") + 1);
-                        Path filePath = Paths.get(uploadPath, filename);
-                        Files.deleteIfExists(filePath);
-                    }
-                    
-                    relic.setModel3dUrl(null);
-                    relic.setModel3dUploadTime(null);
-                    culturalRelicService.updateById(relic);
-                    
-                    return Result.success("删除成功");
-                } else {
+                oldRelic = culturalRelicService.getById(id);
+                if (oldRelic == null) {
                     return Result.error("文物不存在");
                 }
+                // 创建副本用于审计日志
+                oldRelic = cloneRelic(oldRelic);
+            } else {
+                return Result.error("服务不可用");
             }
             
-            return Result.error("服务不可用");
+            // 2. 更新数据库中的文物记录
+            CulturalRelic relic = culturalRelicService.getById(id);
+            
+            // 如果是本地上传的文件，尝试删除文件
+            String modelUrl = relic.getModel3dUrl();
+            if (modelUrl != null && modelUrl.startsWith(urlPrefix)) {
+                String filename = modelUrl.substring(modelUrl.lastIndexOf("/") + 1);
+                Path filePath = Paths.get(uploadPath, filename);
+                Files.deleteIfExists(filePath);
+            }
+            
+            relic.setModel3dUrl(null);
+            relic.setModel3dUploadTime(null);
+            culturalRelicService.updateById(relic);
+            
+            // 3. 记录审计日志
+            try {
+                CulturalRelic newRelic = culturalRelicService.getById(id);
+                String realName = userContextUtil.getCurrentUserRealName();
+                Long userId = userContextUtil.getCurrentUserId();
+                String ipAddress = getClientIp(httpRequest);
+                
+                operationLogService.logDataChange(
+                    userId,
+                    realName,
+                    "删除3D模型",
+                    "3D模型管理",
+                    "RELIC",
+                    id,
+                    oldRelic,
+                    newRelic,
+                    ipAddress,
+                    "DELETE",
+                    "/relics/" + id + "/3d-model-url"
+                );
+            } catch (Exception e) {
+                System.err.println("记录审计日志失败: " + e.getMessage());
+                e.printStackTrace();
+            }
+            
+            return Result.success("删除成功");
         } catch (Exception e) {
             e.printStackTrace();
             return Result.error("删除失败: " + e.getMessage());
         }
+    }
+    
+    /**
+     * 获取客户端IP地址
+     */
+    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
+    }
+    
+    /**
+     * 克隆文物对象（用于审计日志）
+     */
+    private CulturalRelic cloneRelic(CulturalRelic relic) {
+        if (relic == null) {
+            return null;
+        }
+        CulturalRelic clone = new CulturalRelic();
+        clone.setId(relic.getId());
+        clone.setRelicCode(relic.getRelicCode());
+        clone.setRelicName(relic.getRelicName());
+        clone.setCategoryId(relic.getCategoryId());
+        clone.setCategoryName(relic.getCategoryName());
+        clone.setEra(relic.getEra());
+        clone.setMaterial(relic.getMaterial());
+        clone.setOrigin(relic.getOrigin());
+        clone.setDimensions(relic.getDimensions());
+        clone.setWeight(relic.getWeight());
+        clone.setDescription(relic.getDescription());
+        clone.setStatus(relic.getStatus());
+        clone.setImagePath(relic.getImagePath());
+        clone.setModel3dUrl(relic.getModel3dUrl());
+        clone.setModel3dUploadTime(relic.getModel3dUploadTime());
+        clone.setCreateTime(relic.getCreateTime());
+        clone.setUpdateTime(relic.getUpdateTime());
+        return clone;
     }
 }

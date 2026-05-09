@@ -2,6 +2,8 @@ package com.example.util;
 
 import com.example.dto.DataChangeDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,15 @@ import java.util.*;
 public class AuditLogUtil {
     
     private static final Logger logger = LoggerFactory.getLogger(AuditLogUtil.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper;
+    
+    static {
+        objectMapper = new ObjectMapper();
+        // 注册Java 8日期时间模块
+        objectMapper.registerModule(new JavaTimeModule());
+        // 禁用将日期写为时间戳的功能
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
     
     /**
      * 比较两个对象的差异
@@ -207,6 +217,8 @@ public class AuditLogUtil {
         labels.put("location", "位置");
         labels.put("description", "描述");
         labels.put("imageUrl", "图片");
+        labels.put("model3dUrl", "3D模型链接");
+        labels.put("model3dUploadTime", "3D模型上传时间");
         return labels;
     }
     
