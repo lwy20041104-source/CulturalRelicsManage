@@ -7,7 +7,10 @@ import com.example.dto.RepairApplyRequest;
 import com.example.dto.RepairApproveRequest;
 import com.example.dto.RepairProgressRequest;
 import com.example.entity.RepairRecord;
+import com.example.service.NotificationService;
 import com.example.service.RepairRecordService;
+import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +25,9 @@ import java.util.Map;
 public class RepairRecordController {
     
     private final RepairRecordService repairRecordService;
-    private final com.example.service.SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
-    private final com.example.service.NotificationService notificationService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
+    private final NotificationService notificationService;
     
     public RepairRecordController(RepairRecordService repairRecordService,
                                  com.example.service.SysOperationLogService operationLogService,

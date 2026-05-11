@@ -11,44 +11,62 @@
       </div>
     </template>
 
-    <el-table :data="tableData" border>
+    <el-table :data="tableData" border :span-method="objectSpanMethod">
       <el-table-column :label="$t('maintenance.relicName')" min-width="160">
         <template #default="scope">
-          {{ scope.row.relicName || `ID: ${scope.row.relicId}` }}
+          <div v-if="scope.row.relicName">
+            {{ scope.row.relicName }}
+          </div>
+          <div v-else style="color: #f56c6c; text-align: center;">
+            <el-icon style="vertical-align: middle;"><WarningFilled /></el-icon>
+            {{ $t('maintenance.relicDeleted') }}
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="maintenanceType" :label="$t('maintenance.maintenanceType')" width="120" />
+      <el-table-column prop="maintenanceType" :label="$t('maintenance.maintenanceType')" width="120">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.maintenanceType }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('maintenance.maintenanceDate')" width="170">
         <template #default="scope">
-          {{ formatDateTime(scope.row.maintenanceDate) }}
+          <span v-if="scope.row.relicName">{{ formatDateTime(scope.row.maintenanceDate) }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('maintenance.maintainer')" width="120">
         <template #default="scope">
-          {{ scope.row.maintainerName || scope.row.maintainer || '—' }}
+          <span v-if="scope.row.relicName">{{ scope.row.maintainerName || scope.row.maintainer || '—' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="maintenanceContent" :label="$t('maintenance.maintenanceContent')" />
+      <el-table-column prop="maintenanceContent" :label="$t('maintenance.maintenanceContent')">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.maintenanceContent }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('common.status')" width="100">
         <template #default="scope">
-          <el-tag v-if="scope.row.status === '待审批'" type="warning">{{ scope.row.status }}</el-tag>
-          <el-tag v-else-if="scope.row.status === '已通过'" type="success">{{ scope.row.status }}</el-tag>
-          <el-tag v-else-if="scope.row.status === '已拒绝'" type="danger">{{ scope.row.status }}</el-tag>
-          <el-tag v-else type="info">{{ scope.row.status || '—' }}</el-tag>
+          <template v-if="scope.row.relicName">
+            <el-tag v-if="scope.row.status === '待审批'" type="warning">{{ scope.row.status }}</el-tag>
+            <el-tag v-else-if="scope.row.status === '已通过'" type="success">{{ scope.row.status }}</el-tag>
+            <el-tag v-else-if="scope.row.status === '已拒绝'" type="danger">{{ scope.row.status }}</el-tag>
+            <el-tag v-else type="info">{{ scope.row.status || '—' }}</el-tag>
+          </template>
         </template>
       </el-table-column>
       <el-table-column :label="$t('common.operation')" :width="isAdminOrApprover ? 240 : 220">
         <template #default="scope">
-          <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <!-- 管理员和审批员：显示批准和拒绝按钮 -->
-          <template v-if="isAdminOrApprover && scope.row.status === '待审批'">
-            <el-button link type="success" @click="quickApprove(scope.row, '已通过')">批准</el-button>
-            <el-button link type="danger" @click="quickApprove(scope.row, '已拒绝')">拒绝</el-button>
-          </template>
-          <!-- 保管员：只显示编辑和撤回按钮 -->
-          <template v-if="!isAdminOrApprover && scope.row.status === '待审批'">
-            <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
-            <el-button link type="danger" @click="remove(scope.row.id)">撤回</el-button>
+          <template v-if="scope.row.relicName">
+            <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
+            <!-- 管理员和审批员：显示批准和拒绝按钮 -->
+            <template v-if="isAdminOrApprover && scope.row.status === '待审批'">
+              <el-button link type="success" @click="quickApprove(scope.row, '已通过')">批准</el-button>
+              <el-button link type="danger" @click="quickApprove(scope.row, '已拒绝')">拒绝</el-button>
+            </template>
+            <!-- 保管员：只显示编辑和撤回按钮 -->
+            <template v-if="!isAdminOrApprover && scope.row.status === '待审批'">
+              <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
+              <el-button link type="danger" @click="remove(scope.row.id)">撤回</el-button>
+            </template>
           </template>
         </template>
       </el-table-column>
@@ -164,6 +182,7 @@
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { WarningFilled } from '@element-plus/icons-vue'
 import { getMaintenancePageApi, addMaintenanceApi, updateMaintenanceApi, deleteMaintenanceApi, approveMaintenanceApi } from '../api/maintenance'
 import { getRelicsPageApi } from '../api/relics'
 
@@ -400,6 +419,31 @@ const remove = async (id) => {
   await deleteMaintenanceApi(id)
   ElMessage.success('撤回成功')
   loadData()
+}
+
+// 合并单元格方法：文物已删除的行，合并所有列
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
+  // 如果文物不存在（已删除），除了第一列（文物信息列）显示提示外，其他列都隐藏
+  if (!row.relicName) {
+    if (columnIndex === 0) {
+      // 第一列（文物信息列）合并所有列
+      return {
+        rowspan: 1,
+        colspan: 7 // 合并所有7列
+      }
+    } else {
+      // 其他列隐藏
+      return {
+        rowspan: 0,
+        colspan: 0
+      }
+    }
+  }
+  // 正常情况不合并
+  return {
+    rowspan: 1,
+    colspan: 1
+  }
 }
 
 // 检查是否显示审批按钮（如果后端返回错误，说明没有权限，则不显示）

@@ -5,6 +5,7 @@ import com.example.common.Result;
 import com.example.entity.RelicImageRelation;
 import com.example.service.RelicImageRelationService;
 import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class RelicImageRelationController {
     
     private final RelicImageRelationService relicImageRelationService;
     private final SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
+    private final UserContextUtil userContextUtil;
     
     public RelicImageRelationController(RelicImageRelationService relicImageRelationService,
                                        SysOperationLogService operationLogService,

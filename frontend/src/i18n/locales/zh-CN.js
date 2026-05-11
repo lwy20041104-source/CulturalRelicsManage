@@ -48,6 +48,7 @@ export default {
     addFailed: '添加失败',
     warning: '警告',
     tip: '提示',
+    noImage: '暂无图片',
     enable: '启用',
     disable: '禁用',
     enabled: '已启用',
@@ -119,7 +120,7 @@ export default {
     experts: '修复专家',
     repairMaterials: '修复材料',
     reports: '数据报表',
-    aiQuery: 'AI搜索',
+    aiQuery: 'AI对话',
     images: '图片管理',
     system: '系统管理',
     users: '用户管理',
@@ -190,7 +191,7 @@ export default {
     register: '注册',
     guestMode: '访客模式',
     welcomeTitle: '探索中华文明瑰宝',
-    welcomeSubtitle: '登录后可查看文物详细信息、申请借展、使用AI搜索等更多功能',
+    welcomeSubtitle: '登录后可查看文物详细信息、申请借展、使用AI对话等更多功能',
     loginToExplore: '登录探索',
     relicsGallery: '文物展示',
     loginToViewDetails: '登录后可查看文物详细信息',
@@ -457,7 +458,8 @@ export default {
     returnDateAfterLoanDate: '预计归还日期必须晚于借展日期',
     defaultApprover: '审批员',
     approvePass: '审批通过',
-    approveReject: '审批驳回'
+    approveReject: '审批驳回',
+    relicDeleted: '文物已删除'
   },
   
   repair: {
@@ -516,7 +518,8 @@ export default {
     withdraw: '撤回',
     withdrawConfirm: '确定要撤回这条待审批的申请吗？撤回后将删除该申请记录。',
     withdrawSuccess: '撤回成功',
-    deleteRejectedConfirm: '确定要删除这条已拒绝的申请记录吗？'
+    deleteRejectedConfirm: '确定要删除这条已拒绝的申请记录吗？',
+    relicDeleted: '文物已删除'
   },
   
   maintenance: {
@@ -531,7 +534,8 @@ export default {
     dailyCare: '日常保养',
     cleaning: '清洁',
     inspection: '检查',
-    environmentControl: '环境控制'
+    environmentControl: '环境控制',
+    relicDeleted: '文物已删除'
   },
   
   expert: {
@@ -610,7 +614,7 @@ export default {
     loanManagement: '借展管理',
     repairManagement: '修复管理',
     dataReports: '数据报表',
-    aiQuery: 'AI搜索',
+    aiQuery: 'AI对话',
     seconds: '秒',
     minute: '分钟',
     minutes: '分钟',
@@ -649,7 +653,7 @@ export default {
     example1: '搜索清代的青铜器',
     example2: '哪些文物正在修复中？',
     example3: '最近借展的文物有哪些？',
-    aiQuery: 'AI 搜索',
+    aiQuery: 'AI 对话',
     aiAnswer: 'AI 回答',
     museumSearchResult: '馆藏检索结果',
     whyTopOne: '为什么排第 1 名',
@@ -673,7 +677,26 @@ export default {
     museumAiSearch: 'Museum AI Search',
     aiDescription: '看得懂、讲得清、能解释为什么排第一。',
     aiIntro: '输入多个关键词后，系统会自动做组合命中、同义词扩展和相关度排序；开启严格模式后，只返回同时命中全部关键词的文物。',
-    placeholderExample: '例如：唐朝 青铜器 在库；铜器 修复中；编号W001 唐朝'
+    placeholderExample: '例如：唐朝 青铜器 在库；铜器 修复中；编号W001 唐朝',
+    // 新增：对话界面相关
+    chatHistory: '对话历史',
+    noHistory: '暂无历史记录',
+    startNewChat: '开始新对话探索文物世界',
+    online: '在线',
+    aiWelcome: '欢迎使用AI文物助手',
+    aiWelcomeDesc: '我可以帮您查询文物信息、解答文物相关问题',
+    collectionTag: '馆藏',
+    thinking: '思考中...',
+    aiInputPlaceholder: '请输入您的问题，按回车发送',
+    loadSessionsFailed: '加载会话列表失败',
+    loadHistoryFailed: '加载历史消息失败',
+    confirmDeleteSession: '确定要删除这个会话吗？',
+    deleteSessionSuccess: '会话删除成功',
+    deleteSessionFailed: '会话删除失败',
+    queryFailed: 'AI查询失败，请稍后重试',
+    justNow: '刚刚',
+    minutesAgo: '分钟前',
+    hoursAgo: '小时前'
   },
   
   user: {
@@ -1116,6 +1139,7 @@ export default {
     attachedFiles: '附件文档',
     fileCount: '文档数量',
     printTime: '打印时间',
+    relicDeleted: '文物已删除',
   },
   
   backup: {

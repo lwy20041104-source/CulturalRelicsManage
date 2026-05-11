@@ -628,7 +628,7 @@
         </div>
       </section>
 
-      <!-- AI搜索 - ChatGPT风格布局 -->
+      <!-- AI对话 - ChatGPT风格布局 -->
       <section v-show="activeSection === 'ai'" class="section-ai">
         <div class="ai-container">
           <!-- 左侧：历史会话列表 -->
@@ -1138,7 +1138,7 @@ const translations = {
     navCategories: '分类查询',
     navLoan: '申请借展',
     navMyLoans: '我的借展',
-    navAi: 'AI搜索',
+    navAi: 'AI对话',
     heroTitle: '探索中华文明瑰宝',
     heroSubtitle: '数字化管理，让文物保护更智能',
     startExplore: '开始探索',
@@ -2295,9 +2295,9 @@ const sendAiQuery = async () => {
   aiLoading.value = true
 
   try {
-    console.log('发送AI搜索:', question, 'sessionId:', currentSessionId.value)
+    console.log('发送AI对话:', question, 'sessionId:', currentSessionId.value)
     const res = await queryRelicAiWithSessionApi(question, false, currentSessionId.value)
-    console.log('AI搜索响应:', res)
+    console.log('AI对话响应:', res)
     console.log('返回的文物数据:', res.data.relics)
     
     // 检查每个文物的图片路径
@@ -2328,7 +2328,7 @@ const sendAiQuery = async () => {
       }
     })
   } catch (error) {
-    console.error('AI搜索失败:', error)
+    console.error('AI对话失败:', error)
     ElMessage.error(t('searchFailed'))
     
     // 添加错误消息到对话历史
@@ -3838,7 +3838,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* AI搜索 - ChatGPT风格布局 */
+/* AI对话 - ChatGPT风格布局 */
 .section-ai {
   padding: 0;
   margin: -20px;
@@ -4561,7 +4561,7 @@ onUnmounted(() => {
   color: white;
 }
 
-/* AI搜索响应式 */
+/* AI对话响应式 */
 @media (max-width: 768px) {
   .ai-container {
     flex-direction: column;

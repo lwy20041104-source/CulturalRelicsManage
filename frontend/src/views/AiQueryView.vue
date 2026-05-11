@@ -1,667 +1,1019 @@
 <template>
-  <el-card class="ai-page">
-    <template #header>
-      <div class="page-head">
-        <div>
-          <h2>{{ $t('ai.aiQuery') }}</h2>
-          <p>{{ $t('ai.aiIntro') }}</p>
-        </div>
-      </div>
-    </template>
-
-    <section class="hero-panel">
-      <div class="hero-copy">
-        <span class="hero-badge">{{ $t('ai.museumAiSearch') }}</span>
-        <h3>{{ $t('ai.aiDescription') }}</h3>
-        <p>{{ $t('ai.aiIntro') }}</p>
-      </div>
-      <div class="hero-search">
-        <el-input
-          v-model="question"
-          type="textarea"
-          :rows="4"
-          resize="none"
-          :placeholder="$t('ai.placeholderExample')"
-          @keyup.ctrl.enter="runQuery"
-        />
-        <div class="search-options">
-          <el-switch v-model="matchAll" inline-prompt :active-text="$t('ai.strictLabel')" :inactive-text="$t('ai.normalMode')" />
-          <span class="option-text">{{ $t('ai.strictMode') }}</span>
-        </div>
-        <div class="hero-actions">
-          <el-button type="primary" size="large" :loading="loading" @click="runQuery">{{ $t('ai.aiQuery') }}</el-button>
-          <el-button size="large" @click="useExample('唐朝 青铜器 在库', false)">{{ $t('ai.combinationExample') }}</el-button>
-          <el-button size="large" @click="useExample('唐朝 青铜器 在库', true)">{{ $t('ai.strictExample') }}</el-button>
-        </div>
-      </div>
-    </section>
-
-    <section class="quick-prompts">
-      <button v-for="item in prompts" :key="item.label" class="prompt-chip" @click="useExample(item.text, item.matchAll)">
-        {{ item.label }}
-      </button>
-    </section>
-
-    <section v-if="result.answer" class="answer-panel">
-      <div class="answer-title">{{ $t('ai.aiAnswer') }}</div>
-      <div class="answer-content">{{ result.answer }}</div>
-    </section>
-
-    <section v-if="searched && result.museumMessage" class="museum-panel" :class="result.museumHit ? 'museum-hit' : 'museum-miss'">
-      <div class="museum-title">{{ $t('ai.museumSearchResult') }}</div>
-      <div class="museum-content">{{ result.museumMessage }}</div>
-    </section>
-
-    <section v-if="result.topReason" class="top-reason-panel">
-      <div class="top-reason-title">{{ $t('ai.whyTopOne') }}</div>
-      <div class="top-reason-content">{{ result.topReason }}</div>
-    </section>
-
-    <section v-if="result.relics.length" class="result-panel">
-      <div class="result-head">
-        <h3>{{ result.museumHit === false ? $t('ai.webSearchResult') : $t('ai.relatedRelics') }}</h3>
-        <span>{{ $t('ai.total') }} {{ result.total || result.relics.length }} {{ $t('ai.items') }}</span>
-      </div>
-
-      <div class="result-grid">
-        <article v-for="(item, index) in result.relics" :key="item.id" class="relic-card">
-          <div class="rank-badge">TOP {{ index + 1 }}</div>
-          <div v-if="result.museumHit !== false" class="relevance-chip">
-            <span>{{ $t('ai.relevance') }}</span>
-            <strong>{{ item.relevancePercent || 0 }}%</strong>
+  <div class="ai-page">
+    <div class="ai-container">
+      <!-- 左侧：历史会话列表 -->
+      <div class="ai-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <div class="logo-icon">🤖</div>
+            <span class="logo-text">{{ $t('ai.chatHistory') }}</span>
           </div>
-          <div class="relic-top">
-            <el-image
-              v-if="item.imagePath"
-              :src="resolveImageUrl(item.imagePath)"
-              fit="cover"
-              class="relic-image"
-              :preview-src-list="[resolveImageUrl(item.imagePath)]"
-              preview-teleported
-            />
-            <div v-else class="relic-image relic-image-empty">{{ $t('common.noData') }}</div>
-            <div class="relic-main">
-              <div class="relic-title-row">
-                <h4>{{ item.relicName || '未命名文物' }}</h4>
-                <div v-if="result.museumHit === false" class="source-meta">
-                  <span v-if="item.sourceType" class="source-type-badge">{{ item.sourceType }}</span>
-                  <span v-if="item.sourceName" class="relic-id">{{ item.sourceName }}</span>
+          <el-button class="new-chat-btn" type="primary" size="small" circle @click="createNewSession">
+            <el-icon><Plus /></el-icon>
+          </el-button>
+        </div>
+        <div class="sidebar-content" v-loading="sessionsLoading">
+          <div v-if="sessionList.length === 0" class="empty-sessions">
+            <div class="empty-icon">💬</div>
+            <p class="empty-text">{{ $t('ai.noHistory') }}</p>
+            <p class="empty-hint">{{ $t('ai.startNewChat') }}</p>
+          </div>
+          <div class="sessions-list">
+            <div
+              v-for="session in sessionList"
+              :key="session.id"
+              class="session-item"
+              :class="{ active: currentSessionId === session.id }"
+              @click="switchSession(session)"
+            >
+              <div class="session-icon">
+                <el-icon><ChatDotRound /></el-icon>
+              </div>
+              <div class="session-info">
+                <div class="session-title">{{ session.sessionTitle }}</div>
+                <div class="session-time">{{ formatSessionTime(session.updateTime) }}</div>
+              </div>
+              <div class="session-actions">
+                <el-button
+                  class="delete-btn"
+                  type="danger"
+                  size="small"
+                  text
+                  circle
+                  @click.stop="deleteSession(session.id)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="user-profile">
+            <div class="profile-avatar">
+              <el-icon><User /></el-icon>
+            </div>
+            <div class="profile-info">
+              <div class="profile-name">{{ userName }}</div>
+              <div class="profile-status">{{ $t('ai.online') }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：对话区域 -->
+      <div class="ai-chat-box">
+        <div class="chat-messages" ref="chatMessages">
+          <!-- 欢迎消息 -->
+          <div v-if="chatHistory.length === 0" class="welcome-message">
+            <div class="welcome-icon">🤖</div>
+            <h3>{{ $t('ai.aiWelcome') }}</h3>
+            <p>{{ $t('ai.aiWelcomeDesc') }}</p>
+            <div class="example-queries">
+              <el-tag @click="aiQuery = '司母戊鼎'">司母戊鼎</el-tag>
+              <el-tag @click="aiQuery = '汝窑天青釉盏'">汝窑天青釉盏</el-tag>
+              <el-tag @click="aiQuery = '清明上河图'">清明上河图</el-tag>
+              <el-tag @click="aiQuery = '兵马俑'">兵马俑</el-tag>
+            </div>
+          </div>
+
+          <!-- 对话历史 -->
+          <div v-for="(msg, index) in chatHistory" :key="index" class="message-group">
+            <!-- 用户消息 -->
+            <div class="message user-message">
+              <div class="message-avatar">
+                <el-icon><User /></el-icon>
+              </div>
+              <div class="message-content">
+                <div class="message-text">{{ msg.question }}</div>
+                <div class="message-time">{{ msg.time }}</div>
+              </div>
+            </div>
+
+            <!-- AI回复 -->
+            <div class="message ai-message">
+              <div class="message-avatar ai-avatar">
+                <el-icon><ChatDotRound /></el-icon>
+              </div>
+              <div class="message-content">
+                <!-- 文字回答 -->
+                <div class="message-text">{{ msg.response.answer }}</div>
+                
+                <!-- 文物卡片 -->
+                <div v-if="msg.response.relics && msg.response.relics.length > 0" class="message-relics">
+                  <div
+                    v-for="relic in msg.response.relics"
+                    :key="relic.id"
+                    class="relic-card-mini"
+                  >
+                    <!-- 卡片头部 -->
+                    <div class="relic-card-header">
+                      <div class="relic-card-title">
+                        <h4>{{ relic.relicName }}</h4>
+                        <el-tag type="success" size="small">{{ $t('ai.collectionTag') }}</el-tag>
+                      </div>
+                    </div>
+
+                    <!-- 卡片内容 -->
+                    <div class="relic-card-body">
+                      <!-- 图片 -->
+                      <div v-if="relic.imagePath" class="relic-card-image">
+                        <img 
+                          :src="resolveImageUrl(relic.imagePath)" 
+                          :alt="relic.relicName"
+                        />
+                      </div>
+                      <div v-else class="relic-card-image">
+                        <div class="no-image">{{ $t('common.noImage') }}</div>
+                      </div>
+
+                      <!-- 信息 -->
+                      <div class="relic-card-info">
+                        <div class="info-item" v-if="relic.era">
+                          <span class="label">{{ $t('relic.era') }}</span>
+                          <span class="value">{{ relic.era }}</span>
+                        </div>
+                        <div class="info-item" v-if="relic.material">
+                          <span class="label">{{ $t('relic.material') }}</span>
+                          <span class="value">{{ relic.material }}</span>
+                        </div>
+                        <div class="info-item" v-if="relic.categoryName">
+                          <span class="label">{{ $t('relic.category') }}</span>
+                          <span class="value">{{ relic.categoryName }}</span>
+                        </div>
+                        <div class="info-item" v-if="relic.status">
+                          <span class="label">{{ $t('relic.status') }}</span>
+                          <span class="value">{{ relic.status }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 描述 -->
+                    <div class="relic-card-description">
+                      {{ relic.description || relic.introduction }}
+                    </div>
+
+                    <!-- 相关度 -->
+                    <div class="relic-card-footer">
+                      <div v-if="relic.relevancePercent" class="relevance-bar">
+                        <span>{{ $t('ai.relevance') }} {{ relic.relevancePercent }}%</span>
+                        <div class="progress-bar">
+                          <div
+                            class="progress-fill"
+                            :style="{ width: relic.relevancePercent + '%', background: getRelevanceColor(relic.relevancePercent) }"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span v-else class="relic-id">ID {{ item.id }}</span>
-              </div>
-              <div class="meta-grid">
-                <div><label>{{ $t('relic.era') }}</label><span>{{ item.era || '未录入' }}</span></div>
-                <div><label>{{ $t('relic.material') }}</label><span>{{ item.material || '未录入' }}</span></div>
-                <div><label>{{ $t('relic.status') }}</label><span>{{ item.status || '未录入' }}</span></div>
-                <div><label>{{ $t('relic.category') }}</label><span>{{ item.categoryName || '未录入' }}</span></div>
-                <div><label>{{ $t('relic.dimensions') }}</label><span>{{ item.dimensions || '未录入' }}</span></div>
-                <div><label>{{ $t('relic.weight') }}</label><span>{{ formatWeight(item.weight) }}</span></div>
+
+                <div class="message-time">{{ msg.time }}</div>
               </div>
             </div>
           </div>
-          <div v-if="result.museumHit !== false && item.matchTags?.length" class="tag-section">
-            <strong>{{ $t('ai.matchReason') }}</strong>
-            <div class="tag-list">
-              <span
-                v-for="tag in item.matchTags"
-                :key="tag"
-                class="match-tag"
-                :class="tagClass(tag)"
-              >{{ tag }}</span>
+
+          <!-- 加载中 -->
+          <div v-if="loading" class="message ai-message">
+            <div class="message-avatar ai-avatar">
+              <el-icon><ChatDotRound /></el-icon>
+            </div>
+            <div class="message-content">
+              <div class="message-text typing">
+                <el-icon class="is-loading"><Loading /></el-icon>
+                {{ $t('ai.thinking') }}
+              </div>
             </div>
           </div>
-          <div class="content-block">
-            <strong>{{ $t('ai.description') }}</strong>
-            <p>{{ item.description || '暂无描述' }}</p>
-          </div>
-          <div v-if="result.museumHit === false && item.sourceUrl" class="content-block">
-            <strong>{{ $t('ai.sourceInfo') }}</strong>
-            <p>
-              <span v-if="item.sourceType" class="source-type-inline">{{ item.sourceType }}</span>
-              <span v-if="item.sourceName">{{ item.sourceName }}</span>
-            </p>
-            <p><a class="source-link" :href="item.sourceUrl" target="_blank" rel="noreferrer">{{ item.sourceUrl }}</a></p>
-          </div>
-          <div class="content-block intro-block">
-            <strong>{{ $t('ai.relatedIntro') }}</strong>
-            <p>{{ item.introduction || '暂无介绍' }}</p>
-          </div>
-        </article>
-      </div>
-    </section>
+        </div>
 
-    <section v-if="result.webResults?.length && result.museumHit !== false" class="web-panel">
-      <div class="result-head">
-        <h3>{{ $t('ai.webRelatedSearch') }}</h3>
-        <span>{{ $t('ai.total') }} {{ result.webResults.length }} {{ $t('ai.items') }}</span>
+        <!-- 输入区域 -->
+        <div class="chat-input">
+          <div class="chat-input-container">
+            <div class="input-wrapper">
+              <el-input
+                v-model="aiQuery"
+                :placeholder="$t('ai.aiInputPlaceholder')"
+                @keyup.enter="sendAiQuery"
+                size="large"
+                class="chat-textarea"
+                type="textarea"
+                :rows="1"
+                :autosize="{ minRows: 1, maxRows: 4 }"
+              />
+            </div>
+            <el-button 
+              class="send-button" 
+              type="primary" 
+              @click="sendAiQuery" 
+              :loading="loading" 
+              :disabled="!aiQuery.trim()"
+              circle
+              size="large"
+            >
+              <el-icon :size="20"><Promotion /></el-icon>
+            </el-button>
+          </div>
+        </div>
       </div>
-      <div class="web-list">
-        <a v-for="item in result.webResults" :key="item.url" class="web-card" :href="item.url" target="_blank" rel="noreferrer">
-          <div class="web-source">{{ item.source }}</div>
-          <div class="web-title">{{ item.title }}</div>
-          <div class="web-summary">{{ item.summary }}</div>
-        </a>
-      </div>
-    </section>
-
-    <section v-else-if="searched && !loading && !result.relics.length" class="empty-panel">
-      <span v-if="result.museumHit === false">{{ $t('ai.noRelicInMuseum') }}</span>
-      <span v-else>{{ $t('ai.noResultTip') }}</span>
-    </section>
-  </el-card>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { ref, reactive, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, ChatDotRound, Delete, User, Loading, Promotion } from '@element-plus/icons-vue'
 import request from '../api/request'
-import { queryRelicAiApi } from '../api/ai'
+import { getSessionsApi, deleteSessionApi, queryRelicAiWithSessionApi, getSessionMessagesApi } from '../api/aiChat'
 
 const { t } = useI18n()
 
-const question = ref('')
-const matchAll = ref(false)
-const loading = ref(false)
-const searched = ref(false)
-const result = reactive({ answer: '', total: 0, topReason: '', museumHit: null, museumMessage: '', relics: [], webResults: [] })
-const backendBaseURL = request.defaults.baseURL  // http://localhost:8080/api
-const prompts = [
-  { label: '铜器 ≈ 青铜器', text: '铜器 在库', matchAll: false },
-  { label: '组合检索', text: '唐朝 青铜器 在库', matchAll: false },
-  { label: '严格全命中', text: '唐朝 青铜器 在库', matchAll: true },
-  { label: '修复中的铜器', text: '铜器 修复中', matchAll: false }
-]
+// 用户信息
+const userName = ref('')
 
+// 会话相关
+const sessionList = ref([])
+const currentSessionId = ref(null)
+const sessionsLoading = ref(false)
+
+// 对话相关
+const aiQuery = ref('')
+const loading = ref(false)
+const chatHistory = ref([])
+const chatMessages = ref(null)
+
+const backendBaseURL = request.defaults.baseURL
+
+// 加载用户信息
+const loadUserInfo = async () => {
+  try {
+    // 从 sessionStorage 获取用户信息
+    userName.value = sessionStorage.getItem('realName') || sessionStorage.getItem('username') || '用户'
+  } catch (error) {
+    console.error('加载用户信息失败:', error)
+    userName.value = '用户'
+  }
+}
+
+// 加载会话列表
+const loadSessions = async () => {
+  sessionsLoading.value = true
+  try {
+    const res = await getSessionsApi()
+    if (res.code === 200) {
+      sessionList.value = res.data || []
+    }
+  } catch (error) {
+    console.error('加载会话列表失败:', error)
+    ElMessage.error(t('ai.loadSessionsFailed'))
+  } finally {
+    sessionsLoading.value = false
+  }
+}
+
+// 创建新会话
+const createNewSession = () => {
+  currentSessionId.value = null
+  chatHistory.value = []
+  aiQuery.value = ''
+}
+
+// 加载会话消息
+const loadSessionMessages = async (sessionId) => {
+  try {
+    loading.value = true
+    const res = await getSessionMessagesApi(sessionId)
+    const messages = res.data || []
+    
+    console.log('加载的消息列表:', messages)
+    
+    // 转换消息格式为chatHistory格式
+    chatHistory.value = []
+    
+    // 将消息按创建时间排序
+    const sortedMessages = messages.sort((a, b) => {
+      return new Date(a.createTime) - new Date(b.createTime)
+    })
+    
+    // 将消息按类型分组
+    const userMessages = sortedMessages.filter(m => m.messageType === 'user')
+    const aiMessages = sortedMessages.filter(m => m.messageType === 'ai')
+    
+    // 配对用户消息和AI回复
+    const pairCount = Math.min(userMessages.length, aiMessages.length)
+    
+    for (let i = 0; i < pairCount; i++) {
+      const userMsg = userMessages[i]
+      const aiMsg = aiMessages[i]
+      
+      try {
+        // 尝试解析AI响应
+        let aiResponse
+        if (typeof aiMsg.content === 'string') {
+          try {
+            // 尝试解析JSON字符串
+            aiResponse = JSON.parse(aiMsg.content)
+            console.log('成功解析AI响应 (JSON字符串):', aiResponse)
+          } catch (parseError) {
+            console.error('JSON解析失败，使用原始内容:', parseError, aiMsg.content)
+            // 如果解析失败，创建一个简单的响应对象
+            aiResponse = {
+              answer: aiMsg.content,
+              relics: [],
+              total: 0,
+              museumHit: false,
+              museumMessage: '',
+              topReason: '',
+              webResults: []
+            }
+          }
+        } else {
+          // 如果已经是对象，直接使用
+          aiResponse = aiMsg.content
+          console.log('AI响应已经是对象:', aiResponse)
+        }
+        
+        // 确保aiResponse有必要的字段
+        if (!aiResponse.relics) aiResponse.relics = []
+        if (!aiResponse.webResults) aiResponse.webResults = []
+        if (aiResponse.total === undefined) aiResponse.total = 0
+        
+        chatHistory.value.push({
+          question: userMsg.content,
+          response: aiResponse,
+          time: formatTime(aiMsg.createTime)
+        })
+      } catch (e) {
+        console.error('处理消息失败:', e, userMsg, aiMsg)
+      }
+    }
+    
+    console.log('转换后的聊天历史:', chatHistory.value)
+    
+    await nextTick()
+    scrollToBottom()
+  } catch (error) {
+    console.error('加载会话消息失败:', error)
+    ElMessage.error(t('ai.loadHistoryFailed'))
+  } finally {
+    loading.value = false
+  }
+}
+
+// 切换会话
+const switchSession = async (session) => {
+  currentSessionId.value = session.id
+  await loadSessionMessages(session.id)
+}
+
+// 删除会话
+const deleteSession = async (sessionId) => {
+  try {
+    await ElMessageBox.confirm(
+      t('ai.confirmDeleteSession'),
+      t('common.warning'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    )
+    
+    const res = await deleteSessionApi(sessionId)
+    if (res.code === 200) {
+      ElMessage.success(t('ai.deleteSessionSuccess'))
+      await loadSessions()
+      
+      // 如果删除的是当前会话，清空对话
+      if (currentSessionId.value === sessionId) {
+        createNewSession()
+      }
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除会话失败:', error)
+      ElMessage.error(t('ai.deleteSessionFailed'))
+    }
+  }
+}
+
+// 发送AI查询
+const sendAiQuery = async () => {
+  if (!aiQuery.value.trim()) {
+    ElMessage.warning(t('ai.inputQuery'))
+    return
+  }
+
+  const question = aiQuery.value
+  aiQuery.value = ''
+  loading.value = true
+
+  // 添加用户消息到历史
+  chatHistory.value.push({
+    question,
+    response: {},
+    time: formatTime(new Date())
+  })
+
+  await nextTick()
+  scrollToBottom()
+
+  try {
+    const res = await queryRelicAiWithSessionApi(question, false, currentSessionId.value)
+    
+    if (res.code === 200) {
+      // 更新最后一条消息的响应
+      const lastMsg = chatHistory.value[chatHistory.value.length - 1]
+      lastMsg.response = res.data
+      
+      // 更新当前会话ID
+      if (res.data.sessionId) {
+        currentSessionId.value = res.data.sessionId
+      }
+      
+      // 重新加载会话列表
+      await loadSessions()
+      
+      await nextTick()
+      scrollToBottom()
+    }
+  } catch (error) {
+    console.error('AI对话失败:', error)
+    ElMessage.error(t('ai.queryFailed'))
+    // 移除失败的消息
+    chatHistory.value.pop()
+  } finally {
+    loading.value = false
+  }
+}
+
+// 图片URL解析
 const resolveImageUrl = (imagePath) => {
   if (!imagePath) return ''
-  console.log('resolveImageUrl - 原始路径:', imagePath)
   
-  // 如果是外部 URL（百度百科等），使用代理
+  // 如果是外部 URL，使用代理
   if (/^https?:\/\//i.test(imagePath)) {
-    console.log('resolveImageUrl - 外部URL，使用代理:', imagePath)
-    // Base64 编码 URL
     const encodedUrl = btoa(imagePath)
-    const proxyUrl = `${backendBaseURL}/proxy/image?url=${encodedUrl}`
-    console.log('resolveImageUrl - 代理URL:', proxyUrl)
-    return proxyUrl
+    return `${backendBaseURL}/proxy/image?url=${encodedUrl}`
   }
   
   // 本地图片路径
   let normalized = String(imagePath).trim().replace(/\\/g, '/')
   if (normalized.startsWith('./')) normalized = normalized.slice(1)
   if (!normalized.startsWith('/')) normalized = `/${normalized}`
-  const fullUrl = `${backendBaseURL}${normalized}`
-  console.log('resolveImageUrl - 本地URL，拼接后:', fullUrl)
-  return fullUrl
+  return `${backendBaseURL}${normalized}`
 }
 
-const formatWeight = (weight) => {
-  if (weight === null || weight === undefined || weight === '') return '未录入'
-  return `${Number(weight).toFixed(2)} kg`
+// 相关度颜色
+const getRelevanceColor = (percent) => {
+  if (percent >= 80) return 'linear-gradient(135deg, #67c23a 0%, #85ce61 100%)'
+  if (percent >= 60) return 'linear-gradient(135deg, #409eff 0%, #66b1ff 100%)'
+  if (percent >= 40) return 'linear-gradient(135deg, #e6a23c 0%, #ebb563 100%)'
+  return 'linear-gradient(135deg, #f56c6c 0%, #f78989 100%)'
 }
 
-const tagClass = (tag) => {
-  if (tag.startsWith('名称')) return 'tag-name'
-  if (tag.startsWith('年代')) return 'tag-era'
-  if (tag.startsWith('状态')) return 'tag-status'
-  return 'tag-default'
+// 格式化时间
+const formatTime = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  const now = new Date()
+  const diff = now - d
+  
+  if (diff < 60000) return t('ai.justNow')
+  if (diff < 3600000) return Math.floor(diff / 60000) + t('ai.minutesAgo')
+  if (diff < 86400000) return Math.floor(diff / 3600000) + t('ai.hoursAgo')
+  
+  return d.toLocaleString()
 }
 
-const useExample = (value, strictMode) => {
-  question.value = value
-  matchAll.value = !!strictMode
-  runQuery()
-}
-
-const runQuery = async () => {
-  if (!question.value.trim()) {
-    ElMessage.warning(t('ai.inputQuery'))
-    return
+// 格式化会话时间
+const formatSessionTime = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  const now = new Date()
+  const diff = now - d
+  
+  if (diff < 86400000) {
+    return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   }
-  loading.value = true
-  searched.value = true
-  try {
-    const res = await queryRelicAiApi(question.value, matchAll.value)
-    result.answer = res.data.answer || ''
-    result.total = res.data.total || 0
-    result.topReason = res.data.topReason || ''
-    result.museumHit = typeof res.data.museumHit === 'boolean' ? res.data.museumHit : null
-    result.museumMessage = res.data.museumMessage || ''
-    result.relics = res.data.relics || []
-    result.webResults = res.data.webResults || []
-    if (result.museumHit === false) {
-      result.topReason = ''
-    }
-  } finally {
-    loading.value = false
+  
+  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
+}
+
+// 滚动到底部
+const scrollToBottom = () => {
+  if (chatMessages.value) {
+    chatMessages.value.scrollTop = chatMessages.value.scrollHeight
   }
 }
+
+// 初始化
+onMounted(async () => {
+  await loadUserInfo()
+  await loadSessions()
+})
 </script>
 
 <style scoped>
 .ai-page {
-  border-radius: 18px;
-}
-
-.page-head h2 {
-  margin: 0 0 8px;
-  color: #2f241b;
-  font-size: 26px;
-}
-
-.page-head p {
+  height: calc(100vh - 120px);
+  padding: 0;
   margin: 0;
-  color: #7c6b59;
+  background: #f5f5f5;
 }
 
-.hero-panel {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 18px;
-  padding: 22px;
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at top left, rgba(214, 170, 112, 0.26), transparent 32%),
-    linear-gradient(135deg, #241912 0%, #3c281d 48%, #7b4b29 100%);
-  color: #fff8ef;
-}
-
-.hero-badge {
-  display: inline-flex;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  letter-spacing: 0.08em;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.hero-copy h3 {
-  margin: 14px 0 10px;
-  font-size: 30px;
-  line-height: 1.25;
-}
-
-.hero-copy p {
-  margin: 0;
-  color: rgba(255, 248, 239, 0.78);
-  line-height: 1.8;
-}
-
-.hero-search {
-  padding: 16px;
-  border-radius: 18px;
-  background: rgba(255, 252, 247, 0.92);
-}
-
-.search-options {
+.ai-container {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-  color: #6a5039;
-}
-
-.option-text {
-  font-size: 13px;
-}
-
-.hero-actions {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.quick-prompts {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 18px 0;
-}
-
-.prompt-chip {
-  border: none;
-  background: #f3e6d4;
-  color: #6a4d33;
-  padding: 10px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-
-.prompt-chip:hover {
-  background: #ead3b6;
-  transform: translateY(-1px);
-}
-
-.answer-panel,
-.museum-panel,
-.top-reason-panel,
-.result-panel,
-.web-panel,
-.empty-panel {
-  margin-top: 18px;
-  padding: 18px;
-  border-radius: 18px;
-  background: #fffaf3;
-  border: 1px solid #efdfcb;
-}
-
-.answer-title,
-.top-reason-title,
-.result-head h3 {
-  color: #3d2a1d;
-  margin: 0;
-}
-
-.answer-content,
-.top-reason-content {
-  margin-top: 10px;
-  color: #634a36;
-  line-height: 1.8;
-}
-
-.top-reason-panel {
-  background: linear-gradient(135deg, #fff7eb, #f7ead5);
-  border-color: #e7cfae;
-}
-
-.museum-hit {
-  background: linear-gradient(135deg, #eef8f0, #e3f1e6);
-  border-color: #bdd8c2;
-}
-
-.museum-miss {
-  background: linear-gradient(135deg, #fff6ea, #f7eadf);
-  border-color: #e5ccb0;
-}
-
-.museum-title {
-  color: #3d2a1d;
-  font-weight: 700;
-}
-
-.museum-content {
-  margin-top: 10px;
-  color: #634a36;
-  line-height: 1.8;
-}
-
-.result-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  color: #89684b;
-}
-
-.result-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  gap: 16px;
-}
-
-.relic-card {
-  position: relative;
-  padding: 16px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #fffdf9, #fbf2e5);
-  border: 1px solid #ecd9bf;
-}
-
-.rank-badge {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #7d4f2b;
-  color: #fff7ed;
-  font-size: 12px;
-}
-
-.relevance-chip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 14px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #3f2919, #8f5e35);
-  color: #fff7ed;
-}
-
-.relevance-chip span {
-  font-size: 12px;
-  opacity: 0.82;
-}
-
-.relevance-chip strong {
-  font-size: 18px;
-}
-
-.relic-top {
-  display: flex;
-  gap: 14px;
-}
-
-.relic-image {
-  width: 108px;
-  height: 108px;
-  border-radius: 16px;
+  height: 100%;
+  background: #fff;
+  border-radius: 12px;
   overflow: hidden;
-  flex-shrink: 0;
-  background: #f3e4d0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-.relic-image-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #97775b;
-  font-size: 13px;
-}
-
-.relic-main {
-  flex: 1;
-}
-
-.relic-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.relic-title-row h4 {
-  margin: 0;
-  font-size: 20px;
-  color: #2e2117;
-}
-
-.relic-id {
-  color: #8a6b4f;
-  font-size: 12px;
-}
-
-.meta-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.meta-grid div {
+/* 左侧边栏 */
+.ai-sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(125, 81, 42, 0.06);
+  border-right: 1px solid #e0e0e0;
 }
 
-.meta-grid label {
-  font-size: 12px;
-  color: #8b6d51;
-}
-
-.meta-grid span {
-  color: #4b3526;
-}
-
-.tag-section {
-  margin-top: 14px;
-}
-
-.tag-section strong {
-  display: block;
-  margin-bottom: 8px;
-  color: #5a3e28;
-}
-
-.tag-list {
+.sidebar-header {
+  padding: 20px;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.match-tag {
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  border: 1px solid transparent;
-}
-
-.tag-name {
-  background: #7a3428;
-  color: #fff2ed;
-  border-color: #9a4a3b;
-}
-
-.tag-era {
-  background: #cda349;
-  color: #3d2b08;
-  border-color: #d9b96f;
-}
-
-.tag-status {
-  background: #2f7a45;
-  color: #eefcf1;
-  border-color: #4d9862;
-}
-
-.tag-default {
-  background: #efe1cd;
-  color: #6c5037;
-  border-color: #e2cfb4;
-}
-
-.content-block {
-  margin-top: 14px;
-}
-
-.content-block strong {
-  display: block;
-  margin-bottom: 6px;
-  color: #5a3e28;
-}
-
-.content-block p {
-  margin: 0;
-  line-height: 1.8;
-  color: #654b37;
-}
-
-.web-list {
-  display: grid;
+.sidebar-logo {
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 
-.web-card {
-  display: block;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #fffdf9;
-  border: 1px solid #ecd9bf;
-  text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+.logo-icon {
+  font-size: 28px;
 }
 
-.web-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(113, 76, 38, 0.08);
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
 }
 
-.web-source {
-  color: #a17952;
-  font-size: 12px;
+.new-chat-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
 }
 
-.web-title {
-  margin-top: 6px;
-  color: #3e2b1e;
-  font-weight: 700;
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
 }
 
-.web-summary {
-  margin-top: 6px;
-  color: #6a5039;
-  line-height: 1.7;
+.empty-sessions {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.source-link {
-  color: #8a5b2f;
-  word-break: break-all;
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
 }
 
-.source-meta {
+.empty-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-hint {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.session-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.session-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.session-icon {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.session-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.session-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+}
+
+.session-actions {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.session-item:hover .session-actions {
+  opacity: 1;
+}
+
+.delete-btn {
+  padding: 4px;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.profile-status {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* 右侧对话区 */
+.ai-chat-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.welcome-message {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.welcome-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.welcome-message h3 {
+  font-size: 24px;
+  color: #2c3e50;
+  margin-bottom: 12px;
+}
+
+.welcome-message p {
+  font-size: 16px;
+  color: #7f8c8d;
+  margin-bottom: 24px;
+}
+
+.example-queries {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
   flex-wrap: wrap;
 }
 
-.source-type-badge,
-.source-type-inline {
-  display: inline-flex;
+.example-queries .el-tag {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+}
+
+.example-queries .el-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.message-group {
+  margin-bottom: 24px;
+}
+
+.message {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #efe1ca;
-  color: #7a4f27;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.ai-avatar {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-message .message-content {
+  max-width: 70%;
+}
+
+.message-text {
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  line-height: 1.6;
+  color: #2c3e50;
+}
+
+.user-message .message-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.message-text.typing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-time {
   font-size: 12px;
-  font-weight: 600;
+  color: #95a5a6;
+  margin-top: 6px;
 }
 
-.source-link:hover {
-  text-decoration: underline;
+.message-relics {
+  margin-top: 16px;
+  display: grid;
+  gap: 16px;
 }
 
-.intro-block {
+.relic-card-mini {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.relic-card-mini:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.relic-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.relic-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.relic-card-title h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.relic-card-body {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.relic-card-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f0f0f0;
+}
+
+.relic-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #95a5a6;
+  font-size: 14px;
+}
+
+.relic-card-info {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item .label {
+  font-size: 12px;
+  color: #95a5a6;
+}
+
+.info-item .value {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.relic-card-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #7f8c8d;
+  margin-bottom: 12px;
+}
+
+.relic-card-footer {
   padding-top: 12px;
-  border-top: 1px dashed #e7cfb1;
+  border-top: 1px solid #ecf0f1;
 }
 
-.empty-panel {
-  text-align: center;
-  color: #7d6248;
+.relevance-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-:deep(.el-textarea__inner),
-:deep(.el-input__wrapper) {
-  box-shadow: 0 0 0 1px #e5d2b9 inset;
+.relevance-bar span {
+  font-size: 13px;
+  color: #7f8c8d;
 }
 
-:deep(.el-textarea__inner:focus),
-:deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #8a5b2f inset;
+.progress-bar {
+  height: 6px;
+  background: #ecf0f1;
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-@media (max-width: 960px) {
-  .hero-panel {
-    grid-template-columns: 1fr;
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* 输入区域 */
+.chat-input {
+  padding: 20px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.input-wrapper {
+  flex: 1;
+}
+
+.chat-textarea {
+  border-radius: 12px;
+}
+
+.send-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  width: 48px;
+  height: 48px;
+}
+
+.send-button:hover {
+  transform: scale(1.05);
+}
+
+.send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 滚动条样式 */
+.sidebar-content::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover,
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .ai-sidebar {
+    width: 240px;
+  }
+  
+  .relic-card-body {
+    flex-direction: column;
+  }
+  
+  .relic-card-image {
+    width: 100%;
+    height: 200px;
   }
 }
 </style>

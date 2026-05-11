@@ -8,6 +8,8 @@ import com.example.entity.SysBackupConfig;
 import com.example.entity.SysRestore;
 import com.example.service.BackupService;
 import com.example.service.SysOperationLogService;
+import com.example.task.AutoBackupTask;
+import com.example.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -38,7 +40,10 @@ public class BackupController {
     private SysOperationLogService operationLogService;
     
     @Autowired
-    private com.example.util.UserContextUtil userContextUtil;
+    private UserContextUtil userContextUtil;
+    
+    @Autowired
+    private AutoBackupTask autoBackupTask;
     
     /**
      * 分页查询备份列表
@@ -243,6 +248,22 @@ public class BackupController {
         } catch (Exception e) {
             log.error("清理过期备份失败", e);
             return Result.error("清理过期备份失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 手动触发自动备份（用于测试）
+     */
+    @PostMapping("/trigger-auto")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @OperationLog(operationType = "执行", operationModule = "备份管理", operationContent = "手动触发自动备份")
+    public Result<Void> triggerAutoBackup() {
+        try {
+            autoBackupTask.triggerManualAutoBackup();
+            return Result.success("自动备份任务已触发", null);
+        } catch (Exception e) {
+            log.error("触发自动备份失败", e);
+            return Result.error("触发自动备份失败: " + e.getMessage());
         }
     }
     

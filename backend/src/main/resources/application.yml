@@ -26,7 +26,7 @@ spring:
     timeout: 10000ms
     jedis:
       pool:
-        max-active: 8
+        max-active: 50
         max-idle: 8
         min-idle: 0
   servlet:
@@ -86,7 +86,7 @@ baidu:
 # DeepSeek AI配置
 deepseek:
   # DeepSeek API Key（请替换为您的实际API Key）
-  api-key: your-deepseek-api-key-here
+  api-key: sk-40278446331f49a1945fda8f551fc0ca
   # DeepSeek API地址
   api-url: https://api.deepseek.com/v1/chat/completions
   # 使用的模型

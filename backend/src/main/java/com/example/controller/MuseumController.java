@@ -5,6 +5,8 @@ import com.example.common.PageResult;
 import com.example.common.Result;
 import com.example.entity.Museum;
 import com.example.service.MuseumService;
+import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,8 +16,8 @@ import java.util.List;
 public class MuseumController {
     
     private final MuseumService museumService;
-    private final com.example.service.SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
     
     public MuseumController(MuseumService museumService,
                            com.example.service.SysOperationLogService operationLogService,

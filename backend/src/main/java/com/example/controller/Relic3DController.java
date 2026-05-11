@@ -3,6 +3,8 @@ package com.example.controller;
 import com.example.common.Result;
 import com.example.entity.CulturalRelic;
 import com.example.service.CulturalRelicService;
+import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,10 +39,10 @@ public class Relic3DController {
     private CulturalRelicService culturalRelicService;
     
     @Autowired(required = false)
-    private com.example.service.SysOperationLogService operationLogService;
+    private SysOperationLogService operationLogService;
     
     @Autowired(required = false)
-    private com.example.util.UserContextUtil userContextUtil;
+    private UserContextUtil userContextUtil;
 
     /**
      * 上传3D模型

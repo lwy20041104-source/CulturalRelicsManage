@@ -5,6 +5,7 @@ import com.example.common.Result;
 import com.example.entity.ImageLibrary;
 import com.example.service.ImageLibraryService;
 import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,7 +36,7 @@ public class ImageLibraryController {
     private SysOperationLogService operationLogService;
     
     @Autowired
-    private com.example.util.UserContextUtil userContextUtil;
+    private UserContextUtil userContextUtil;
     
     /**
      * 上传图片

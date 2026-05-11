@@ -7,6 +7,7 @@ import com.example.entity.RepairMaterial;
 import com.example.entity.RepairRecordMaterial;
 import com.example.service.RepairMaterialService;
 import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +32,7 @@ public class RepairMaterialController {
     private SysOperationLogService operationLogService;
     
     @Autowired
-    private com.example.util.UserContextUtil userContextUtil;
+    private UserContextUtil userContextUtil;
     
     /**
      * 分页查询材料列表

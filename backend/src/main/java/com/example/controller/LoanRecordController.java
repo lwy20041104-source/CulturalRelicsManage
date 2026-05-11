@@ -8,6 +8,8 @@ import com.example.entity.LoanRecord;
 import com.example.entity.SysUser;
 import com.example.mapper.SysUserMapper;
 import com.example.service.LoanRecordService;
+import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +22,8 @@ public class LoanRecordController {
 
     private final LoanRecordService loanRecordService;
     private final SysUserMapper sysUserMapper;
-    private final com.example.service.SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
 
     public LoanRecordController(LoanRecordService loanRecordService, 
                                SysUserMapper sysUserMapper,

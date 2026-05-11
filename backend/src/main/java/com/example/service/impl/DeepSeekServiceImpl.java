@@ -116,6 +116,9 @@ public class DeepSeekServiceImpl implements DeepSeekService {
      * 调用 DeepSeek API
      */
     private String callDeepSeekAPI(String prompt) throws Exception {
+        // 禁用 SSL 证书验证（仅用于开发环境）
+        disableSSLVerification();
+        
         URL url = new URL(deepSeekConfig.getApiUrl());
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         
@@ -275,5 +278,45 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     private DeepSeekAnalysisResult createFallbackResult(String question) {
         String answer = "抱歉，AI分析服务暂时不可用。您可以尝试使用关键词搜索功能。";
         return new DeepSeekAnalysisResult(answer, new ArrayList<>(), "AI服务不可用", Arrays.asList(question));
+    }
+    
+    /**
+     * 禁用 SSL 证书验证（仅用于开发环境）
+     * 注意：生产环境不建议使用此方法
+     */
+    private void disableSSLVerification() {
+        try {
+            // 创建信任所有证书的 TrustManager
+            javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[]{
+                new javax.net.ssl.X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+                }
+            };
+            
+            // 安装信任所有证书的 TrustManager
+            javax.net.ssl.SSLContext sc = javax.net.ssl.SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            
+            // 创建不验证主机名的 HostnameVerifier
+            javax.net.ssl.HostnameVerifier allHostsValid = new javax.net.ssl.HostnameVerifier() {
+                public boolean verify(String hostname, javax.net.ssl.SSLSession session) {
+                    return true;
+                }
+            };
+            
+            // 安装不验证主机名的 HostnameVerifier
+            javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+            
+            log.info("SSL 证书验证已禁用（开发环境）");
+        } catch (Exception e) {
+            log.error("禁用 SSL 验证失败", e);
+        }
     }
 }

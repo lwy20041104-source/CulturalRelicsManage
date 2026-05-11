@@ -6,6 +6,7 @@ import com.example.common.Result;
 import com.example.entity.RepairExpert;
 import com.example.service.RepairExpertService;
 import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +21,7 @@ public class RepairExpertController {
     
     private final RepairExpertService repairExpertService;
     private final SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
+    private final UserContextUtil userContextUtil;
     
     public RepairExpertController(RepairExpertService repairExpertService,
                                  SysOperationLogService operationLogService,

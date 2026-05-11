@@ -4,6 +4,8 @@ import com.example.annotation.OperationLog;
 import com.example.common.Result;
 import com.example.entity.CulturalRelicCategory;
 import com.example.service.CulturalRelicCategoryService;
+import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -14,8 +16,8 @@ import java.util.List;
 public class CulturalRelicCategoryController {
 
     private final CulturalRelicCategoryService categoryService;
-    private final com.example.service.SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
 
     public CulturalRelicCategoryController(CulturalRelicCategoryService categoryService,
                                           com.example.service.SysOperationLogService operationLogService,

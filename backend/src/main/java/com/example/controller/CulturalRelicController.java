@@ -5,6 +5,9 @@ import com.example.common.PageResult;
 import com.example.common.Result;
 import com.example.entity.CulturalRelic;
 import com.example.service.CulturalRelicService;
+import com.example.service.RelicImageRelationService;
+import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import com.example.utils.FileStorageUtil;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +20,9 @@ public class CulturalRelicController {
 
     private final CulturalRelicService culturalRelicService;
     private final FileStorageUtil fileStorageUtil;
-    private final com.example.service.RelicImageRelationService relicImageRelationService;
-    private final com.example.service.SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
+    private final RelicImageRelationService relicImageRelationService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
 
     public CulturalRelicController(CulturalRelicService culturalRelicService, 
                                    FileStorageUtil fileStorageUtil,

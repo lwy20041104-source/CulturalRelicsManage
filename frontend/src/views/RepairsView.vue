@@ -22,29 +22,52 @@
       </div>
     </template>
 
-    <el-table :data="tableData" border>
-      <el-table-column prop="relicName" :label="$t('repair.relicName')" min-width="150" />
+    <el-table :data="tableData" border :span-method="objectSpanMethod">
+      <el-table-column :label="$t('repair.relicName')" min-width="150">
+        <template #default="scope">
+          <div v-if="scope.row.relicName">
+            {{ scope.row.relicName }}
+          </div>
+          <div v-else style="color: #f56c6c; text-align: center;">
+            <el-icon style="vertical-align: middle;"><WarningFilled /></el-icon>
+            {{ $t('repair.relicDeleted') }}
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="status" :label="$t('repair.status')" width="100">
         <template #default="scope">
-          <el-tag :type="getStatusType(scope.row.status)">{{ scope.row.status }}</el-tag>
+          <el-tag v-if="scope.row.relicName" :type="getStatusType(scope.row.status)">{{ scope.row.status }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="repairReason" :label="$t('repair.repairReason')" min-width="180" show-overflow-tooltip />
+      <el-table-column prop="repairReason" :label="$t('repair.repairReason')" min-width="180" show-overflow-tooltip>
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.repairReason }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="priority" :label="$t('repair.priority')" width="90">
         <template #default="scope">
-          <el-tag :type="getPriorityType(scope.row.priority)" size="small">{{ scope.row.priority }}</el-tag>
+          <el-tag v-if="scope.row.relicName" :type="getPriorityType(scope.row.priority)" size="small">{{ scope.row.priority }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="applicantName" :label="$t('repair.applicant')" width="100" />
+      <el-table-column prop="applicantName" :label="$t('repair.applicant')" width="100">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.applicantName }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="applyDate" :label="$t('repair.applyDate')" width="160">
         <template #default="scope">
-          {{ formatDateTime(scope.row.applyDate) }}
+          <span v-if="scope.row.relicName">{{ formatDateTime(scope.row.applyDate) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="repairExpert" :label="$t('repair.repairExpert')" width="110" />
+      <el-table-column prop="repairExpert" :label="$t('repair.repairExpert')" width="110">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.repairExpert }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('repair.materialsUsed')" width="150">
         <template #default="scope">
           <el-button 
+            v-if="scope.row.relicName"
             size="small" 
             type="text" 
             @click="showMaterials(scope.row)"
@@ -55,26 +78,28 @@
       </el-table-column>
       <el-table-column prop="estimatedCost" :label="$t('repair.estimatedCost')" width="110">
         <template #default="scope">
-          {{ formatCost(scope.row.estimatedCost) }}
+          <span v-if="scope.row.relicName">{{ formatCost(scope.row.estimatedCost) }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="actualCost" :label="$t('repair.actualCost')" width="110">
         <template #default="scope">
-          {{ formatCost(scope.row.actualCost) }}
+          <span v-if="scope.row.relicName">{{ formatCost(scope.row.actualCost) }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('common.operation')" :width="isAdminOrApprover ? 240 : 250" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <!-- 管理员和审批员：显示批准和驳回按钮 -->
-          <template v-if="isAdminOrApprover && scope.row.status === '待审批'">
-            <el-button link type="success" @click="quickApprove(scope.row, true)">批准</el-button>
-            <el-button link type="danger" @click="quickApprove(scope.row, false)">驳回</el-button>
-          </template>
-          <!-- 保管员：只显示编辑和撤回按钮 -->
-          <template v-if="!isAdminOrApprover && scope.row.status === '待审批'">
-            <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
-            <el-button link type="danger" @click="remove(scope.row.id)">{{ $t('repair.withdraw') }}</el-button>
+          <template v-if="scope.row.relicName">
+            <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
+            <!-- 管理员和审批员：显示批准和驳回按钮 -->
+            <template v-if="isAdminOrApprover && scope.row.status === '待审批'">
+              <el-button link type="success" @click="quickApprove(scope.row, true)">批准</el-button>
+              <el-button link type="danger" @click="quickApprove(scope.row, false)">驳回</el-button>
+            </template>
+            <!-- 保管员：只显示编辑和撤回按钮 -->
+            <template v-if="!isAdminOrApprover && scope.row.status === '待审批'">
+              <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
+              <el-button link type="danger" @click="remove(scope.row.id)">{{ $t('repair.withdraw') }}</el-button>
+            </template>
           </template>
         </template>
       </el-table-column>
@@ -323,6 +348,7 @@
 <script setup>
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRepairsPageApi, applyRepairApi, updateRepairApplyApi, deleteRepairApi, getEnabledExpertsApi, approveRepairApi } from '../api/repairs'
 import { getAvailableForRepairApi } from '../api/relics'
@@ -733,6 +759,31 @@ const remove = async (id) => {
   await deleteRepairApi(id)
   ElMessage.success(t('repair.withdrawSuccess'))
   loadData()
+}
+
+// 合并单元格方法：文物已删除的行，合并所有列
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
+  // 如果文物不存在（已删除），除了第一列（文物信息列）显示提示外，其他列都隐藏
+  if (!row.relicName) {
+    if (columnIndex === 0) {
+      // 第一列（文物信息列）合并所有列
+      return {
+        rowspan: 1,
+        colspan: 11 // 合并所有11列
+      }
+    } else {
+      // 其他列隐藏
+      return {
+        rowspan: 0,
+        colspan: 0
+      }
+    }
+  }
+  // 正常情况不合并
+  return {
+    rowspan: 1,
+    colspan: 1
+  }
 }
 
 onMounted(async () => {

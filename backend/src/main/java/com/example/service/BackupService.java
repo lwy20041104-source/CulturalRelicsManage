@@ -78,9 +78,25 @@ public class BackupService {
      */
     @Transactional
     public SysBackup createManualBackup(String backupName, String description, Boolean isEncrypted, String createdBy) {
+        return createBackup(backupName, "manual", description, isEncrypted, createdBy);
+    }
+
+    /**
+     * 创建自动备份
+     */
+    @Transactional
+    public SysBackup createAutoBackup(String backupName, String description, Boolean isEncrypted, String createdBy) {
+        return createBackup(backupName, "auto", description, isEncrypted, createdBy);
+    }
+
+    /**
+     * 创建备份（通用方法）
+     */
+    @Transactional
+    private SysBackup createBackup(String backupName, String backupType, String description, Boolean isEncrypted, String createdBy) {
         SysBackup backup = new SysBackup();
         backup.setBackupName(backupName);
-        backup.setBackupType("manual");
+        backup.setBackupType(backupType);
         backup.setBackupStatus("processing");
         backup.setDescription(description);
         backup.setIsEncrypted(isEncrypted != null && isEncrypted);

@@ -41,80 +41,94 @@
       </div>
     </template>
 
-    <el-table :data="tableData" border v-loading="loading">
-      <el-table-column prop="archiveCode" :label="$t('archive.archiveCode')" width="140" />
+    <el-table :data="tableData" border v-loading="loading" :span-method="objectSpanMethod">
+      <el-table-column prop="archiveCode" :label="$t('archive.archiveCode')" width="140">
+        <template #default="scope">
+          <span v-if="scope.row.relic">{{ scope.row.archiveCode }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('archive.relicInformation')" min-width="200">
         <template #default="scope">
           <div v-if="scope.row.relic">
             <div>{{ scope.row.relic.relicName }}</div>
             <div style="font-size: 12px; color: #999;">{{ scope.row.relic.relicCode }}</div>
           </div>
-          <span v-else>—</span>
+          <div v-else style="color: #f56c6c; text-align: center;">
+            <el-icon style="vertical-align: middle;"><WarningFilled /></el-icon>
+            {{ $t('archive.relicDeleted') }}
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="archiveTitle" :label="$t('archive.archiveTitle')" min-width="200" show-overflow-tooltip />
+      <el-table-column prop="archiveTitle" :label="$t('archive.archiveTitle')" min-width="200" show-overflow-tooltip>
+        <template #default="scope">
+          <span v-if="scope.row.relic">{{ scope.row.archiveTitle }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('archive.archiveType')" width="150">
         <template #default="scope">
-          <el-tag :type="getArchiveTypeTag(scope.row.archiveType)">
+          <el-tag v-if="scope.row.relic" :type="getArchiveTypeTag(scope.row.archiveType)">
             {{ getArchiveTypeName(scope.row.archiveType) }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column :label="$t('archive.version')" width="80" align="center">
         <template #default="scope">
-          v{{ scope.row.version }}
+          <span v-if="scope.row.relic">v{{ scope.row.version }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('common.status')" width="100">
         <template #default="scope">
-          <el-tag :type="getStatusTag(scope.row.status)">
+          <el-tag v-if="scope.row.relic" :type="getStatusTag(scope.row.status)">
             {{ getStatusName(scope.row.status) }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column :label="$t('archive.fileNumber')" width="150" align="center">
         <template #default="scope">
-          <el-badge :value="scope.row.documentCount" :max="99" v-if="scope.row.documentCount > 0">
-            <el-icon><Document /></el-icon>
-          </el-badge>
-          <span v-else style="color: #ccc;">0</span>
+          <template v-if="scope.row.relic">
+            <el-badge :value="scope.row.documentCount" :max="99" v-if="scope.row.documentCount > 0">
+              <el-icon><Document /></el-icon>
+            </el-badge>
+            <span v-else style="color: #ccc;">0</span>
+          </template>
         </template>
       </el-table-column>
       <el-table-column :label="$t('common.createTime')" width="160">
         <template #default="scope">
-          {{ formatDateTime(scope.row.createdTime) }}
+          <span v-if="scope.row.relic">{{ formatDateTime(scope.row.createdTime) }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('common.action')" width="300" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" @click="viewDetail(scope.row)">
-            <el-icon><View /></el-icon>
-            {{$t('common.detail')}}
-          </el-button>
-          <el-button link type="primary" @click="openEdit(scope.row)" v-if="scope.row.status === 'draft'">
-            <el-icon><Edit /></el-icon>
-            {{$t('common.edit')}}
-          </el-button>
-          <el-dropdown @command="(cmd) => handleCommand(cmd, scope.row)" style="margin-left: 8px;">
-            <el-button link type="primary">
-              {{$t('archive.more')}}<el-icon class="el-icon--right"><arrow-down /></el-icon>
+          <template v-if="scope.row.relic">
+            <el-button link type="primary" @click="viewDetail(scope.row)">
+              <el-icon><View /></el-icon>
+              {{$t('common.detail')}}
             </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="publish" v-if="scope.row.status === 'draft'">
-                  <el-icon><Check /></el-icon>
-                  {{ $t('archive.publish') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="archive" v-if="scope.row.status === 'published'">
-                  <el-icon><Box /></el-icon>
-                  {{ $t('archive.archive') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="exportPdf">
-                  <el-icon><Download /></el-icon>
-                  {{ $t('report.exportPdf') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="exportWord">
-                  <el-icon><Download /></el-icon>
+            <el-button link type="primary" @click="openEdit(scope.row)" v-if="scope.row.status === 'draft'">
+              <el-icon><Edit /></el-icon>
+              {{$t('common.edit')}}
+            </el-button>
+            <el-dropdown @command="(cmd) => handleCommand(cmd, scope.row)" style="margin-left: 8px;">
+              <el-button link type="primary">
+                {{$t('archive.more')}}<el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="publish" v-if="scope.row.status === 'draft'">
+                    <el-icon><Check /></el-icon>
+                    {{ $t('archive.publish') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item command="archive" v-if="scope.row.status === 'published'">
+                    <el-icon><Box /></el-icon>
+                    {{ $t('archive.archive') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item command="exportPdf">
+                    <el-icon><Download /></el-icon>
+                    {{ $t('report.exportPdf') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item command="exportWord">
+                    <el-icon><Download /></el-icon>
                   {{ $t('report.exportWord') }}
                 </el-dropdown-item>
                 <el-dropdown-item command="print">
@@ -128,6 +142,7 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -302,7 +317,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import {
-  Search, Plus, View, Edit, ArrowDown, Check, Box, Download, Printer, Delete, Document
+  Search, Plus, View, Edit, ArrowDown, Check, Box, Download, Printer, Delete, Document, WarningFilled
 } from '@element-plus/icons-vue'
 import {
   getArchivesApi,
@@ -647,6 +662,31 @@ const getStatusTag = (status) => {
 const formatDateTime = (dateTime) => {
   if (!dateTime) return '—'
   return dateTime.replace('T', ' ')
+}
+
+// 合并单元格方法：文物已删除的行，合并所有列
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
+  // 如果文物不存在（已删除），除了第二列（文物信息列）显示提示外，其他列都隐藏
+  if (!row.relic) {
+    if (columnIndex === 1) {
+      // 第二列（文物信息列）合并所有列
+      return {
+        rowspan: 1,
+        colspan: 9 // 合并所有9列
+      }
+    } else {
+      // 其他列隐藏
+      return {
+        rowspan: 0,
+        colspan: 0
+      }
+    }
+  }
+  // 正常情况不合并
+  return {
+    rowspan: 1,
+    colspan: 1
+  }
 }
 
 onMounted(() => {

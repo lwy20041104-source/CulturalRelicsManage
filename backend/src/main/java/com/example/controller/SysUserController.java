@@ -8,7 +8,9 @@ import com.example.entity.SysUser;
 import com.example.entity.UserMuseum;
 import com.example.mapper.UserMuseumMapper;
 import com.example.service.LoginSecurityService;
+import com.example.service.SysOperationLogService;
 import com.example.service.SysUserService;
+import com.example.util.UserContextUtil;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +25,8 @@ public class SysUserController {
     private final SysUserService sysUserService;
     private final UserMuseumMapper userMuseumMapper;
     private final LoginSecurityService loginSecurityService;
-    private final com.example.service.SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
 
     public SysUserController(SysUserService sysUserService, UserMuseumMapper userMuseumMapper,
                             LoginSecurityService loginSecurityService,

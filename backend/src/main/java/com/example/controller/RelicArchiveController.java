@@ -8,6 +8,7 @@ import com.example.entity.ArchiveHistory;
 import com.example.entity.RelicArchive;
 import com.example.service.RelicArchiveService;
 import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,7 +31,7 @@ public class RelicArchiveController {
     private SysOperationLogService operationLogService;
     
     @Autowired
-    private com.example.util.UserContextUtil userContextUtil;
+    private UserContextUtil userContextUtil;
     
     /**
      * 分页查询档案列表

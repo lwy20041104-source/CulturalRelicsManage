@@ -14,32 +14,56 @@
       </div>
     </template>
 
-    <el-table :data="tableData" border>
+    <el-table :data="tableData" border :span-method="objectSpanMethod">
       <el-table-column :label="$t('loan.relicName')" min-width="160">
         <template #default="scope">
-          {{ scope.row.relicName || `ID: ${scope.row.relicId}` }}
+          <div v-if="scope.row.relicName">
+            {{ scope.row.relicName }}
+          </div>
+          <div v-else style="color: #f56c6c; text-align: center;">
+            <el-icon style="vertical-align: middle;"><WarningFilled /></el-icon>
+            {{ $t('loan.relicDeleted') }}
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="borrowerUnit" :label="$t('loan.borrowerUnit')" />
-      <el-table-column prop="borrowerName" :label="$t('loan.borrower')" width="110" />
-      <el-table-column prop="borrowerPhone" :label="$t('loan.borrowerPhone')" width="150" />
+      <el-table-column prop="borrowerUnit" :label="$t('loan.borrowerUnit')">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.borrowerUnit }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="borrowerName" :label="$t('loan.borrower')" width="110">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.borrowerName }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="borrowerPhone" :label="$t('loan.borrowerPhone')" width="150">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.borrowerPhone }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('loan.loanDate')" width="170">
         <template #default="scope">
-          {{ formatDateTime(scope.row.loanDate) }}
+          <span v-if="scope.row.relicName">{{ formatDateTime(scope.row.loanDate) }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('loan.expectedReturnDate')" width="170">
         <template #default="scope">
-          {{ formatDateTime(scope.row.expectedReturnDate) }}
+          <span v-if="scope.row.relicName">{{ formatDateTime(scope.row.expectedReturnDate) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="status" :label="$t('loan.status')" width="100" />
+      <el-table-column prop="status" :label="$t('loan.status')" width="100">
+        <template #default="scope">
+          <span v-if="scope.row.relicName">{{ scope.row.status }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('common.operation')" width="310">
         <template #default="scope">
-          <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <el-button v-if="scope.row.status === '待审批'" link type="primary" @click="approve(scope.row, true)">{{ $t('loan.approve') }}</el-button>
-          <el-button v-if="scope.row.status === '待审批'" link type="danger" @click="approve(scope.row, false)">{{ $t('loan.reject') }}</el-button>
-          <el-button v-if="scope.row.status === '借展中' || scope.row.status === '逾期'" link type="success" @click="returnLoan(scope.row.id)">{{ $t('loan.returnLoan') }}</el-button>
+          <template v-if="scope.row.relicName">
+            <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
+            <el-button v-if="scope.row.status === '待审批'" link type="primary" @click="approve(scope.row, true)">{{ $t('loan.approve') }}</el-button>
+            <el-button v-if="scope.row.status === '待审批'" link type="danger" @click="approve(scope.row, false)">{{ $t('loan.reject') }}</el-button>
+            <el-button v-if="scope.row.status === '借展中' || scope.row.status === '逾期'" link type="success" @click="returnLoan(scope.row.id)">{{ $t('loan.returnLoan') }}</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -126,6 +150,7 @@
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
+import { WarningFilled } from '@element-plus/icons-vue'
 import { getLoansPageApi, addLoanApi, approveLoanApi, returnLoanApi } from '../api/loans'
 import { getRelicsPageApi } from '../api/relics'
 
@@ -277,6 +302,31 @@ const returnLoan = async (id) => {
   await returnLoanApi(id)
   ElMessage.success(t('loan.returnSuccess'))
   loadData()
+}
+
+// 合并单元格方法：文物已删除的行，合并所有列
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }) => {
+  // 如果文物不存在（已删除），除了第一列（文物信息列）显示提示外，其他列都隐藏
+  if (!row.relicName) {
+    if (columnIndex === 0) {
+      // 第一列（文物信息列）合并所有列
+      return {
+        rowspan: 1,
+        colspan: 8 // 合并所有8列
+      }
+    } else {
+      // 其他列隐藏
+      return {
+        rowspan: 0,
+        colspan: 0
+      }
+    }
+  }
+  // 正常情况不合并
+  return {
+    rowspan: 1,
+    colspan: 1
+  }
 }
 
 onMounted(async () => {

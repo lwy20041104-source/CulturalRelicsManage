@@ -48,6 +48,7 @@ export default {
     addFailed: 'Add failed',
     warning: 'Warning',
     tip: 'Tip',
+    noImage: 'No Image',
     enable: 'Enable',
     disable: 'Disable',
     enabled: 'Enabled',
@@ -119,7 +120,7 @@ export default {
     experts: 'Experts',
     repairMaterials: 'Materials',
     reports: 'Reports',
-    aiQuery: 'AI Query',
+    aiQuery: 'AI Chat',
     images: 'Images',
     system: 'System',
     users: 'Users',
@@ -457,7 +458,8 @@ export default {
     returnDateAfterLoanDate: 'Expected return date must be later than loan date',
     defaultApprover: 'Approver',
     approvePass: 'Approved',
-    approveReject: 'Rejected'
+    approveReject: 'Rejected',
+    relicDeleted: 'Relic Deleted'
   },
   
   repair: {
@@ -516,7 +518,8 @@ export default {
     withdraw: 'Withdraw',
     withdrawConfirm: 'Are you sure to withdraw this pending application? The record will be deleted.',
     withdrawSuccess: 'Withdrawn successfully',
-    deleteRejectedConfirm: 'Are you sure to delete this rejected application?'
+    deleteRejectedConfirm: 'Are you sure to delete this rejected application?',
+    relicDeleted: 'Relic Deleted'
   },
   
   maintenance: {
@@ -531,7 +534,8 @@ export default {
     dailyCare: 'Daily Care',
     cleaning: 'Cleaning',
     inspection: 'Inspection',
-    environmentControl: 'Environment Control'
+    environmentControl: 'Environment Control',
+    relicDeleted: 'Relic Deleted'
   },
   
   expert: {
@@ -610,7 +614,7 @@ export default {
     loanManagement: 'Loan Management',
     repairManagement: 'Repair Management',
     dataReports: 'Data Reports',
-    aiQuery: 'AI Query',
+    aiQuery: 'AI Chat',
     seconds: 'seconds',
     minute: 'minute',
     minutes: 'minutes',
@@ -673,7 +677,26 @@ export default {
     museumAiSearch: 'Museum AI Search',
     aiDescription: 'Understand, explain clearly, and tell you why it ranks first.',
     aiIntro: 'After entering multiple keywords, the system will automatically perform combination matching, synonym expansion, and relevance sorting; when strict mode is enabled, only relics that match all keywords will be returned.',
-    placeholderExample: 'e.g.: Tang Dynasty bronze in stock; bronze repairing; code W001 Tang'
+    placeholderExample: 'e.g.: Tang Dynasty bronze in stock; bronze repairing; code W001 Tang',
+    // New: Chat interface related
+    chatHistory: 'Chat History',
+    noHistory: 'No history yet',
+    startNewChat: 'Start a new chat to explore relics',
+    online: 'Online',
+    aiWelcome: 'Welcome to AI Relic Assistant',
+    aiWelcomeDesc: 'I can help you query relic information and answer questions',
+    collectionTag: 'Collection',
+    thinking: 'Thinking...',
+    aiInputPlaceholder: 'Enter your question and press Enter to send',
+    loadSessionsFailed: 'Failed to load sessions',
+    loadHistoryFailed: 'Failed to load history',
+    confirmDeleteSession: 'Are you sure to delete this session?',
+    deleteSessionSuccess: 'Session deleted successfully',
+    deleteSessionFailed: 'Failed to delete session',
+    queryFailed: 'AI query failed, please try again later',
+    justNow: 'Just now',
+    minutesAgo: ' minutes ago',
+    hoursAgo: ' hours ago'
   },
   
   user: {
@@ -1115,6 +1138,7 @@ export default {
     attachedFiles: 'Attached Files',
     fileCount: 'File Count',
     printTime: 'Print Time',
+    relicDeleted: 'Relic Deleted',
   },
   
   backup: {

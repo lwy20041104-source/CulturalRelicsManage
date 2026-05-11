@@ -75,12 +75,21 @@ public class AiChatServiceImpl implements AiChatService {
         userMessage.setQueryKeyword(userQuestion);
         messageMapper.insert(userMessage);
 
-        // 保存AI回复
+        // 保存AI回复 - 将完整的响应对象序列化为JSON
         AiChatMessage aiMessage = new AiChatMessage();
         aiMessage.setSessionId(sessionId);
         aiMessage.setUserId(userId);
         aiMessage.setMessageType("ai");
-        aiMessage.setContent(aiResponse.getAnswer());
+        
+        // 将完整的AI响应序列化为JSON字符串
+        try {
+            String responseJson = objectMapper.writeValueAsString(aiResponse);
+            aiMessage.setContent(responseJson);
+        } catch (JsonProcessingException e) {
+            log.error("序列化AI响应失败，使用answer字段", e);
+            aiMessage.setContent(aiResponse.getAnswer());
+        }
+        
         aiMessage.setResultCount(aiResponse.getTotal());
         
         // 检查是否有外部搜索结果

@@ -5,6 +5,9 @@ import com.example.common.PageResult;
 import com.example.common.Result;
 import com.example.entity.MaintenanceRecord;
 import com.example.service.MaintenanceRecordService;
+import com.example.service.NotificationService;
+import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -14,9 +17,9 @@ import java.time.LocalDateTime;
 public class MaintenanceRecordController {
 
     private final MaintenanceRecordService maintenanceRecordService;
-    private final com.example.service.SysOperationLogService operationLogService;
-    private final com.example.util.UserContextUtil userContextUtil;
-    private final com.example.service.NotificationService notificationService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
+    private final NotificationService notificationService;
 
     public MaintenanceRecordController(MaintenanceRecordService maintenanceRecordService,
                                       com.example.service.SysOperationLogService operationLogService,
