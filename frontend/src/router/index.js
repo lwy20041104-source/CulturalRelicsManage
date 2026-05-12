@@ -36,7 +36,6 @@ const routes = [
   { path: '/portal-guest', component: PublicGuestView }, // 未登录用户访客页面
   { path: '/public-relics', component: PublicRelicsView }, // 公开的文物查询页面
   { path: '/qrcode/:id', component: QRCodeScanView },
-  { path: '/test', component: () => import('../views/TestView.vue') },
   {
     path: '/',
     component: LayoutView,
@@ -87,12 +86,8 @@ router.beforeEach((to, from, next) => {
   const perms = JSON.parse(sessionStorage.getItem('permissions') || '[]')
   const role = sessionStorage.getItem('role')
 
-  // 测试页面无需登录
-  if (to.path === '/test') {
-    next()
-  }
   // 公开文物查询页面无需登录
-  else if (to.path === '/public-relics') {
+  if (to.path === '/public-relics') {
     next()
   }
   // 注册页面无需登录
