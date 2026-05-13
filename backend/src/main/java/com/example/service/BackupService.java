@@ -59,7 +59,8 @@ public class BackupService {
     private static final String BACKUP_DIR = "backups";
     
     // AES加密密钥（实际应用中应该从配置文件或密钥管理系统获取）
-    private static final String AES_KEY = "CulturalRelicsBackupKey2026";
+    // 使用16字节密钥（128位AES），兼容所有Java版本
+    private static final String AES_KEY = "CulturalRelics!"; // 16字节
     
     /**
      * 分页查询备份列表
@@ -309,14 +310,27 @@ public class BackupService {
     }
     
     /**
+     * 获取固定长度的AES密钥（16字节用于128位AES）
+     */
+    private byte[] getAESKey() {
+        byte[] key = new byte[16]; // 16字节 = 128位（兼容所有Java版本）
+        byte[] keyBytes = AES_KEY.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        
+        // 如果密钥长度不足16字节，用0填充；如果超过16字节，截断
+        System.arraycopy(keyBytes, 0, key, 0, Math.min(keyBytes.length, 16));
+        
+        return key;
+    }
+    
+    /**
      * 加密文件
      */
     private void encryptFile(String filePath) throws Exception {
         File file = new File(filePath);
         byte[] fileContent = Files.readAllBytes(file.toPath());
         
-        // 使用AES加密
-        SecretKeySpec secretKey = new SecretKeySpec(AES_KEY.getBytes(), "AES");
+        // 使用AES加密，确保密钥长度为32字节
+        SecretKeySpec secretKey = new SecretKeySpec(getAESKey(), "AES");
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] encryptedContent = cipher.doFinal(fileContent);
@@ -332,8 +346,8 @@ public class BackupService {
         File file = new File(filePath);
         byte[] encryptedContent = Files.readAllBytes(file.toPath());
         
-        // 使用AES解密
-        SecretKeySpec secretKey = new SecretKeySpec(AES_KEY.getBytes(), "AES");
+        // 使用AES解密，确保密钥长度为32字节
+        SecretKeySpec secretKey = new SecretKeySpec(getAESKey(), "AES");
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedContent = cipher.doFinal(encryptedContent);

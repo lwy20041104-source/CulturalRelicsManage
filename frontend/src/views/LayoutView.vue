@@ -13,16 +13,20 @@
         <el-menu-item index="/data-screen">{{ $t('nav.dataScreen') }}</el-menu-item>
         <el-menu-item index="/reports">{{ $t('nav.reports') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('users:manage')" index="/employees">{{ $t('nav.employees') }}</el-menu-item>
-        <el-menu-item v-if="hasPerm('users:manage')" index="/loaners">{{ $t('nav.loaners') }}</el-menu-item>
-        <el-menu-item v-if="hasPerm('users:manage')" index="/museums">{{ $t('nav.museums') }}</el-menu-item>
+        <!-- 隐藏借展人管理和博物馆管理功能 -->
+        <!-- <el-menu-item v-if="hasPerm('users:manage')" index="/loaners">{{ $t('nav.loaners') }}</el-menu-item> -->
+        <!-- <el-menu-item v-if="hasPerm('users:manage')" index="/museums">{{ $t('nav.museums') }}</el-menu-item> -->
         <el-menu-item v-if="hasPerm('relics:manage')" index="/relics">{{ $t('nav.relics') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('categories:manage')" index="/categories">{{ $t('nav.categories') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('images:manage')" index="/images">{{ $t('nav.images') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('archives:manage') || hasPerm('archives:view')" index="/archives">{{ $t('nav.archives') }}</el-menu-item>
-        <el-menu-item v-if="hasPerm('loans:manage')" index="/loans">{{ $t('nav.loans') }}</el-menu-item>
+        <!-- 隐藏借展管理功能 -->
+        <!-- <el-menu-item v-if="hasPerm('loans:manage')" index="/loans">{{ $t('nav.loans') }}</el-menu-item> -->
         <el-menu-item v-if="hasPerm('maintenance:manage')" index="/maintenance">{{ $t('nav.maintenance') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('repairs:manage')" index="/repairs">{{ $t('nav.repairs') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('repairs:apply')" index="/repair-apply">{{ $t('nav.repairApply') }}</el-menu-item>
+        <el-menu-item v-if="hasPerm('repairs:manage')" index="/repair-experts">{{ $t('nav.repairExperts') }}</el-menu-item>
+        <el-menu-item v-if="hasPerm('repairs:manage')" index="/repair-materials">{{ $t('nav.repairMaterials') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('users:manage')" index="/operation-logs">{{ $t('nav.operationLogs') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('users:manage')" index="/ai-chat-history">{{ $t('nav.aiChatHistory') }}</el-menu-item>
         <el-menu-item v-if="hasPerm('users:manage')" index="/backup">{{ $t('nav.backup') }}</el-menu-item>

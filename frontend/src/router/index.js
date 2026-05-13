@@ -55,6 +55,8 @@ const routes = [
       { path: '/maintenance', component: MaintenanceView, meta: { perm: 'maintenance:manage' } },
       { path: '/repairs', component: RepairsView, meta: { perm: 'repairs:manage' } },
       { path: '/repair-apply', component: RepairApplyView, meta: { perm: 'repairs:apply' } },
+      { path: '/repair-experts', component: () => import('../views/ExpertsView.vue'), meta: { perm: 'repairs:manage' } },
+      { path: '/repair-materials', component: () => import('../views/RepairMaterialsView.vue'), meta: { perm: 'repairs:manage' } },
       { path: '/images', component: ImageLibraryView, meta: { perm: 'images:manage' } },
       { path: '/data-screen', component: DataScreenView },
       { path: '/reports', component: ReportsView },

@@ -1,0 +1,609 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam classFontSize 11
+skinparam packageStyle rectangle
+
+' ========== 中文字体设置 ==========
+!pragma useunicode true
+skinparam defaultFontName "Microsoft YaHei" "SimHei" "SimSun" "Noto Sans CJK SC"
+
+title 博物馆文物数字化管理系统 - 实体类与工具类图
+
+' ========== 一、核心业务实体（文物管理） ==========
+package "一、核心业务实体（文物管理）" {
+  
+  class CulturalRelic {
+    - id: Long
+    - relicCode: String
+    - relicName: String
+    - categoryId: Long
+    - categoryName: String
+    - era: String
+    - material: String
+    - origin: String
+    - dimensions: String
+    - weight: Double
+    - description: String
+    - status: String
+    - imagePath: String
+    - model3dUrl: String
+    - model3dUploadTime: LocalDateTime
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+    --
+    + getId(): Long
+    + getRelicName(): String
+    + getStatus(): String
+    + setStatus(String): void
+  }
+  
+  class CulturalRelicCategory {
+    - id: Long
+    - categoryName: String
+    - parentId: Long
+    - sortOrder: Integer
+    - description: String
+    - relicCount: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+    --
+    + addCategory(): void
+    + updateCategory(): void
+    + deleteCategory(): void
+    + getChildren(): List
+  }
+  
+  class RelicImageRelation {
+    - id: Long
+    - relicId: Long
+    - imageId: Long
+    - relationType: String
+    - isMain: Integer
+    - sortOrder: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class ImageLibrary {
+    - id: Long
+    - imageName: String
+    - originalName: String
+    - filePath: String
+    - fileSize: Long
+    - fileType: String
+    - width: Integer
+    - height: Integer
+    - category: String
+    - tags: String
+    - description: String
+    - uploaderId: Long
+    - uploaderName: String
+    - referenceType: String
+    - referenceId: Long
+    - isPublic: Integer
+    - viewCount: Integer
+    - downloadCount: Integer
+    - status: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+}
+
+' ========== 二、修复管理实体 ==========
+package "二、修复管理实体" {
+  
+  class RepairRecord {
+    - id: Long
+    - repairCode: String
+    - relicId: Long
+    - status: String
+    - priority: String
+    - applicantId: Long
+    - applyDate: LocalDateTime
+    - repairReason: String
+    - damageDescription: String
+    - estimatedCost: BigDecimal
+    - approver: String
+    - approveDate: LocalDateTime
+    - approveRemark: String
+    - repairExpert: String
+    - startDate: LocalDateTime
+    - completeDate: LocalDateTime
+    - repairProcess: String
+    - repairMethod: String
+    - actualCost: BigDecimal
+    - beforeImages: String
+    - afterImages: String
+    - qualityScore: Integer
+    - qualityRemark: String
+    - remark: String
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+    - relicName: String
+    - relicCode: String
+    - applicantName: String
+    --
+    + applyRepair(): void
+    + approve(): void
+    + reject(): void
+    + startRepair(): void
+    + updateProgress(): void
+    + completeRepair(): void
+    + evaluateQuality(): void
+  }
+  
+  class RepairExpert {
+    - id: Long
+    - expertName: String
+    - expertCode: String
+    - specialty: String
+    - title: String
+    - phone: String
+    - email: String
+    - workYears: Integer
+    - certification: String
+    - status: Integer
+    - remark: String
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class RepairMaterial {
+    - id: Long
+    - materialName: String
+    - materialCode: String
+    - category: String
+    - unit: String
+    - unitPrice: BigDecimal
+    - stockQuantity: BigDecimal
+    - supplier: String
+    - remark: String
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class RepairRecordMaterial {
+    - id: Long
+    - repairRecordId: Long
+    - materialId: Long
+    - quantity: BigDecimal
+    - unitPrice: BigDecimal
+    - totalPrice: BigDecimal
+    - remark: String
+    - createTime: LocalDateTime
+    - materialName: String
+    - materialCode: String
+    - unit: String
+  }
+}
+
+' ========== 三、维护管理实体 ==========
+package "三、维护管理实体" {
+  
+  class MaintenanceRecord {
+    - id: Long
+    - relicId: Long
+    - relicName: String
+    - maintenanceType: String
+    - maintenanceDate: LocalDateTime
+    - maintenanceContent: String
+    - maintainerId: Long
+    - maintainerName: String
+    - status: String
+    - approver: String
+    - approveDate: LocalDateTime
+    - approveRemark: String
+    - remark: String
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+}
+
+' ========== 四、用户与权限实体 ==========
+package "四、用户与权限实体" {
+  
+  class SysUser {
+    - id: Long
+    - username: String
+    - password: String
+    - realName: String
+    - email: String
+    - phone: String
+    - status: Integer
+    - roleId: Long
+    - roleName: String
+    - roleCode: String
+    - loginFailedCount: Integer
+    - accountLocked: Integer
+    - lockedTime: LocalDateTime
+    - lastLoginTime: LocalDateTime
+    - lastLoginIp: String
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+    --
+    + login(): String
+    + logout(): void
+    + changePassword(): void
+    + resetPassword(): void
+    + lockAccount(): void
+    + unlockAccount(): void
+  }
+  
+  class SysRole {
+    - id: Long
+    - roleName: String
+    - roleCode: String
+    - description: String
+    - status: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class Museum {
+    - id: Long
+    - museumCode: String
+    - museumName: String
+    - museumType: String
+    - province: String
+    - city: String
+    - address: String
+    - contactPerson: String
+    - contactPhone: String
+    - contactEmail: String
+    - description: String
+    - status: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class UserMuseum {
+    - id: Long
+    - userId: Long
+    - museumId: Long
+    - isPrimary: Integer
+    - museumName: String
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+}
+
+' ========== 五、档案管理实体 ==========
+package "五、档案管理实体" {
+  
+  class RelicArchive {
+    - id: Long
+    - relicId: Long
+    - archiveCode: String
+    - archiveTitle: String
+    - archiveType: String
+    - description: String
+    - version: Integer
+    - status: String
+    - createdBy: Long
+    - createdByName: String
+    - createdTime: LocalDateTime
+    - updatedTime: LocalDateTime
+    - publishedTime: LocalDateTime
+    - archivedTime: LocalDateTime
+    - documentCount: Integer
+    - totalFileSize: Long
+  }
+  
+  class ArchiveDocument {
+    - id: Long
+    - archiveId: Long
+    - documentType: String
+    - documentName: String
+    - filePath: String
+    - fileSize: Long
+    - fileFormat: String
+    - uploadTime: LocalDateTime
+    - uploaderId: Long
+    - uploaderName: String
+    - description: String
+    - sortOrder: Integer
+  }
+  
+  class ArchiveHistory {
+    - id: Long
+    - archiveId: Long
+    - operationType: String
+    - operatorId: Long
+    - operatorName: String
+    - operationTime: LocalDateTime
+    - description: String
+    - createTime: LocalDateTime
+  }
+  
+  class ArchiveRelation {
+    - id: Long
+    - archiveId: Long
+    - relatedArchiveId: Long
+    - relationType: String
+    - description: String
+    - createTime: LocalDateTime
+  }
+  
+  class ArchiveVersion {
+    - id: Long
+    - archiveId: Long
+    - versionNumber: Integer
+    - content: String
+    - createdBy: Long
+    - createdByName: String
+    - createTime: LocalDateTime
+    - remark: String
+  }
+}
+
+' ========== 六、通知管理实体 ==========
+package "六、通知管理实体" {
+  
+  class SystemNotification {
+    - id: Long
+    - title: String
+    - content: String
+    - type: String
+    - priority: String
+    - relatedType: String
+    - relatedId: Long
+    - senderId: Long
+    - senderName: String
+    - createTime: LocalDateTime
+  }
+  
+  class UserNotification {
+    - id: Long
+    - notificationId: Long
+    - userId: Long
+    - isRead: Integer
+    - readTime: LocalDateTime
+    - createTime: LocalDateTime
+  }
+  
+  class NotificationConfig {
+    - id: Long
+    - userId: Long
+    - notificationType: String
+    - enabled: Integer
+    - emailEnabled: Integer
+    - smsEnabled: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+}
+
+' ========== 七、AI智能查询实体 ==========
+package "七、AI智能查询实体" {
+  
+  class AiChatSession {
+    - id: Long
+    - userId: Long
+    - sessionTitle: String
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class AiChatMessage {
+    - id: Long
+    - sessionId: Long
+    - userId: Long
+    - messageType: String
+    - content: String
+    - queryKeyword: String
+    - resultCount: Integer
+    - hasExternalResult: Integer
+    - relicIds: String
+    - createTime: LocalDateTime
+  }
+  
+  class AiQueryResult {
+    - id: Long
+    - messageId: Long
+    - relicId: Long
+    - relevance: Integer
+    - sourceType: String
+    - sourceName: String
+    - matchTags: String
+    - createTime: LocalDateTime
+  }
+}
+
+' ========== 八、系统管理实体 ==========
+package "八、系统管理实体" {
+  
+  class SysOperationLog {
+    - id: Long
+    - userId: Long
+    - operator: String
+    - operationType: String
+    - operationModule: String
+    - operationContent: String
+    - operationResult: String
+    - ipAddress: String
+    - resourceType: String
+    - resourceId: Long
+    - beforeData: String
+    - afterData: String
+    - changedFields: String
+    - requestMethod: String
+    - requestUrl: String
+    - requestParams: String
+    - responseData: String
+    - errorMessage: String
+    - executionTime: Long
+    - userAgent: String
+    - browser: String
+    - os: String
+    - operationTime: LocalDateTime
+  }
+  
+  class SysBackup {
+    - id: Long
+    - backupName: String
+    - backupPath: String
+    - backupSize: Long
+    - backupType: String
+    - status: String
+    - createTime: LocalDateTime
+    - remark: String
+  }
+  
+  class SysBackupConfig {
+    - id: Long
+    - backupPath: String
+    - autoBackup: Integer
+    - backupInterval: Integer
+    - retentionDays: Integer
+    - maxBackupCount: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class SysRestore {
+    - id: Long
+    - backupId: Long
+    - restoreTime: LocalDateTime
+    - status: String
+    - operator: String
+    - remark: String
+  }
+  
+  class VerificationCode {
+    - id: Long
+    - userId: Long
+    - username: String
+    - code: String
+    - type: String
+    - contact: String
+    - purpose: String
+    - used: Integer
+    - expireTime: LocalDateTime
+    - createTime: LocalDateTime
+  }
+  
+  class Warehouse {
+    - id: Long
+    - warehouseName: String
+    - warehouseCode: String
+    - location: String
+    - capacity: Integer
+    - currentCount: Integer
+    - managerId: Long
+    - status: Integer
+    - createTime: LocalDateTime
+    - updateTime: LocalDateTime
+  }
+  
+  class DataChangeDetail {
+    - id: Long
+    - tableName: String
+    - recordId: Long
+    - changeType: String
+    - fieldName: String
+    - oldValue: String
+    - newValue: String
+    - operatorId: Long
+    - operatorName: String
+    - changeTime: LocalDateTime
+  }
+}
+
+' ========== 九、工具类 ==========
+package "九、工具类" {
+  
+  class JwtUtil {
+    - SECRET_KEY: String
+    - EXPIRATION_TIME: long
+    --
+    + generateToken(String): String
+    + validateToken(String): boolean
+    + getUsernameFromToken(String): String
+    + isTokenExpired(String): boolean
+  }
+  
+  class FileStorageUtil {
+    - uploadPath: String
+    - allowedExtensions: List
+    --
+    + uploadFile(MultipartFile): String
+    + deleteFile(String): boolean
+    + getFileUrl(String): String
+    + validateFile(MultipartFile): boolean
+  }
+  
+  class QRCodeUtil {
+    --
+    + generateQRCode(String, int): BufferedImage
+    + generateQRCodeBase64(String, int): String
+    + generateRelicQRCodeUrl(Long, String): String
+    + generateQRCodeLabelBase64(...): String
+  }
+  
+  class UserContextUtil {
+    --
+    + getCurrentUserId(): Long
+    + getCurrentUsername(): String
+    + getCurrentUserRealName(): String
+    + getCurrentUserRole(): String
+    + hasRole(String): boolean
+    + hasPermission(String): boolean
+  }
+}
+
+' ========== 实体关系 ==========
+' 文物管理关系
+CulturalRelic "N" -- "1" CulturalRelicCategory
+CulturalRelic "1" -- "0..*" RelicImageRelation
+RelicImageRelation "N" -- "1" ImageLibrary
+
+' 修复管理关系
+CulturalRelic "1" -- "0..*" RepairRecord
+RepairRecord "1" -- "0..*" RepairRecordMaterial
+RepairMaterial "1" -- "0..*" RepairRecordMaterial
+
+' 维护管理关系
+CulturalRelic "1" -- "0..*" MaintenanceRecord
+
+' 用户权限关系
+SysUser "N" -- "1" SysRole
+SysUser "1" -- "0..*" UserMuseum
+UserMuseum "N" -- "1" Museum
+
+' 档案管理关系
+CulturalRelic "1" -- "0..*" RelicArchive
+RelicArchive "1" -- "0..*" ArchiveDocument
+RelicArchive "1" -- "0..*" ArchiveHistory
+RelicArchive "1" -- "0..*" ArchiveRelation
+RelicArchive "1" -- "0..*" ArchiveVersion
+
+' 通知管理关系
+SystemNotification "1" -- "0..*" UserNotification
+SysUser "1" -- "0..*" UserNotification
+SysUser "1" -- "0..*" NotificationConfig
+
+' AI查询关系
+SysUser "1" -- "0..*" AiChatSession
+AiChatSession "1" -- "0..*" AiChatMessage
+AiChatMessage "1" -- "0..*" AiQueryResult
+AiQueryResult "N" -- "1" CulturalRelic
+
+' 系统管理关系
+SysUser "1" -- "0..*" SysOperationLog
+
+' ========== 图例说明 ==========
+legend bottom right
+  | 符号 | 含义 |
+  | ---- | ---- |
+  | 1 -- 0..* | 一对多关联 |
+  | N -- 1 | 多对一关联 |
+  | N -- M | 多对多关联 |
+  | 实体类 | 业务实体 |
+  | 工具类 | 辅助工具 |
+endlegend
+
+@enduml

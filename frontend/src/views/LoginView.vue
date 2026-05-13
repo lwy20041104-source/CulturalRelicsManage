@@ -7,8 +7,8 @@
         <p>{{ $t('login.subtitle') }}</p>
       </div>
       
-      <!-- 前台入口提示 -->
-      <div class="portal-tip">
+      <!-- 隐藏前台入口提示 -->
+      <!-- <div class="portal-tip">
         <el-alert
           :title="$t('login.portalTip')"
           type="info"
@@ -22,7 +22,7 @@
             </el-button>
           </template>
         </el-alert>
-      </div>
+      </div> -->
 
       <el-form :model="form" @keyup.enter="handleLogin" class="login-form">
         <el-form-item>
@@ -104,9 +104,12 @@ const handleLogin = async () => {
   }
 }
 
+/* 隐藏前台入口跳转函数 */
+/*
 const goToPortalLogin = () => {
   router.push('/portal-login')
 }
+*/
 
 const goToForgotPassword = () => {
   router.push({ path: '/forgot-password', query: { from: 'admin' } })
@@ -166,6 +169,8 @@ p {
   font-size: 13px;
 }
 
+/* 隐藏前台入口提示的样式 */
+/*
 .portal-tip {
   margin-bottom: 20px;
 }
@@ -187,6 +192,7 @@ p {
   font-weight: 600;
   margin-left: 8px;
 }
+*/
 
 .login-form :deep(.el-form-item) {
   margin-bottom: 16px;
