@@ -11,10 +11,13 @@ import com.example.service.LoginSecurityService;
 import com.example.service.SysOperationLogService;
 import com.example.service.SysUserService;
 import com.example.util.UserContextUtil;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +33,8 @@ public class SysUserController {
 
     public SysUserController(SysUserService sysUserService, UserMuseumMapper userMuseumMapper,
                             LoginSecurityService loginSecurityService,
-                            com.example.service.SysOperationLogService operationLogService,
-                            com.example.util.UserContextUtil userContextUtil) {
+                            SysOperationLogService operationLogService,
+                            UserContextUtil userContextUtil) {
         this.sysUserService = sysUserService;
         this.userMuseumMapper = userMuseumMapper;
         this.loginSecurityService = loginSecurityService;
@@ -102,7 +105,7 @@ public class SysUserController {
     @PutMapping
     @Transactional
     public Result<Boolean> update(@RequestBody Map<String, Object> requestData,
-                                  javax.servlet.http.HttpServletRequest httpRequest) {
+                                  HttpServletRequest httpRequest) {
         Long userId = requestData.get("id") != null ? Long.valueOf(requestData.get("id").toString()) : null;
         
         // 1. 获取修改前的数据
@@ -164,8 +167,7 @@ public class SysUserController {
     }
 
     @DeleteMapping("/{id}")
-    public Result<Boolean> delete(@PathVariable Long id,
-                                  javax.servlet.http.HttpServletRequest httpRequest) {
+    public Result<Boolean> delete(@PathVariable Long id, HttpServletRequest httpRequest) {
         // 1. 获取删除前的数据
         SysUser oldUser = sysUserService.getUserById(id);
         
@@ -230,7 +232,7 @@ public class SysUserController {
      * 获取当前登录用户的个人信息
      */
     @GetMapping("/profile")
-    public Result<Map<String, Object>> getProfile(org.springframework.security.core.Authentication authentication) {
+    public Result<Map<String, Object>> getProfile(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             return Result.error("用户未登录");
         }
@@ -243,7 +245,7 @@ public class SysUserController {
         }
         
         // 构建返回数据
-        Map<String, Object> profile = new java.util.HashMap<>();
+        Map<String, Object> profile = new HashMap<>();
         profile.put("id", user.getId());
         profile.put("username", user.getUsername());
         profile.put("realName", user.getRealName());
@@ -274,8 +276,8 @@ public class SysUserController {
     @PutMapping("/profile")
     @Transactional
     public Result<Boolean> updateProfile(@RequestBody Map<String, Object> requestData, 
-                                        org.springframework.security.core.Authentication authentication,
-                                        javax.servlet.http.HttpServletRequest httpRequest) {
+                                        Authentication authentication,
+                                        HttpServletRequest httpRequest) {
         if (authentication == null || authentication.getName() == null) {
             return Result.error("用户未登录");
         }
@@ -378,7 +380,7 @@ public class SysUserController {
     /**
      * 获取客户端IP地址
      */
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

@@ -8,6 +8,7 @@ import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,8 +21,8 @@ public class CulturalRelicCategoryController {
     private final UserContextUtil userContextUtil;
 
     public CulturalRelicCategoryController(CulturalRelicCategoryService categoryService,
-                                          com.example.service.SysOperationLogService operationLogService,
-                                          com.example.util.UserContextUtil userContextUtil) {
+                                          SysOperationLogService operationLogService,
+                                          UserContextUtil userContextUtil) {
         this.categoryService = categoryService;
         this.operationLogService = operationLogService;
         this.userContextUtil = userContextUtil;
@@ -42,7 +43,7 @@ public class CulturalRelicCategoryController {
 
     @PutMapping
     public Result<Boolean> update(@RequestBody CulturalRelicCategory category,
-                                  javax.servlet.http.HttpServletRequest request) {
+                                  HttpServletRequest request) {
         // 1. 获取修改前的数据
         CulturalRelicCategory oldCategory = categoryService.getById(category.getId());
         
@@ -72,8 +73,7 @@ public class CulturalRelicCategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public Result<Boolean> delete(@PathVariable Long id,
-                                  javax.servlet.http.HttpServletRequest request) {
+    public Result<Boolean> delete(@PathVariable Long id, HttpServletRequest request) {
         // 1. 获取删除前的数据
         CulturalRelicCategory oldCategory = categoryService.getById(id);
         
@@ -100,7 +100,7 @@ public class CulturalRelicCategoryController {
         return Result.success("删除成功", success);
     }
     
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

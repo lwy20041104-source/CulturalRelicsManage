@@ -9,6 +9,7 @@ import com.example.util.SecurityUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -54,13 +55,13 @@ public class NotificationController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
         
-        java.time.LocalDateTime start = startDate != null ? 
-            java.time.LocalDateTime.parse(startDate + "T00:00:00") : 
-            java.time.LocalDateTime.now().minusDays(30);
+        LocalDateTime start = startDate != null ?
+            LocalDateTime.parse(startDate + "T00:00:00") :
+            LocalDateTime.now().minusDays(30);
         
-        java.time.LocalDateTime end = endDate != null ? 
-            java.time.LocalDateTime.parse(endDate + "T23:59:59") : 
-            java.time.LocalDateTime.now();
+        LocalDateTime end = endDate != null ?
+            LocalDateTime.parse(endDate + "T23:59:59") :
+            LocalDateTime.now();
         
         java.util.Map<String, Object> statistics = notificationService.getNotificationStatistics(start, end);
         return Result.success(statistics);

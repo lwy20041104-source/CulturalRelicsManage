@@ -9,6 +9,7 @@ import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -20,8 +21,8 @@ public class MuseumController {
     private final UserContextUtil userContextUtil;
     
     public MuseumController(MuseumService museumService,
-                           com.example.service.SysOperationLogService operationLogService,
-                           com.example.util.UserContextUtil userContextUtil) {
+                           SysOperationLogService operationLogService,
+                           UserContextUtil userContextUtil) {
         this.museumService = museumService;
         this.operationLogService = operationLogService;
         this.userContextUtil = userContextUtil;
@@ -92,7 +93,7 @@ public class MuseumController {
      */
     @PutMapping("/{id}")
     public Result<String> update(@PathVariable Long id, @RequestBody Museum museum,
-                                 javax.servlet.http.HttpServletRequest request) {
+                                 HttpServletRequest request) {
         // 1. 获取修改前的数据
         Museum oldMuseum = museumService.getById(id);
         
@@ -126,7 +127,7 @@ public class MuseumController {
      */
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id,
-                                 javax.servlet.http.HttpServletRequest request) {
+                                 HttpServletRequest request) {
         // 1. 获取删除前的数据
         Museum oldMuseum = museumService.getById(id);
         if (oldMuseum == null) {
@@ -163,7 +164,7 @@ public class MuseumController {
     /**
      * 获取客户端IP地址
      */
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

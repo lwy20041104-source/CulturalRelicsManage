@@ -264,8 +264,11 @@ const loadNotifications = async () => {
     }
     
     const res = await getNotificationsApi(params)
-    notificationsList.value = res.data.records || []
-    total.value = res.data.total || 0
+    // 过滤掉逾期未归还的通知（type为LOAN_OVERDUE）
+    notificationsList.value = (res.data.records || []).filter(item => item.type !== 'LOAN_OVERDUE')
+    // 重新计算总数（减去被过滤的通知数量）
+    const filteredCount = (res.data.records || []).length - notificationsList.value.length
+    total.value = (res.data.total || 0) - filteredCount
   } catch (error) {
     console.error('加载通知列表失败:', error)
     ElMessage.error(t('notification.loadFailed'))

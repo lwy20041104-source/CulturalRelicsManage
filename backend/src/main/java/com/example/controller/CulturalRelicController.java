@@ -12,7 +12,12 @@ import com.example.utils.FileStorageUtil;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
+
+import static com.example.util.QRCodeUtil.generateQRCodeLabelBase64;
+import static com.example.util.QRCodeUtil.generateRelicQRCodeUrl;
 
 @RestController
 @RequestMapping("/relics")
@@ -26,9 +31,9 @@ public class CulturalRelicController {
 
     public CulturalRelicController(CulturalRelicService culturalRelicService, 
                                    FileStorageUtil fileStorageUtil,
-                                   com.example.service.RelicImageRelationService relicImageRelationService,
-                                   com.example.service.SysOperationLogService operationLogService,
-                                   com.example.util.UserContextUtil userContextUtil) {
+                                   RelicImageRelationService relicImageRelationService,
+                                   SysOperationLogService operationLogService,
+                                   UserContextUtil userContextUtil) {
         this.culturalRelicService = culturalRelicService;
         this.fileStorageUtil = fileStorageUtil;
         this.relicImageRelationService = relicImageRelationService;
@@ -278,7 +283,7 @@ public class CulturalRelicController {
     /**
      * 获取客户端IP地址
      */
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
@@ -302,7 +307,7 @@ public class CulturalRelicController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String era,
-            javax.servlet.http.HttpServletResponse response) throws Exception {
+            HttpServletResponse response) throws Exception {
         culturalRelicService.exportExcel(relicName, categoryId, status, era, response);
     }
     
@@ -316,7 +321,7 @@ public class CulturalRelicController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String era,
-            javax.servlet.http.HttpServletResponse response) throws Exception {
+            HttpServletResponse response) throws Exception {
         culturalRelicService.exportPdf(relicName, categoryId, status, era, response);
     }
     
@@ -330,7 +335,7 @@ public class CulturalRelicController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String era,
-            javax.servlet.http.HttpServletResponse response) throws Exception {
+            HttpServletResponse response) throws Exception {
         culturalRelicService.exportWord(relicName, categoryId, status, era, response);
     }
     
@@ -348,7 +353,7 @@ public class CulturalRelicController {
      * 下载导入模板
      */
     @GetMapping("/template")
-    public void downloadTemplate(javax.servlet.http.HttpServletResponse response) throws Exception {
+    public void downloadTemplate(HttpServletResponse response) throws Exception {
         culturalRelicService.downloadTemplate(response);
     }
     
@@ -374,10 +379,10 @@ public class CulturalRelicController {
             }
 
             // 生成二维码URL（扫描后跳转到文物详情页）
-            String qrCodeUrl = com.example.util.QRCodeUtil.generateRelicQRCodeUrl(id, baseUrl);
-            
+            String qrCodeUrl = generateRelicQRCodeUrl(id, baseUrl);
+
             // 生成带标签的二维码（包含文物编号和名称）
-            String qrCodeBase64 = com.example.util.QRCodeUtil.generateQRCodeLabelBase64(
+            String qrCodeBase64 = generateQRCodeLabelBase64(
                 qrCodeUrl, 
                 relic.getRelicCode(), 
                 relic.getRelicName(), 
@@ -408,8 +413,8 @@ public class CulturalRelicController {
             for (Long id : ids) {
                 CulturalRelic relic = culturalRelicService.getById(id);
                 if (relic != null) {
-                    String qrCodeUrl = com.example.util.QRCodeUtil.generateRelicQRCodeUrl(id, baseUrl);
-                    String qrCodeBase64 = com.example.util.QRCodeUtil.generateQRCodeLabelBase64(
+                    String qrCodeUrl = generateRelicQRCodeUrl(id, baseUrl);
+                    String qrCodeBase64 = generateQRCodeLabelBase64(
                         qrCodeUrl,
                         relic.getRelicCode(),
                         relic.getRelicName(),

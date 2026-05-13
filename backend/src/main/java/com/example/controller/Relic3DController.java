@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,7 +53,7 @@ public class Relic3DController {
     public Result<Map<String, Object>> upload3DModel(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
-            javax.servlet.http.HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest) {
         
         if (file.isEmpty()) {
             return Result.error("文件不能为空");
@@ -215,7 +216,7 @@ public class Relic3DController {
     public Result<Map<String, Object>> save3DModelUrl(
             @PathVariable Long id,
             @RequestBody Map<String, String> request,
-            javax.servlet.http.HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest) {
         
         String modelUrl = request.get("modelUrl");
         if (modelUrl == null || modelUrl.trim().isEmpty()) {
@@ -294,8 +295,7 @@ public class Relic3DController {
      */
     @DeleteMapping("/{id}/3d-model-url")
     @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
-    public Result<String> delete3DModelUrl(@PathVariable Long id,
-                                           javax.servlet.http.HttpServletRequest httpRequest) {
+    public Result<String> delete3DModelUrl(@PathVariable Long id, HttpServletRequest httpRequest) {
         try {
             // 1. 获取操作前的文物数据
             CulturalRelic oldRelic = null;
@@ -360,7 +360,7 @@ public class Relic3DController {
     /**
      * 获取客户端IP地址
      */
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

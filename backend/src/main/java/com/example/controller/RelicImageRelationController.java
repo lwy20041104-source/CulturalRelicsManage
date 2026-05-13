@@ -28,7 +28,7 @@ public class RelicImageRelationController {
     
     public RelicImageRelationController(RelicImageRelationService relicImageRelationService,
                                        SysOperationLogService operationLogService,
-                                       com.example.util.UserContextUtil userContextUtil) {
+                                       UserContextUtil userContextUtil) {
         this.relicImageRelationService = relicImageRelationService;
         this.operationLogService = operationLogService;
         this.userContextUtil = userContextUtil;

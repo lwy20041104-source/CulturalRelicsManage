@@ -8,8 +8,11 @@ import com.example.service.MaintenanceRecordService;
 import com.example.service.NotificationService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
 @RestController
@@ -22,9 +25,9 @@ public class MaintenanceRecordController {
     private final NotificationService notificationService;
 
     public MaintenanceRecordController(MaintenanceRecordService maintenanceRecordService,
-                                      com.example.service.SysOperationLogService operationLogService,
-                                      com.example.util.UserContextUtil userContextUtil,
-                                      com.example.service.NotificationService notificationService) {
+                                      SysOperationLogService operationLogService,
+                                      UserContextUtil userContextUtil,
+                                      NotificationService notificationService) {
         this.maintenanceRecordService = maintenanceRecordService;
         this.operationLogService = operationLogService;
         this.userContextUtil = userContextUtil;
@@ -85,12 +88,12 @@ public class MaintenanceRecordController {
     @PostMapping
     @OperationLog(operationType = "新增", operationModule = "保养管理", operationContent = "提交维护申请")
     public Result<Boolean> save(@RequestBody MaintenanceRecord record,
-                                org.springframework.security.core.Authentication authentication) {
+                                Authentication authentication) {
         // 验证维护日期
         if (record.getMaintenanceDate() == null) {
             return Result.error("维护日期不能为空");
         }
-        
+
         LocalDateTime now = LocalDateTime.now();
         
         // 维护日期必须是当前时间及以后
@@ -138,8 +141,8 @@ public class MaintenanceRecordController {
 
     @PutMapping
     public Result<Boolean> update(@RequestBody MaintenanceRecord record,
-                                  javax.servlet.http.HttpServletRequest request,
-                                  org.springframework.security.core.Authentication authentication) {
+                                  HttpServletRequest request,
+                                  Authentication authentication) {
         // 1. 获取修改前的数据
         MaintenanceRecord oldRecord = maintenanceRecordService.getById(record.getId());
         
@@ -149,7 +152,7 @@ public class MaintenanceRecordController {
         
         // 2. 权限检查：只能修改自己的申请（管理员和审批员不能修改他人申请）
         if (authentication != null) {
-            java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
+            java.util.Collection<? extends GrantedAuthority> authorities =
                 authentication.getAuthorities();
             
             // 检查是否是管理员或审批员角色
@@ -209,8 +212,8 @@ public class MaintenanceRecordController {
 
     @DeleteMapping("/{id}")
     public Result<Boolean> delete(@PathVariable Long id,
-                                  javax.servlet.http.HttpServletRequest request,
-                                  org.springframework.security.core.Authentication authentication) {
+                                  HttpServletRequest request,
+                                  Authentication authentication) {
         // 1. 获取删除前的数据
         MaintenanceRecord oldRecord = maintenanceRecordService.getById(id);
         
@@ -220,7 +223,7 @@ public class MaintenanceRecordController {
         
         // 2. 权限检查：只能删除自己的记录（管理员和审批员不能删除他人记录）
         if (authentication != null) {
-            java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
+            java.util.Collection<? extends GrantedAuthority> authorities =
                 authentication.getAuthorities();
             
             // 所有人都只能删除自己的记录
@@ -282,8 +285,8 @@ public class MaintenanceRecordController {
      */
     @PutMapping("/approve")
     public Result<Boolean> approve(@RequestBody MaintenanceRecord record,
-                                   org.springframework.security.core.Authentication authentication,
-                                   javax.servlet.http.HttpServletRequest request) {
+                                   Authentication authentication,
+                                   HttpServletRequest request) {
         // 1. 获取审批前的数据
         MaintenanceRecord oldRecord = maintenanceRecordService.getById(record.getId());
         
@@ -350,7 +353,7 @@ public class MaintenanceRecordController {
         return Result.success(message, success);
     }
     
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

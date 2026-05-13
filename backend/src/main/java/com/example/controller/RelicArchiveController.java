@@ -46,6 +46,7 @@ public class RelicArchiveController {
             @RequestParam(required = false) Long relicId) {
         return Result.success(archiveService.pageArchives(pageNum, pageSize, archiveCode, archiveType, status, relicId));
     }
+
     
     /**
      * 获取档案详情

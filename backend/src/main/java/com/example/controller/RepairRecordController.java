@@ -12,10 +12,13 @@ import com.example.service.RepairRecordService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 文物修复记录控制器
@@ -30,9 +33,9 @@ public class RepairRecordController {
     private final NotificationService notificationService;
     
     public RepairRecordController(RepairRecordService repairRecordService,
-                                 com.example.service.SysOperationLogService operationLogService,
-                                 com.example.util.UserContextUtil userContextUtil,
-                                 com.example.service.NotificationService notificationService) {
+                                 SysOperationLogService operationLogService,
+                                 UserContextUtil userContextUtil,
+                                 NotificationService notificationService) {
         this.repairRecordService = repairRecordService;
         this.operationLogService = operationLogService;
         this.userContextUtil = userContextUtil;
@@ -63,7 +66,7 @@ public class RepairRecordController {
             String username = authentication.getName();
             System.out.println("当前用户: " + username);
             
-            java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
+            java.util.Collection<? extends GrantedAuthority> authorities =
                 authentication.getAuthorities();
             
             System.out.println("用户权限: " + authorities.stream()
@@ -96,7 +99,7 @@ public class RepairRecordController {
         if (result.getRecords().size() > 0) {
             System.out.println("记录状态分布: " + result.getRecords().stream()
                 .map(RepairRecord::getStatus)
-                .collect(java.util.stream.Collectors.groupingBy(s -> s, java.util.stream.Collectors.counting())));
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting())));
         }
         System.out.println("========================================");
         
@@ -115,7 +118,7 @@ public class RepairRecordController {
         
         // 权限检查：保管员只能查看自己的记录，管理员和审批员可以查看所有记录
         if (authentication != null) {
-            java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = 
+            java.util.Collection<? extends GrantedAuthority> authorities =
                 authentication.getAuthorities();
             
             // 检查是否是管理员或审批员角色
@@ -181,7 +184,7 @@ public class RepairRecordController {
     public Result<Boolean> updateRepairApply(@PathVariable Long id,
                                              @RequestBody RepairApplyRequest request,
                                              Authentication authentication,
-                                             javax.servlet.http.HttpServletRequest httpRequest) {
+                                             HttpServletRequest httpRequest) {
         // 1. 获取原记录
         RepairRecord oldRecord = repairRecordService.getById(id);
         if (oldRecord == null) {
@@ -277,7 +280,7 @@ public class RepairRecordController {
     @PutMapping("/approve")
     public Result<Boolean> approveRepair(@RequestBody RepairApproveRequest request,
                                          Authentication authentication,
-                                         javax.servlet.http.HttpServletRequest httpRequest) {
+                                         HttpServletRequest httpRequest) {
         // 1. 获取审批前的数据
         RepairRecord oldRecord = repairRecordService.getById(request.getId());
         
@@ -339,8 +342,7 @@ public class RepairRecordController {
      * 开始修复
      */
     @PutMapping("/{id}/start")
-    public Result<Boolean> startRepair(@PathVariable Long id,
-                                       javax.servlet.http.HttpServletRequest httpRequest) {
+    public Result<Boolean> startRepair(@PathVariable Long id, HttpServletRequest httpRequest) {
         // 1. 获取开始前的数据
         RepairRecord oldRecord = repairRecordService.getById(id);
         
@@ -381,7 +383,7 @@ public class RepairRecordController {
      */
     @PutMapping("/progress")
     public Result<Boolean> updateProgress(@RequestBody RepairProgressRequest request,
-                                          javax.servlet.http.HttpServletRequest httpRequest) {
+                                          HttpServletRequest httpRequest) {
         // 1. 获取更新前的数据
         RepairRecord oldRecord = repairRecordService.getById(request.getId());
         
@@ -423,7 +425,7 @@ public class RepairRecordController {
     @PutMapping("/{id}/complete")
     public Result<Boolean> completeRepair(@PathVariable Long id,
                                           @RequestBody(required = false) RepairProgressRequest request,
-                                          javax.servlet.http.HttpServletRequest httpRequest) {
+                                          HttpServletRequest httpRequest) {
         // 1. 获取完成前的数据
         RepairRecord oldRecord = repairRecordService.getById(id);
         
@@ -484,7 +486,7 @@ public class RepairRecordController {
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id,
                                       Authentication authentication,
-                                      javax.servlet.http.HttpServletRequest httpRequest) {
+                                      HttpServletRequest httpRequest) {
         // 1. 获取删除前的数据
         RepairRecord oldRecord = repairRecordService.getById(id);
         
@@ -570,7 +572,7 @@ public class RepairRecordController {
     /**
      * 获取客户端IP地址
      */
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

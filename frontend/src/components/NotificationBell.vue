@@ -177,7 +177,8 @@ const loadUnreadNotifications = async () => {
   
   try {
     const res = await getNotificationsApi({ pageNum: 1, pageSize: 10, isRead: false })
-    unreadNotifications.value = res.data.records || []
+    // 过滤掉逾期未归还的通知（type为LOAN_OVERDUE）
+    unreadNotifications.value = (res.data.records || []).filter(item => item.type !== 'LOAN_OVERDUE')
   } catch (error) {
     console.error('加载未读通知失败:', error)
   }
@@ -192,7 +193,8 @@ const loadAllNotifications = async () => {
   
   try {
     const res = await getNotificationsApi({ pageNum: 1, pageSize: 20 })
-    allNotifications.value = res.data.records || []
+    // 过滤掉逾期未归还的通知（type为LOAN_OVERDUE）
+    allNotifications.value = (res.data.records || []).filter(item => item.type !== 'LOAN_OVERDUE')
   } catch (error) {
     console.error('加载通知列表失败:', error)
   }
@@ -347,6 +349,12 @@ const stopPolling = () => {
 // 处理WebSocket推送的通知
 const handleWebSocketNotification = (notification) => {
   console.log('📬 处理WebSocket通知:', notification)
+  
+  // 隐藏逾期未归还的通知
+  if (notification.type === 'LOAN_OVERDUE') {
+    console.log('🚫 已过滤逾期未归还通知')
+    return
+  }
   
   // 显示桌面通知
   showDesktopNotification(notification)

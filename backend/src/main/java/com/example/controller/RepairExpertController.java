@@ -25,7 +25,7 @@ public class RepairExpertController {
     
     public RepairExpertController(RepairExpertService repairExpertService,
                                  SysOperationLogService operationLogService,
-                                 com.example.util.UserContextUtil userContextUtil) {
+                                 UserContextUtil userContextUtil) {
         this.repairExpertService = repairExpertService;
         this.operationLogService = operationLogService;
         this.userContextUtil = userContextUtil;

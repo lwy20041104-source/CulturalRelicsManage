@@ -13,6 +13,7 @@ import com.example.util.UserContextUtil;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class LoanRecordController {
 
     public LoanRecordController(LoanRecordService loanRecordService, 
                                SysUserMapper sysUserMapper,
-                               com.example.service.SysOperationLogService operationLogService,
-                               com.example.util.UserContextUtil userContextUtil) {
+                               SysOperationLogService operationLogService,
+                               UserContextUtil userContextUtil) {
         this.loanRecordService = loanRecordService;
         this.sysUserMapper = sysUserMapper;
         this.operationLogService = operationLogService;
@@ -139,8 +140,7 @@ public class LoanRecordController {
     }
 
     @PutMapping("/{id}/return")
-    public Result<Boolean> returnLoan(@PathVariable Long id, 
-                                      javax.servlet.http.HttpServletRequest httpRequest) {
+    public Result<Boolean> returnLoan(@PathVariable Long id, HttpServletRequest httpRequest) {
         // 1. 获取归还前的数据
         LoanRecord oldLoan = loanRecordService.getById(id);
         
@@ -199,8 +199,7 @@ public class LoanRecordController {
      * 用户主动归还文物（前台用户端）
      */
     @PutMapping("/{id}/user-return")
-    public Result<Boolean> userReturnLoan(@PathVariable Long id, 
-                                          javax.servlet.http.HttpServletRequest httpRequest) {
+    public Result<Boolean> userReturnLoan(@PathVariable Long id, HttpServletRequest httpRequest) {
         // 1. 获取归还前的数据
         LoanRecord oldLoan = loanRecordService.getById(id);
         
@@ -240,7 +239,7 @@ public class LoanRecordController {
     /**
      * 获取客户端IP地址
      */
-    private String getClientIp(javax.servlet.http.HttpServletRequest request) {
+    private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
