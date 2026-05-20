@@ -213,9 +213,70 @@
 
 ---
 
-## 二、架构与技术栈
+## 二、最近修复的问题
 
-### 2.1 系统架构
+### 2.1 3D模型链接删除功能修复（2026-05-15）
+
+**问题描述**：删除文物的3D模型链接时，前端提示"删除成功"，但链接实际未被删除。
+
+**根本原因**：MyBatis的`updateById()`方法在XML映射中使用了`<if test="model3dUrl != null">`条件判断，导致NULL值不会被包含在UPDATE语句中。
+
+**解决方案**：
+- 创建自定义SQL方法`clear3DModelInfo()`，显式将字段设置为NULL
+- 修改文件：
+  - `CulturalRelicMapper.xml` - 添加自定义UPDATE语句
+  - `CulturalRelicMapper.java` - 添加接口方法
+  - `CulturalRelicService.java` - 添加服务接口
+  - `CulturalRelicServiceImpl.java` - 实现服务方法
+  - `Relic3DController.java` - 使用新方法替代`updateById()`
+
+**详细文档**：参见 `docs/3D_MODEL_DELETION_FIX.md`
+
+### 2.4 3D模型详情页返回页码保持功能修复（2026-05-15）
+
+**问题描述**：用户在文物列表的某一页点击查看3D模型，查看完毕后点击"返回"按钮，页面会重置到第一页，而不是保持在原来的页面。
+
+**根本原因**：`goBack()` 函数使用 `router.back()` 只是简单返回，不会保留页面状态（页码、搜索条件等）。
+
+**解决方案**：
+- 采用 URL 查询参数传递状态的方案
+- 跳转时传递当前页码和搜索条件
+- 返回时恢复这些参数
+- 列表页初始化时从 URL 读取并恢复状态
+- 修改文件：
+  - `RelicsView.vue` - 修改 `view3DModel` 函数传递状态，修改 `onMounted` 恢复状态
+  - `Relic3DView.vue` - 修改 `goBack` 函数恢复查询参数
+
+**详细文档**：参见 `docs/3D_VIEW_RETURN_PAGE_FIX.md`
+
+### 2.5 备份加密密钥长度错误修复（2026-05-15）
+
+**问题描述**：创建加密备份时失败，错误信息为"Invalid AES key length"。
+
+**根本原因**：原密钥长度不符合AES标准（需要16/24/32字节），且某些Java版本不支持256位加密。
+
+**解决方案**：
+- 将加密方式从256位（32字节）改为128位（16字节）
+- 使用固定密钥："CulturalRelics!"（16字节）
+- 添加`getAESKey()`辅助方法确保密钥长度一致
+
+### 2.3 隐藏功能实现（2026-05-15）
+
+为简化用户界面，隐藏了以下功能（代码保留，可轻松恢复）：
+
+1. **借展管理菜单** - `frontend/src/views/LayoutView.vue`
+2. **博物馆管理菜单** - `frontend/src/views/LayoutView.vue`
+3. **借展人管理菜单** - `frontend/src/views/LayoutView.vue`
+4. **门户登录入口** - `frontend/src/views/LoginView.vue`
+5. **逾期未归还通知** - `frontend/src/components/NotificationBell.vue` 和 `frontend/src/views/NotificationsView.vue`
+
+**恢复方法**：参见 `docs/RESTORE_HIDDEN_FEATURES.md`
+
+---
+
+## 三、架构与技术栈
+
+### 3.1 系统架构
 
 本系统采用**前后端分离架构**，职责清晰，易于维护和扩展。
 
@@ -256,7 +317,7 @@
 
 `
 
-### 2.2 后端技术栈
+### 3.2 后端技术栈
 
 #### 核心框架
 - **Spring Boot 2.7.14**：快速开发框架，简化配置
@@ -302,7 +363,7 @@
 #### 构建工具
 - **Maven**：项目管理与构建
 
-### 2.3 前端技术栈
+### 3.3 前端技术栈
 
 #### 核心框架
 - **Vue 3.4.31**：渐进式JavaScript框架
@@ -344,9 +405,9 @@
 
 ---
 
-## 三、技术栈详解
+## 四、技术栈详解
 
-### 3.1 后端核心技术
+### 4.1 后端核心技术
 
 #### 1. Spring Boot自动配置
 Spring Boot通过自动配置简化了开发流程：
@@ -429,7 +490,7 @@ String lockKey = "login:locked:" + username;
 redisTemplate.opsForValue().set(lockKey, "1", 30, TimeUnit.MINUTES);
 `
 
-### 3.2 前端核心技术
+### 4.2 前端核心技术
 
 #### 1. Vue 3 Composition API
 `javascript
@@ -566,9 +627,9 @@ animate()
 
 ---
 
-## 四、核心算法与技术点
+## 五、核心算法与技术点
 
-### 4.1 认证与授权算法
+### 5.1 认证与授权算法
 
 #### BCrypt密码加密
 - **算法**：Blowfish加密算法
@@ -584,7 +645,7 @@ String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
 boolean isMatch = BCrypt.checkpw(plainPassword, hashedPassword);
 `
 
-### 4.2 AI智能查询算法
+### 5.2 AI智能查询算法
 
 #### 相关度评分算法
 `java
@@ -607,7 +668,7 @@ boolean isMatch = BCrypt.checkpw(plainPassword, hashedPassword);
 扩展：["唐代", "瓷器", "陶瓷", "陶器", "瓷"]
 `
 
-### 4.3 图片提取算法
+### 5.3 图片提取算法
 
 #### 7层提取策略
 `java
@@ -647,7 +708,7 @@ String extractImageUrl(Document doc) {
 }
 `
 
-### 4.4 分页算法
+### 5.4 分页算法
 
 #### MyBatis-Plus分页
 `java
@@ -667,7 +728,7 @@ long pages = result.getPages();
 - 偏移量：offset = (pageNum - 1) * pageSize
 - 总页数：	otalPages = Math.ceil(total / pageSize)
 
-### 4.5 推荐算法
+### 5.5 推荐算法
 
 #### 基于内容的协同过滤
 `java
@@ -684,7 +745,7 @@ List<CulturalRelic> recommend(CulturalRelic relic) {
 }
 `
 
-### 4.6 数据聚合算法
+### 5.6 数据聚合算法
 
 #### Stream API分组统计
 `java
@@ -703,7 +764,7 @@ Map<String, Long> statusStats = relics.stream()
     ));
 `
 
-### 4.7 性能优化技术
+### 5.7 性能优化技术
 
 #### 前端优化
 - **懒加载**：图片懒加载、路由懒加载
@@ -750,9 +811,9 @@ const throttle = (fn, delay) => {
 
 ---
 
-## 五、数据库设计
+## 六、数据库设计
 
-### 5.1 核心表结构
+### 6.1 核心表结构
 
 本系统共设计了**20+张数据库表**，涵盖文物管理、用户管理、借展管理、修复管理、档案管理、通知管理等各个方面。
 
@@ -1023,9 +1084,9 @@ const throttle = (fn, delay) => {
 
 ---
 
-## 六、系统架构设计
+## 七、系统架构设计
 
-### 6.1 整体架构
+### 7.1 整体架构
 
 本系统采用**前后端分离架构**，基于**三层架构**设计，职责清晰，易于维护和扩展。
 
@@ -1063,7 +1124,7 @@ const throttle = (fn, delay) => {
 
 \\\
 
-### 6.2 分层架构详解
+### 7.2 分层架构详解
 
 #### 表现层（Presentation Layer）
 **职责**：处理用户交互，展示数据
@@ -1096,7 +1157,7 @@ const throttle = (fn, delay) => {
 - **XML**：SQL映射文件（如CulturalRelicMapper.xml）
 - **RedisTemplate**：Redis操作模板
 
-### 6.3 安全架构
+### 7.3 安全架构
 
 #### 认证流程
 \\\
@@ -1140,7 +1201,7 @@ const throttle = (fn, delay) => {
 7. 权限拒绝  返回403 Forbidden
 \\\
 
-### 6.4 通信架构
+### 7.4 通信架构
 
 #### HTTP通信
 - **协议**：HTTP/HTTPS
@@ -1159,7 +1220,7 @@ const throttle = (fn, delay) => {
 - **用途**：实时通知推送
 - **自动重连**：连接断开后自动重连（最多5次）
 
-### 6.5 缓存架构
+### 7.5 缓存架构
 
 #### Redis缓存策略
 - **会话缓存**：用户登录状态（Token  用户信息）
@@ -1174,7 +1235,7 @@ const throttle = (fn, delay) => {
 - **Write Through Pattern**：同时更新数据库和缓存
 - **Write Behind Pattern**：先更新缓存，异步更新数据库
 
-### 6.6 文件存储架构
+### 7.6 文件存储架构
 
 #### 本地存储
 - **文物图片**：uploads/images/
@@ -1194,8 +1255,8 @@ const throttle = (fn, delay) => {
 
 ---
 
-## 七、项目亮点和重难点
-### 7.1 技术亮点
+## 八、项目亮点和重难点
+### 8.1 技术亮点
 
 #### 1. 前后端分离架构
 优势：职责清晰，易于维护和扩展
@@ -1237,7 +1298,7 @@ const throttle = (fn, delay) => {
 实现：Promise.all并发处理
 效果：批量删除、批量修改状态
 
-### 7.2 功能亮点
+### 8.2 功能亮点
 
 #### 1. 完整的文物生命周期管理
 从入库、借展、修复、维护到档案管理
@@ -1266,7 +1327,7 @@ PDF/Word导出（支持中文字体）
 IP地址记录
 密码重置（邮箱/手机验证码）
 
-### 7.3 重难点突破
+### 8.3 重难点突破
 
 #### 1. 图片防盗链问题
 问题：百度百科图片无法直接显示
@@ -1296,8 +1357,8 @@ IP地址记录
 问题：异常处理分散，错误信息不统一
 解决：自定义异常类体系、全局异常处理器、分级日志记录
 
-## 八、未来扩展方向
-### 8.1 功能扩展
+## 九、未来扩展方向
+### 9.1 功能扩展
 
 #### 已完成 ✅
 3D文物展示（Three.js）
@@ -1318,7 +1379,7 @@ AR虚拟展览（AR.js）
 访客管理系统
 文物捐赠管理
 
-### 8.2 技术升级
+### 9.2 技术升级
 
 架构升级
 微服务架构（Spring Cloud）
@@ -1337,7 +1398,7 @@ Prometheus + Grafana
 ELK Stack（日志分析）
 链路追踪（Zipkin/Skywalking）
 
-### 8.3 AI增强
+### 9.3 AI增强
 
 图像识别
 文物自动分类
@@ -1356,7 +1417,7 @@ OCR文字识别（古籍文物）
 文物状态监控
 预测分析（借展趋势、修复需求）
 
-### 8.4 数据分析增强
+### 9.4 数据分析增强
 
 更多维度的统计分析
 预测分析（借展趋势、修复需求）
@@ -1365,7 +1426,7 @@ OCR文字识别（古籍文物）
 自定义报表生成器
 实时数据大屏（WebSocket）
 
-### 8.5 用户体验优化
+### 9.5 用户体验优化
 
 已完成 ✅
 暗黑模式
@@ -1378,8 +1439,8 @@ OCR文字识别（古籍文物）
 离线模式（PWA）
 工作流自定义
 
-## 九、总结
-### 9.1 项目成果
+## 十、总结
+### 10.1 项目成果
 本项目是一个功能完善、技术先进的博物馆文物数字化管理系统，具有以下特点：
 功能完善
 27个核心功能模块，覆盖文物管理全生命周期
@@ -1403,7 +1464,7 @@ BCrypt密码加密，防止彩虹表攻击
 实时通知，及时提醒
 
 
-### 9.2 技术收获
+### 10.2 技术收获
 通过本项目的开发，深入理解了以下技术：
 
 #### 后端技术
@@ -1437,7 +1498,7 @@ RESTful API设计
 安全防护措施
 项目文档编写
 
-### 9.3 项目价值
+### 10.3 项目价值
 
 #### 实用价值
 解决博物馆文物管理的实际需求

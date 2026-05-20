@@ -162,4 +162,13 @@
         ORDER BY cr.id ASC
     </select>
 
+    <!-- 清除3D模型信息（显式设置为NULL） -->
+    <update id="clear3DModelInfo">
+        UPDATE cultural_relic
+        SET model_3d_url = NULL,
+            model_3d_upload_time = NULL,
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
 </mapper>

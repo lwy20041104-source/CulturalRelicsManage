@@ -297,35 +297,48 @@ public class Relic3DController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
     public Result<String> delete3DModelUrl(@PathVariable Long id, HttpServletRequest httpRequest) {
         try {
+            System.out.println("========== 开始删除3D模型 ==========");
+            System.out.println("文物ID: " + id);
+            
             // 1. 获取操作前的文物数据
             CulturalRelic oldRelic = null;
             if (culturalRelicService != null) {
                 oldRelic = culturalRelicService.getById(id);
                 if (oldRelic == null) {
+                    System.out.println("错误: 文物不存在");
                     return Result.error("文物不存在");
                 }
+                System.out.println("删除前的3D模型URL: " + oldRelic.getModel3dUrl());
                 // 创建副本用于审计日志
                 oldRelic = cloneRelic(oldRelic);
             } else {
                 return Result.error("服务不可用");
             }
             
-            // 2. 更新数据库中的文物记录
-            CulturalRelic relic = culturalRelicService.getById(id);
-            
-            // 如果是本地上传的文件，尝试删除文件
-            String modelUrl = relic.getModel3dUrl();
+            // 2. 如果是本地上传的文件，尝试删除文件
+            String modelUrl = oldRelic.getModel3dUrl();
             if (modelUrl != null && modelUrl.startsWith(urlPrefix)) {
                 String filename = modelUrl.substring(modelUrl.lastIndexOf("/") + 1);
                 Path filePath = Paths.get(uploadPath, filename);
-                Files.deleteIfExists(filePath);
+                boolean fileDeleted = Files.deleteIfExists(filePath);
+                System.out.println("本地文件删除结果: " + fileDeleted + ", 文件路径: " + filePath);
             }
             
-            relic.setModel3dUrl(null);
-            relic.setModel3dUploadTime(null);
-            culturalRelicService.updateById(relic);
+            // 3. 使用自定义SQL清除数据库中的3D模型信息（显式设置为NULL）
+            System.out.println("准备清除数据库中的3D模型信息");
+            int updateResult = culturalRelicService.clear3DModelInfo(id);
+            System.out.println("数据库更新结果: " + updateResult);
             
-            // 3. 记录审计日志
+            // 验证更新是否成功
+            CulturalRelic verifyRelic = culturalRelicService.getById(id);
+            System.out.println("更新后的3D模型URL: " + verifyRelic.getModel3dUrl());
+            
+            if (verifyRelic.getModel3dUrl() != null) {
+                System.err.println("警告: 3D模型URL未能成功清除");
+                return Result.error("删除失败: 数据库更新未生效");
+            }
+            
+            // 4. 记录审计日志
             try {
                 CulturalRelic newRelic = culturalRelicService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
@@ -350,8 +363,10 @@ public class Relic3DController {
                 e.printStackTrace();
             }
             
+            System.out.println("========== 删除3D模型完成 ==========");
             return Result.success("删除成功");
         } catch (Exception e) {
+            System.err.println("删除3D模型异常:");
             e.printStackTrace();
             return Result.error("删除失败: " + e.getMessage());
         }

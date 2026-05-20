@@ -373,6 +373,11 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
     }
 
     @Override
+    public int clear3DModelInfo(Long id) {
+        return culturalRelicMapper.clear3DModelInfo(id);
+    }
+
+    @Override
     public void exportPdf(String relicName, Long categoryId, String status, String era, HttpServletResponse response) throws Exception {
         // 查询数据
         List<CulturalRelic> relics = culturalRelicMapper.selectPage(0, 10000, relicName, categoryId, status, era);

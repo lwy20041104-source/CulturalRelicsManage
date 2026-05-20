@@ -722,7 +722,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UploadFilled, Link, Loading, InfoFilled, Download, Printer, Plus, View, Delete, ArrowDown, Picture, Share, ChatDotRound, MagicStick } from '@element-plus/icons-vue'
 import request from '../api/request'
@@ -1018,7 +1018,18 @@ const handleShare = () => {
 
 // 查看3D模型
 const view3DModel = (row) => {
-  router.push(`/relics/${row.id}/3d`)
+  // 传递当前页码作为查询参数
+  router.push({
+    path: `/relics/${row.id}/3d`,
+    query: {
+      returnPage: query.pageNum,
+      returnPageSize: query.pageSize,
+      returnRelicName: query.relicName,
+      returnCategoryId: query.categoryId,
+      returnStatus: query.status,
+      returnEra: query.era
+    }
+  })
 }
 
 const generateQRCode = () => {
@@ -1393,6 +1404,9 @@ const delete3DModel = async () => {
     form.model3dUploadTime = null
     
     ElMessage.success(t('relic.delete3DModelSuccess'))
+    
+    // 重新加载文物列表，确保界面显示最新数据
+    await loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除3D模型失败:', error)
@@ -1854,6 +1868,27 @@ const retryRecognition = () => {
 // ========================================
 
 onMounted(async () => {
+  // 从 URL 查询参数中恢复状态
+  const route = useRoute()
+  if (route.query.pageNum) {
+    query.pageNum = parseInt(route.query.pageNum) || 1
+  }
+  if (route.query.pageSize) {
+    query.pageSize = parseInt(route.query.pageSize) || 10
+  }
+  if (route.query.relicName) {
+    query.relicName = route.query.relicName
+  }
+  if (route.query.categoryId) {
+    query.categoryId = parseInt(route.query.categoryId) || null
+  }
+  if (route.query.status) {
+    query.status = route.query.status
+  }
+  if (route.query.era) {
+    query.era = route.query.era
+  }
+  
   await Promise.all([loadCategories(), loadData()])
 })
 </script>

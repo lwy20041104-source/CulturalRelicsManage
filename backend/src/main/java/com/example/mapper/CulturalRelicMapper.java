@@ -37,4 +37,9 @@ public interface CulturalRelicMapper {
      * 查询可用于修复的文物列表（排除有正在进行修复的文物）
      */
     List<CulturalRelic> selectAvailableForRepair();
+    
+    /**
+     * 清除3D模型信息（显式设置为NULL）
+     */
+    int clear3DModelInfo(@Param("id") Long id);
 }

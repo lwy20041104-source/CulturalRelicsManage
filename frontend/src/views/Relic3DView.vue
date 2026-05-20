@@ -240,14 +240,14 @@ const deleteModel = async () => {
       }
     )
 
-    // 从URL中提取文件名
+    // 检查是否有模型
     if (!modelUrl.value) {
       ElMessage.error('没有可删除的模型')
       return
     }
     
-    const filename = modelUrl.value.substring(modelUrl.value.lastIndexOf('/') + 1)
-    const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/relics/${route.params.id}/3d-model?filename=${encodeURIComponent(filename)}`
+    // 使用新的智能删除端点（不需要filename参数）
+    const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/relics/${route.params.id}/3d-model-url`
     
     const response = await fetch(url, {
       method: 'DELETE',
@@ -279,7 +279,31 @@ const deleteModel = async () => {
 
 // 返回
 const goBack = () => {
-  router.back()
+  // 检查是否有返回页码参数
+  const returnPage = route.query.returnPage
+  const returnPageSize = route.query.returnPageSize
+  const returnRelicName = route.query.returnRelicName
+  const returnCategoryId = route.query.returnCategoryId
+  const returnStatus = route.query.returnStatus
+  const returnEra = route.query.returnEra
+  
+  if (returnPage) {
+    // 如果有返回页码，跳转到文物列表并恢复查询条件
+    router.push({
+      path: '/relics',
+      query: {
+        pageNum: returnPage,
+        pageSize: returnPageSize,
+        relicName: returnRelicName,
+        categoryId: returnCategoryId,
+        status: returnStatus,
+        era: returnEra
+      }
+    })
+  } else {
+    // 否则使用默认的返回
+    router.back()
+  }
 }
 
 // 更新查看器尺寸

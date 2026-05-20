@@ -44,4 +44,9 @@ public interface CulturalRelicService {
      * 获取可用于修复的文物列表（排除有正在进行修复的文物）
      */
     List<CulturalRelic> getAvailableForRepair();
+    
+    /**
+     * 清除3D模型信息（显式设置为NULL）
+     */
+    int clear3DModelInfo(Long id);
 }
