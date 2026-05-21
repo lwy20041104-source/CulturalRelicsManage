@@ -11,9 +11,9 @@
 - 基于角色的访问控制（RBAC）
 - 4种用户角色：系统管理员（ADMIN）、文物保管员（CURATOR）、借展审批员（APPROVER）、借展人（LOANER）
 - BCrypt密码加密存储
-- 登录失败次数限制（5次）与账户自动锁定（30分钟）
+- 登录失败次数限制(5次)与账户自动锁定(30分钟)
 - IP地址记录与审计
-- 密码重置功能（邮箱/手机验证码）
+- 密码重置功能(邮箱验证码)
 
 #### 2. 文物信息管理
 - 文物CRUD操作（增删改查）
@@ -173,11 +173,10 @@
 - 规范文档（LOGGING_GUIDELINES.md、EXCEPTION_HANDLING_GUIDELINES.md）
 
 #### 23. 密码重置功能
-- 忘记密码流程（验证码验证）
-- 邮件服务（HTML模板、多邮箱配置）
-- 短信服务（阿里云SMS集成）
-- 验证码管理（数据库持久化、15分钟有效期）
-- 来源跟踪（前台/后台登录页面）
+- 忘记密码流程(验证码验证)
+- 邮件服务(HTML模板、多邮箱配置)
+- 验证码管理(数据库持久化、15分钟有效期)
+- 来源跟踪(前台/后台登录页面)
 
 ### 1.5 UI/UX功能（2个模块）
 
@@ -348,7 +347,6 @@
 #### 通信服务
 - **Spring Boot Mail**：邮件发送服务
 - **Spring WebSocket**：WebSocket实时通信
-- **阿里云SMS SDK 2.0.24**：短信服务
 
 #### 工具库
 - **Lombok**：简化Java代码（自动生成getter/setter）
@@ -1474,7 +1472,7 @@ MyBatis动态SQL
 AOP切面编程
 Redis缓存策略
 WebSocket实时通信
-邮件和短信服务集成
+邮件服务集成
 
 #### 前端技术
 Vue 3 Composition API
@@ -1551,8 +1549,7 @@ API文档：http://localhost:8080/doc.html
 首次运行需要执行数据库初始化脚本
 确保MySQL和Redis服务已启动
 修改application.yml中的数据库连接配置
-配置邮件服务（修改application-mail-qq.yml或application-mail-163.yml）
-配置短信服务（修改application.yml中的阿里云SMS配置，或设置sms.enabled=false禁用）
+配置邮件服务(修改application-mail-qq.yml或application-mail-163.yml)
 借展人用户需要在数据库中设置phone字段才能正常使用申请借展功能
 借展人登录时必须选择所属博物馆
 新增借展人用户时必须分配博物馆

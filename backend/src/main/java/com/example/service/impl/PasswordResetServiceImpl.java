@@ -10,7 +10,6 @@ import com.example.mapper.SysUserMapper;
 import com.example.mapper.VerificationCodeMapper;
 import com.example.service.EmailService;
 import com.example.service.PasswordResetService;
-import com.example.service.SmsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,7 +28,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final SysUserMapper sysUserMapper;
     private final VerificationCodeMapper verificationCodeMapper;
     private final EmailService emailService;
-    private final SmsService smsService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     // 验证码有效期（分钟）
@@ -37,12 +35,10 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     
     public PasswordResetServiceImpl(SysUserMapper sysUserMapper, 
                                    VerificationCodeMapper verificationCodeMapper,
-                                   EmailService emailService,
-                                   SmsService smsService) {
+                                   EmailService emailService) {
         this.sysUserMapper = sysUserMapper;
         this.verificationCodeMapper = verificationCodeMapper;
         this.emailService = emailService;
-        this.smsService = smsService;
     }
     
     @Override
@@ -54,31 +50,16 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new ValidationException("用户不存在");
         }
         
-        // 2. 验证联系方式是否匹配
-        String contact;
-        String type;
-        
-        if ("EMAIL".equals(request.getVerificationType())) {
-            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-                throw new ValidationException("请输入邮箱地址");
-            }
-            if (user.getEmail() == null || !user.getEmail().equals(request.getEmail())) {
-                throw new ValidationException("邮箱地址与账户绑定的邮箱不匹配");
-            }
-            contact = request.getEmail();
-            type = "EMAIL";
-        } else if ("PHONE".equals(request.getVerificationType())) {
-            if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
-                throw new ValidationException("请输入手机号");
-            }
-            if (user.getPhone() == null || !user.getPhone().equals(request.getPhone())) {
-                throw new ValidationException("手机号与账户绑定的手机号不匹配");
-            }
-            contact = request.getPhone();
-            type = "PHONE";
-        } else {
-            throw new ValidationException("验证方式不正确");
+        // 2. 验证邮箱是否匹配
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new ValidationException("请输入邮箱地址");
         }
+        if (user.getEmail() == null || !user.getEmail().equals(request.getEmail())) {
+            throw new ValidationException("邮箱地址与账户绑定的邮箱不匹配");
+        }
+        
+        String contact = request.getEmail();
+        String type = "EMAIL";
         
         // 3. 生成6位数字验证码
         String code = generateCode();
@@ -100,24 +81,13 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         
         verificationCodeMapper.insert(verificationCode);
         
-        // 6. 发送验证码
-        boolean sendSuccess;
-        if ("EMAIL".equals(type)) {
-            sendSuccess = emailService.sendVerificationCode(contact, code, CODE_EXPIRE_MINUTES);
-            if (sendSuccess) {
-                log.info("验证码已发送到邮箱：{}", maskContact(contact, type));
-                return "验证码已发送到您的邮箱：" + maskContact(contact, type);
-            } else {
-                throw new ServiceException("邮件", "邮件发送失败，请稍后重试");
-            }
+        // 6. 发送验证码到邮箱
+        boolean sendSuccess = emailService.sendVerificationCode(contact, code, CODE_EXPIRE_MINUTES);
+        if (sendSuccess) {
+            log.info("验证码已发送到邮箱：{}", maskContact(contact, type));
+            return "验证码已发送到您的邮箱：" + maskContact(contact, type);
         } else {
-            sendSuccess = smsService.sendVerificationCode(contact, code, CODE_EXPIRE_MINUTES);
-            if (sendSuccess) {
-                log.info("验证码已发送到手机：{}", maskContact(contact, type));
-                return "验证码已发送到您的手机：" + maskContact(contact, type);
-            } else {
-                throw new ServiceException("短信", "短信发送失败，请稍后重试");
-            }
+            throw new ServiceException("邮件", "邮件发送失败，请稍后重试");
         }
     }
     
@@ -180,24 +150,17 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     }
     
     /**
-     * 掩码显示联系方式
+     * 掩码显示邮箱地址
      */
     private String maskContact(String contact, String type) {
         if (contact == null || contact.length() < 4) {
             return "***";
         }
         
-        if ("EMAIL".equals(type)) {
-            // 邮箱：显示前2位和@后面的域名
-            int atIndex = contact.indexOf('@');
-            if (atIndex > 2) {
-                return contact.substring(0, 2) + "***" + contact.substring(atIndex);
-            }
-        } else if ("PHONE".equals(type)) {
-            // 手机号：显示前3位和后4位
-            if (contact.length() == 11) {
-                return contact.substring(0, 3) + "****" + contact.substring(7);
-            }
+        // 邮箱：显示前2位和@后面的域名
+        int atIndex = contact.indexOf('@');
+        if (atIndex > 2) {
+            return contact.substring(0, 2) + "***" + contact.substring(atIndex);
         }
         
         return contact.substring(0, 2) + "***";

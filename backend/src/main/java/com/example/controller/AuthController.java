@@ -221,7 +221,7 @@ public class AuthController {
     }
     
     /**
-     * 发送密码重置验证码
+     * 发送密码重置验证码（仅支持邮箱）
      */
     @PostMapping("/forgot-password")
     public Result<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
@@ -232,7 +232,7 @@ public class AuthController {
             try {
                 String ipAddress = getIpAddress();
                 logService.log(request.getUsername(), "忘记密码", "系统认证", 
-                        "发送验证码：" + request.getVerificationType(), "成功", ipAddress);
+                        "发送验证码到邮箱", "成功", ipAddress);
             } catch (Exception e) {
                 // 忽略日志记录失败
             }
