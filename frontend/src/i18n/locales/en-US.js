@@ -460,7 +460,8 @@ export default {
     defaultApprover: 'Approver',
     approvePass: 'Approved',
     approveReject: 'Rejected',
-    relicDeleted: 'Relic Deleted'
+    relicDeleted: 'Relic Deleted',
+    overdueQuery: 'Overdue Query'
   },
   
   repair: {
@@ -725,7 +726,10 @@ export default {
     pleaseInputPasswordFirst: 'Please input password first',
     museum: 'Museum',
     selectMuseum: 'Please select museum',
-    museumRequired: 'Visitor must select a museum'
+    museumRequired: 'Visitor must select a museum',
+    unlock: 'Unlock',
+    unlockConfirm: 'Are you sure to unlock user {name}?',
+    unlockSuccess: 'Account unlocked successfully'
   },
   
   validation: {

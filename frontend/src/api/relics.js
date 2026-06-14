@@ -81,3 +81,26 @@ export const batchGenerateQRCodeApi = (ids, baseUrl) => {
     params: { baseUrl }
   })
 }
+
+// ===== 3D 模型管理 API =====
+
+// 获取文物 3D 模型信息
+export const get3DModelInfoApi = (id) => request.get(`/relics/${id}/3d-model`)
+
+// 上传 3D 模型文件
+export const upload3DModelApi = (id, file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post(`/relics/${id}/3d-model`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+// 删除 3D 模型文件（按文件名）
+export const delete3DModelApi = (id, filename) => request.delete(`/relics/${id}/3d-model`, { params: { filename } })
+
+// 保存 3D 模型链接
+export const save3DModelUrlApi = (id, modelUrl) => request.post(`/relics/${id}/3d-model-url`, { modelUrl })
+
+// 智能删除 3D 模型（链接）
+export const delete3DModelUrlApi = (id) => request.delete(`/relics/${id}/3d-model-url`)

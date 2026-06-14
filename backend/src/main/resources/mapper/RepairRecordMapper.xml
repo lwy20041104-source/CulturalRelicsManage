@@ -176,18 +176,10 @@
         WHERE DATE(start_date) BETWEEN #{startDate} AND #{endDate}
     </select>
 
-    <select id="selectRelicById" resultType="com.example.entity.CulturalRelic">
-        SELECT id, relic_code, relic_name, category_id, era, material,
-               origin, dimensions, weight, description, status, image_path,
-               create_time, update_time
-        FROM cultural_relic
-        WHERE id = #{relicId}
+    <select id="selectInProgressRelicIds" resultType="long">
+        SELECT DISTINCT relic_id
+        FROM repair_record
+        WHERE status IN ('待审批', '待修复', '修复中')
     </select>
-
-    <update id="updateRelicStatus">
-        UPDATE cultural_relic
-        SET status = #{status}, update_time = #{updateTime}
-        WHERE id = #{relicId}
-    </update>
 
 </mapper>

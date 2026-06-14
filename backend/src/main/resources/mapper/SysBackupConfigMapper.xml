@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SysBackupConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.SysBackupConfig">
+        <id property="id" column="id"/>
+        <result property="configName" column="config_name"/>
+        <result property="isEnabled" column="is_enabled"/>
+        <result property="backupFrequency" column="backup_frequency"/>
+        <result property="backupTime" column="backup_time"/>
+        <result property="retentionDays" column="retention_days"/>
+        <result property="maxBackupCount" column="max_backup_count"/>
+        <result property="isEncrypted" column="is_encrypted"/>
+        <result property="backupTables" column="backup_tables"/>
+        <result property="notificationEnabled" column="notification_enabled"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM sys_backup_config
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM sys_backup_config WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.SysBackupConfig"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_backup_config (config_name, is_enabled, backup_frequency, backup_time,
+        retention_days, max_backup_count, is_encrypted, backup_tables, notification_enabled,
+        created_by, created_time)
+        VALUES (#{configName}, #{isEnabled}, #{backupFrequency}, #{backupTime},
+        #{retentionDays}, #{maxBackupCount}, #{isEncrypted}, #{backupTables}, #{notificationEnabled},
+        #{createdBy}, #{createdTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.SysBackupConfig">
+        UPDATE sys_backup_config SET
+            config_name = #{configName},
+            is_enabled = #{isEnabled},
+            backup_frequency = #{backupFrequency},
+            backup_time = #{backupTime},
+            retention_days = #{retentionDays},
+            max_backup_count = #{maxBackupCount},
+            is_encrypted = #{isEncrypted},
+            backup_tables = #{backupTables},
+            notification_enabled = #{notificationEnabled},
+            updated_by = #{updatedBy},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -10,6 +10,7 @@
           <el-option :label="$t('loan.rejected')" value="已驳回" />
         </el-select>
         <el-button type="primary" @click="loadData">{{ $t('common.search') }}</el-button>
+        <el-button type="danger" @click="loadOverdue">{{ $t('loan.overdueQuery') }}</el-button>
         <el-button type="success" @click="openAdd">{{ $t('loan.addLoan') }}</el-button>
       </div>
     </template>
@@ -151,7 +152,7 @@ import { onMounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { WarningFilled } from '@element-plus/icons-vue'
-import { getLoansPageApi, addLoanApi, approveLoanApi, returnLoanApi } from '../api/loans'
+import { getLoansPageApi, addLoanApi, approveLoanApi, returnLoanApi, getOverdueLoansApi } from '../api/loans'
 import { getRelicsPageApi } from '../api/relics'
 
 const { t } = useI18n()
@@ -302,6 +303,13 @@ const returnLoan = async (id) => {
   await returnLoanApi(id)
   ElMessage.success(t('loan.returnSuccess'))
   loadData()
+}
+
+const loadOverdue = async () => {
+  const params = { pageNum: query.pageNum, pageSize: query.pageSize }
+  const res = await getOverdueLoansApi(params)
+  tableData.value = res.data.records || []
+  total.value = res.data.total || 0
 }
 
 // 合并单元格方法：文物已删除的行，合并所有列

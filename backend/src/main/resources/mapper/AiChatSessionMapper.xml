@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.AiChatSessionMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.AiChatSession">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="sessionTitle" column="session_title"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap id="WithUserNameResultMap" type="com.example.dto.AiChatSessionVO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="sessionTitle" column="session_title"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.entity.AiChatSession"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_chat_session (user_id, session_title)
+        VALUES (#{userId}, #{sessionTitle})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM ai_chat_session WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT * FROM ai_chat_session WHERE user_id = #{userId} ORDER BY update_time DESC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM ai_chat_session ORDER BY update_time DESC
+    </select>
+
+    <select id="selectAllWithUserName" resultMap="WithUserNameResultMap">
+        SELECT s.id, s.user_id, s.session_title, s.create_time, s.update_time,
+               u.real_name as user_name
+        FROM ai_chat_session s
+        LEFT JOIN sys_user u ON s.user_id = u.id
+        ORDER BY s.update_time DESC
+    </select>
+
+    <update id="updateById" parameterType="com.example.entity.AiChatSession">
+        UPDATE ai_chat_session
+        SET session_title = #{sessionTitle}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM ai_chat_session WHERE id = #{id}
+    </delete>
+
+    <select id="selectRecentByUserId" resultMap="BaseResultMap">
+        SELECT * FROM ai_chat_session WHERE user_id = #{userId} ORDER BY update_time DESC LIMIT #{limit}
+    </select>
+
+</mapper>

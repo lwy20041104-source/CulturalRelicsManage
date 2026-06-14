@@ -147,18 +147,21 @@
         DELETE FROM cultural_relic WHERE id = #{id}
     </delete>
 
-    <!-- 查询可用于修复的文物列表（排除有正在进行修复的文物） -->
+    <!-- 查询可用于修复的文物列表（排除指定ID列表的文物，排除列表由Service层提供） -->
     <select id="selectAvailableForRepair" resultType="com.example.entity.CulturalRelic">
         SELECT cr.*, c.category_name AS categoryName, i.file_path AS imagePath
         FROM cultural_relic cr
         LEFT JOIN cultural_relic_category c ON cr.category_id = c.id
         LEFT JOIN relic_image_relation rir ON cr.id = rir.relic_id AND rir.is_main = 1
         LEFT JOIN image_library i ON rir.image_id = i.id AND i.status = 1
-        WHERE cr.id NOT IN (
-            SELECT DISTINCT rr.relic_id
-            FROM repair_record rr
-            WHERE rr.status IN ('待审批', '待修复', '修复中')
-        )
+        <where>
+            <if test="excludeIds != null and excludeIds.size() > 0">
+                cr.id NOT IN
+                <foreach collection="excludeIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
         ORDER BY cr.id ASC
     </select>
 

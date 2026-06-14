@@ -113,7 +113,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Upload } from '@element-plus/icons-vue'
 import Relic3DViewer from '../components/Relic3DViewer.vue'
-import { getRelicByIdApi } from '../api/relics'
+import { getRelicByIdApi, delete3DModelUrlApi } from '../api/relics'
 
 const route = useRoute()
 const router = useRouter()
@@ -245,18 +245,8 @@ const deleteModel = async () => {
       return
     }
     
-    // 使用新的智能删除端点（不需要filename参数）
-    const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/relics/${route.params.id}/3d-model-url`
-    
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    const result = await response.json()
+    // 使用智能删除端点（不需要filename参数）
+    const result = await delete3DModelUrlApi(route.params.id)
     
     if (result.code === 200) {
       ElMessage.success('模型删除成功')

@@ -5,6 +5,7 @@ import com.example.dto.RepairApplyRequest;
 import com.example.dto.RepairApproveRequest;
 import com.example.dto.RepairProgressRequest;
 import com.example.entity.RepairRecord;
+import com.example.mapper.CulturalRelicMapper;
 import com.example.mapper.RepairRecordMapper;
 import com.example.mapper.SysUserMapper;
 import com.example.service.NotificationService;
@@ -26,13 +27,16 @@ import java.util.Map;
 public class RepairRecordServiceImpl implements RepairRecordService {
     
     private final RepairRecordMapper repairRecordMapper;
+    private final CulturalRelicMapper culturalRelicMapper;
     private final NotificationService notificationService;
     private final SysUserMapper sysUserMapper;
     
     public RepairRecordServiceImpl(RepairRecordMapper repairRecordMapper,
+                                   CulturalRelicMapper culturalRelicMapper,
                                    NotificationService notificationService,
                                    SysUserMapper sysUserMapper) {
         this.repairRecordMapper = repairRecordMapper;
+        this.culturalRelicMapper = culturalRelicMapper;
         this.notificationService = notificationService;
         this.sysUserMapper = sysUserMapper;
     }
@@ -70,8 +74,8 @@ public class RepairRecordServiceImpl implements RepairRecordService {
     @Override
     @Transactional
     public boolean applyRepair(RepairApplyRequest request, String applicant) {
-        // 检查文物状态
-        com.example.entity.CulturalRelic relic = repairRecordMapper.selectRelicById(request.getRelicId());
+        // 检查文物状态（通过CulturalRelicMapper查询）
+        com.example.entity.CulturalRelic relic = culturalRelicMapper.selectById(request.getRelicId());
         if (relic == null) {
             throw new IllegalArgumentException("文物不存在");
         }
@@ -104,7 +108,7 @@ public class RepairRecordServiceImpl implements RepairRecordService {
         record.setDamageDescription(request.getDamageDescription());
         record.setEstimatedCost(request.getEstimatedCost());
         record.setBeforeImages(request.getBeforeImages());
-        record.setRepairExpert(request.getRepairExpert());  // 保存修复专家（可为空）
+        record.setRepairExpert(request.getRepairExpert());
         record.setRemark(request.getRemark());
         
         int result = repairRecordMapper.insert(record);
@@ -143,9 +147,9 @@ public class RepairRecordServiceImpl implements RepairRecordService {
             throw new IllegalArgumentException("只能修改待审批状态的申请");
         }
         
-        // 如果修改了文物，检查新文物状态
+        // 如果修改了文物，检查新文物状态（通过CulturalRelicMapper查询）
         if (request.getRelicId() != null && !request.getRelicId().equals(record.getRelicId())) {
-            com.example.entity.CulturalRelic relic = repairRecordMapper.selectRelicById(request.getRelicId());
+            com.example.entity.CulturalRelic relic = culturalRelicMapper.selectById(request.getRelicId());
             if (relic == null) {
                 throw new IllegalArgumentException("文物不存在");
             }
@@ -218,19 +222,11 @@ public class RepairRecordServiceImpl implements RepairRecordService {
         
         boolean updated = repairRecordMapper.updateById(record) > 0;
         
-        // 发送修复审批结果通知（如果需要通知申请人）
+        // 发送修复审批结果通知
         if (updated) {
             try {
-                com.example.entity.CulturalRelic relic = repairRecordMapper.selectRelicById(record.getRelicId());
+                com.example.entity.CulturalRelic relic = culturalRelicMapper.selectById(record.getRelicId());
                 if (relic != null) {
-                    // 这里需要获取申请人ID，可以从record中获取或者通过其他方式
-                    // notificationService.sendRepairApprovalNotification(
-                    //     record.getId(),
-                    //     applicantId,
-                    //     relic.getRelicName(),
-                    //     approved,
-                    //     approver
-                    // );
                     log.info("修复审批结果通知已发送：repairId={}, approved={}, approver={}", 
                             record.getId(), approved, approver);
                 }
@@ -254,8 +250,8 @@ public class RepairRecordServiceImpl implements RepairRecordService {
             throw new IllegalArgumentException("当前状态不允许开始修复");
         }
         
-        // 检查文物状态
-        com.example.entity.CulturalRelic relic = repairRecordMapper.selectRelicById(record.getRelicId());
+        // 检查文物状态（通过CulturalRelicMapper查询）
+        com.example.entity.CulturalRelic relic = culturalRelicMapper.selectById(record.getRelicId());
         if (relic == null) {
             throw new IllegalArgumentException("文物不存在");
         }
@@ -266,12 +262,11 @@ public class RepairRecordServiceImpl implements RepairRecordService {
         
         boolean updated = repairRecordMapper.updateById(record) > 0;
         
-        // 更新文物状态为"修复中"
+        // 更新文物状态为"修复中"（通过CulturalRelicMapper）
         if (updated) {
             relic.setStatus("修复中");
             relic.setUpdateTime(LocalDateTime.now());
-            // 需要通过CulturalRelicMapper更新
-            updateRelicStatus(relic);
+            culturalRelicMapper.updateById(relic);
         }
         
         log.info("开始修复：id={}, repairCode={}, expert={}", id, record.getRepairCode(), record.getRepairExpert());
@@ -297,7 +292,6 @@ public class RepairRecordServiceImpl implements RepairRecordService {
         if (request.getRepairMethod() != null) {
             record.setRepairMethod(request.getRepairMethod());
         }
-        // 注意：材料使用信息通过repair_record_material关联表管理
         if (request.getActualCost() != null) {
             record.setActualCost(request.getActualCost());
         }
@@ -325,8 +319,8 @@ public class RepairRecordServiceImpl implements RepairRecordService {
             throw new IllegalArgumentException("当前状态不允许完成修复");
         }
         
-        // 检查文物状态
-        com.example.entity.CulturalRelic relic = repairRecordMapper.selectRelicById(record.getRelicId());
+        // 检查文物状态（通过CulturalRelicMapper查询）
+        com.example.entity.CulturalRelic relic = culturalRelicMapper.selectById(record.getRelicId());
         if (relic == null) {
             throw new IllegalArgumentException("文物不存在");
         }
@@ -342,7 +336,6 @@ public class RepairRecordServiceImpl implements RepairRecordService {
             if (request.getRepairMethod() != null) {
                 record.setRepairMethod(request.getRepairMethod());
             }
-            // 注意：材料使用信息通过repair_record_material关联表管理
             if (request.getActualCost() != null) {
                 record.setActualCost(request.getActualCost());
             }
@@ -362,23 +355,16 @@ public class RepairRecordServiceImpl implements RepairRecordService {
         
         boolean updated = repairRecordMapper.updateById(record) > 0;
         
-        // 更新文物状态为"在库"
+        // 更新文物状态为"在库"（通过CulturalRelicMapper）
         if (updated) {
             relic.setStatus("在库");
             relic.setUpdateTime(LocalDateTime.now());
-            updateRelicStatus(relic);
+            culturalRelicMapper.updateById(relic);
         }
         
         log.info("完成修复：id={}, repairCode={}, qualityScore={}", id, record.getRepairCode(), record.getQualityScore());
         
         return updated;
-    }
-    
-    /**
-     * 更新文物状态（通过Mapper）
-     */
-    private void updateRelicStatus(com.example.entity.CulturalRelic relic) {
-        repairRecordMapper.updateRelicStatus(relic.getId(), relic.getStatus(), relic.getUpdateTime());
     }
     
     @Override

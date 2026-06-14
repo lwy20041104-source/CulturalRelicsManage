@@ -42,6 +42,7 @@
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
           <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
+          <el-button v-if="scope.row.accountLocked === 1" link type="warning" @click="unlockAccount(scope.row)">{{ $t('user.unlock') }}</el-button>
           <el-button link type="danger" @click="remove(scope.row)">{{ $t('common.delete') }}</el-button>
         </template>
       </el-table-column>
@@ -141,7 +142,7 @@
 import { onMounted, reactive, ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { getUsersPageApi, getUserRolesApi, addUserApi, updateUserApi, deleteUserApi } from '../api/users'
+import { getUsersPageApi, getUserRolesApi, addUserApi, updateUserApi, deleteUserApi, unlockUserApi } from '../api/users'
 
 const { t } = useI18n()
 
@@ -370,6 +371,17 @@ const remove = async (row) => {
   await ElMessageBox.confirm(t('employee.deleteConfirm'), t('common.warning'), { type: 'warning' })
   await deleteUserApi(row.id)
   ElMessage.success(t('common.deleteSuccess'))
+  loadData()
+}
+
+const unlockAccount = async (row) => {
+  await ElMessageBox.confirm(
+    t('user.unlockConfirm', { name: row.realName || row.username }),
+    t('common.warning'),
+    { type: 'warning' }
+  )
+  await unlockUserApi(row.id)
+  ElMessage.success(t('user.unlockSuccess'))
   loadData()
 }
 

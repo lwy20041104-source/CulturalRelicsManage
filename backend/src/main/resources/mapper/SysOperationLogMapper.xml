@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SysOperationLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.SysOperationLog">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="operator" column="operator"/>
+        <result property="operationType" column="operation_type"/>
+        <result property="operationModule" column="operation_module"/>
+        <result property="operationContent" column="operation_content"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="resourceId" column="resource_id"/>
+        <result property="beforeData" column="before_data"/>
+        <result property="afterData" column="after_data"/>
+        <result property="changedFields" column="changed_fields"/>
+        <result property="operationResult" column="operation_result"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="requestMethod" column="request_method"/>
+        <result property="requestUrl" column="request_url"/>
+        <result property="requestParams" column="request_params"/>
+        <result property="responseData" column="response_data"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="executionTime" column="execution_time"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="browser" column="browser"/>
+        <result property="os" column="os"/>
+        <result property="operationTime" column="operation_time"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.entity.SysOperationLog">
+        INSERT INTO sys_operation_log (operator, operation_type, operation_module, operation_content, operation_result, ip_address, operation_time)
+        VALUES (#{operator}, #{operationType}, #{operationModule}, #{operationContent}, #{operationResult}, #{ipAddress}, #{operationTime})
+    </insert>
+
+    <insert id="insertEnhanced" parameterType="com.example.entity.SysOperationLog"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_operation_log (
+            user_id, operator, operation_type, operation_module, operation_content,
+            resource_type, resource_id, before_data, after_data, changed_fields,
+            operation_result, ip_address, request_method, request_url, request_params,
+            response_data, error_message, execution_time, user_agent, browser, os, operation_time
+        ) VALUES (
+            #{userId}, #{operator}, #{operationType}, #{operationModule}, #{operationContent},
+            #{resourceType}, #{resourceId}, #{beforeData}, #{afterData}, #{changedFields},
+            #{operationResult}, #{ipAddress}, #{requestMethod}, #{requestUrl}, #{requestParams},
+            #{responseData}, #{errorMessage}, #{executionTime}, #{userAgent}, #{browser}, #{os}, #{operationTime}
+        )
+    </insert>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT * FROM sys_operation_log
+        WHERE 1=1
+        <if test="operator != null and operator != ''">
+            AND operator LIKE CONCAT('%', #{operator}, '%')
+        </if>
+        <if test="operationType != null and operationType != ''">
+            AND operation_type = #{operationType}
+        </if>
+        <if test="operationModule != null and operationModule != ''">
+            AND operation_module LIKE CONCAT('%', #{operationModule}, '%')
+        </if>
+        ORDER BY operation_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="countPage" resultType="long">
+        SELECT COUNT(*) FROM sys_operation_log
+        WHERE 1=1
+        <if test="operator != null and operator != ''">
+            AND operator LIKE CONCAT('%', #{operator}, '%')
+        </if>
+        <if test="operationType != null and operationType != ''">
+            AND operation_type = #{operationType}
+        </if>
+        <if test="operationModule != null and operationModule != ''">
+            AND operation_module LIKE CONCAT('%', #{operationModule}, '%')
+        </if>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM sys_operation_log WHERE id = #{id}
+    </select>
+
+    <select id="getResourceHistory" resultMap="BaseResultMap">
+        SELECT * FROM sys_operation_log
+        WHERE resource_type = #{resourceType} AND resource_id = #{resourceId}
+        ORDER BY operation_time DESC
+    </select>
+
+    <select id="getUserOperationStatistics" resultType="java.util.HashMap">
+        SELECT
+            DATE(operation_time) AS log_date,
+            operation_type,
+            COUNT(*) AS operation_count,
+            COUNT(CASE WHEN operation_result = 'SUCCESS' THEN 1 END) AS success_count,
+            COUNT(CASE WHEN operation_result = 'FAIL' THEN 1 END) AS fail_count
+        FROM sys_operation_log
+        WHERE user_id = #{userId}
+          AND operation_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY DATE(operation_time), operation_type
+        ORDER BY log_date DESC
+    </select>
+
+    <select id="getOperationStatistics" resultType="java.util.HashMap">
+        SELECT
+            DATE(operation_time) AS log_date,
+            operation_type,
+            operation_module,
+            COUNT(*) AS operation_count,
+            COUNT(DISTINCT user_id) AS user_count,
+            AVG(execution_time) AS avg_execution_time,
+            MAX(execution_time) AS max_execution_time
+        FROM sys_operation_log
+        WHERE operation_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY DATE(operation_time), operation_type, operation_module
+        ORDER BY log_date DESC, operation_count DESC
+    </select>
+
+    <delete id="cleanOldLogs">
+        DELETE FROM sys_operation_log
+        WHERE operation_time &lt; DATE_SUB(NOW(), INTERVAL #{days} DAY)
+    </delete>
+
+</mapper>

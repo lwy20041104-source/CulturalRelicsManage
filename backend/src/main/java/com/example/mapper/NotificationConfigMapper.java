@@ -10,4 +10,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface NotificationConfigMapper {
     NotificationConfig selectByUserIdAndType(@Param("userId") Long userId, @Param("notificationType") String notificationType);
+    int insert(NotificationConfig config);
+    int updateById(NotificationConfig config);
 }

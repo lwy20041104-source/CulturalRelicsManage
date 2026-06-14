@@ -76,16 +76,10 @@ public interface RepairRecordMapper {
      * 按日期范围统计修复记录数
      */
     long countByDateRange(@Param("startDate") String startDate, @Param("endDate") String endDate);
-    
+
     /**
-     * 根据文物ID查询文物信息
+     * 查询正在进行修复的文物ID列表（状态：待审批、待修复、修复中）
+     * 供其他Service层调用，用于过滤不可用于修复的文物
      */
-    com.example.entity.CulturalRelic selectRelicById(@Param("relicId") Long relicId);
-    
-    /**
-     * 更新文物状态
-     */
-    int updateRelicStatus(@Param("relicId") Long relicId, 
-                          @Param("status") String status, 
-                          @Param("updateTime") java.time.LocalDateTime updateTime);
+    List<Long> selectInProgressRelicIds();
 }

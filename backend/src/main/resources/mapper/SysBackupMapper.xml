@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SysBackupMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.SysBackup">
+        <id property="id" column="id"/>
+        <result property="backupName" column="backup_name"/>
+        <result property="backupType" column="backup_type"/>
+        <result property="backupStatus" column="backup_status"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="isEncrypted" column="is_encrypted"/>
+        <result property="backupTables" column="backup_tables"/>
+        <result property="description" column="description"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM sys_backup WHERE deleted = 0
+        <if test="backupType != null and backupType != ''">
+            AND backup_type = #{backupType}
+        </if>
+        <if test="backupStatus != null and backupStatus != ''">
+            AND backup_status = #{backupStatus}
+        </if>
+        ORDER BY created_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*) FROM sys_backup WHERE deleted = 0
+        <if test="backupType != null and backupType != ''">
+            AND backup_type = #{backupType}
+        </if>
+        <if test="backupStatus != null and backupStatus != ''">
+            AND backup_status = #{backupStatus}
+        </if>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM sys_backup WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.SysBackup"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_backup (backup_name, backup_type, backup_status, file_name, file_path,
+        file_size, is_encrypted, backup_tables, description, error_message, created_by, created_time, deleted)
+        VALUES (#{backupName}, #{backupType}, #{backupStatus}, #{fileName}, #{filePath},
+        #{fileSize}, #{isEncrypted}, #{backupTables}, #{description}, #{errorMessage}, #{createdBy}, #{createdTime}, 0)
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.SysBackup">
+        UPDATE sys_backup SET
+            backup_status = #{backupStatus},
+            file_size = #{fileSize},
+            error_message = #{errorMessage}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteById">
+        UPDATE sys_backup SET deleted = 1 WHERE id = #{id}
+    </update>
+
+    <select id="selectExpiredBackups" resultMap="BaseResultMap">
+        SELECT * FROM sys_backup
+        WHERE deleted = 0 AND backup_type = 'auto'
+          AND created_time &lt; #{expireTime}
+    </select>
+
+    <select id="getAllTables" resultType="string">
+        SHOW TABLES
+    </select>
+
+    <select id="getDatabaseName" resultType="string">
+        SELECT DATABASE()
+    </select>
+
+</mapper>

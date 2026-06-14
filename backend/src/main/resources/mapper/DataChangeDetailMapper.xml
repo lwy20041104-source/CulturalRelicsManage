@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.DataChangeDetailMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.DataChangeDetail">
+        <id property="id" column="id"/>
+        <result property="logId" column="log_id"/>
+        <result property="fieldName" column="field_name"/>
+        <result property="fieldLabel" column="field_label"/>
+        <result property="oldValue" column="old_value"/>
+        <result property="newValue" column="new_value"/>
+        <result property="valueType" column="value_type"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.entity.DataChangeDetail"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_data_change_detail (
+            log_id, field_name, field_label, old_value, new_value, value_type, create_time
+        ) VALUES (
+            #{logId}, #{fieldName}, #{fieldLabel}, #{oldValue}, #{newValue}, #{valueType}, #{createTime}
+        )
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO sys_data_change_detail (
+            log_id, field_name, field_label, old_value, new_value, value_type, create_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.logId}, #{item.fieldName}, #{item.fieldLabel}, #{item.oldValue},
+             #{item.newValue}, #{item.valueType}, #{item.createTime})
+        </foreach>
+    </insert>
+
+    <select id="selectByLogId" resultMap="BaseResultMap">
+        SELECT * FROM sys_data_change_detail WHERE log_id = #{logId} ORDER BY id
+    </select>
+
+    <delete id="deleteByLogId">
+        DELETE FROM sys_data_change_detail WHERE log_id = #{logId}
+    </delete>
+
+</mapper>

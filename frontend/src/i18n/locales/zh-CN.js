@@ -460,7 +460,8 @@ export default {
     defaultApprover: '审批员',
     approvePass: '审批通过',
     approveReject: '审批驳回',
-    relicDeleted: '文物已删除'
+    relicDeleted: '文物已删除',
+    overdueQuery: '逾期查询'
   },
   
   repair: {
@@ -726,7 +727,10 @@ export default {
     pleaseInputPasswordFirst: '请先输入密码',
     museum: '所属博物馆',
     selectMuseum: '请选择博物馆',
-    museumRequired: '借展人必须选择所属博物馆'
+    museumRequired: '借展人必须选择所属博物馆',
+    unlock: '解锁',
+    unlockConfirm: '确定要解锁用户 {name} 吗？',
+    unlockSuccess: '账户解锁成功'
   },
   
   validation: {

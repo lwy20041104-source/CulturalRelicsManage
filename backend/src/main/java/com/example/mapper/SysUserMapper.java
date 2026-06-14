@@ -11,7 +11,12 @@ public interface SysUserMapper {
     SysUser selectByUsername(@Param("username") String username);
     SysUser selectActiveByUsername(@Param("username") String username);
     SysUser selectById(@Param("id") Long id);
-    SysUser selectByRealName(@Param("realName") String realName);
+    
+    /**
+     * 根据真实姓名查询用户列表（真实姓名可能不唯一）
+     */
+    List<SysUser> selectByRealName(@Param("realName") String realName);
+    
     List<SysUser> selectPage(@Param("offset") Integer offset,
                              @Param("pageSize") Integer pageSize,
                              @Param("realName") String realName,

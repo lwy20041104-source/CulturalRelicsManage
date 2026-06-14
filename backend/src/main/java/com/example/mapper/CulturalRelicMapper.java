@@ -34,9 +34,10 @@ public interface CulturalRelicMapper {
     int deleteById(@Param("id") Long id);
     
     /**
-     * 查询可用于修复的文物列表（排除有正在进行修复的文物）
+     * 查询可用于修复的文物列表（排除指定ID列表的文物）
+     * 排除列表由Service层通过RepairRecordService获取
      */
-    List<CulturalRelic> selectAvailableForRepair();
+    List<CulturalRelic> selectAvailableForRepair(@Param("excludeIds") java.util.List<Long> excludeIds);
     
     /**
      * 清除3D模型信息（显式设置为NULL）

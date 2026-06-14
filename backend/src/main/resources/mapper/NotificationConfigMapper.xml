@@ -20,4 +20,18 @@
         LIMIT 1
     </select>
 
+    <insert id="insert" parameterType="com.example.entity.NotificationConfig" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO notification_config (user_id, notification_type, enabled, create_time, update_time)
+        VALUES (#{userId}, #{notificationType}, #{enabled}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.NotificationConfig">
+        UPDATE notification_config
+        <set>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
 </mapper>

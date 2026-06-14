@@ -80,8 +80,9 @@ public class LoanRecordController {
         
         // 从borrowerName获取borrowerId
         if (loanRecord.getBorrowerName() != null && !loanRecord.getBorrowerName().isEmpty()) {
-            // 先尝试通过real_name查询
-            SysUser user = sysUserMapper.selectByRealName(loanRecord.getBorrowerName());
+            // 先尝试通过real_name查询（返回列表，取第一个匹配）
+            List<SysUser> users = sysUserMapper.selectByRealName(loanRecord.getBorrowerName());
+            SysUser user = (users != null && !users.isEmpty()) ? users.get(0) : null;
             if (user == null) {
                 // 如果找不到，尝试通过username查询
                 user = sysUserMapper.selectByUsername(loanRecord.getBorrowerName());

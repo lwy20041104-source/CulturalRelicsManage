@@ -17,7 +17,6 @@
         <result property="roleCode" column="role_code"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
-        <!-- 登录安全字段 -->
         <result property="loginFailedCount" column="login_failed_count"/>
         <result property="accountLocked" column="account_locked"/>
         <result property="lockedTime" column="locked_time"/>
@@ -60,7 +59,6 @@
         FROM sys_user su
                  LEFT JOIN sys_role sr ON su.role_id = sr.id
         WHERE su.real_name = #{realName}
-        LIMIT 1
     </select>
 
     <select id="selectPage" resultMap="BaseResultMap">

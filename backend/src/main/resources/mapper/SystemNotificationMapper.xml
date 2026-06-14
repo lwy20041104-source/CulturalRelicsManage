@@ -31,4 +31,50 @@
         LIMIT 1
     </select>
 
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT id, title, content, type, priority, related_type, related_id, sender_id, sender_name, create_time
+        FROM system_notification
+        <where>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+            <if test="priority != null and priority != ''">
+                AND priority = #{priority}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1) FROM system_notification
+        <where>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+            <if test="priority != null and priority != ''">
+                AND priority = #{priority}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateById" parameterType="com.example.entity.SystemNotification">
+        UPDATE system_notification
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="relatedType != null">related_type = #{relatedType},</if>
+            <if test="relatedId != null">related_id = #{relatedId},</if>
+            <if test="senderId != null">sender_id = #{senderId},</if>
+            <if test="senderName != null">sender_name = #{senderName},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM system_notification WHERE id = #{id}
+    </delete>
+
 </mapper>

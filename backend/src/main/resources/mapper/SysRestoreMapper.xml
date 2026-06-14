@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SysRestoreMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.SysRestore">
+        <id property="id" column="id"/>
+        <result property="backupId" column="backup_id"/>
+        <result property="restoreStatus" column="restore_status"/>
+        <result property="restoreType" column="restore_type"/>
+        <result property="restoreTables" column="restore_tables"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="completedTime" column="completed_time"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.entity.SysRestore"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_restore (backup_id, restore_status, restore_type, restore_tables,
+        error_message, created_by, created_time)
+        VALUES (#{backupId}, #{restoreStatus}, #{restoreType}, #{restoreTables},
+        #{errorMessage}, #{createdBy}, #{createdTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.example.entity.SysRestore">
+        UPDATE sys_restore SET
+            restore_status = #{restoreStatus},
+            error_message = #{errorMessage},
+            completed_time = #{completedTime}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

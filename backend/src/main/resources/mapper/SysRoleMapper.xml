@@ -12,4 +12,8 @@
         SELECT * FROM sys_role WHERE status = 1 ORDER BY id ASC
     </select>
 
+    <select id="selectByRoleCode" resultType="com.example.entity.SysRole">
+        SELECT * FROM sys_role WHERE role_code = #{roleCode} AND status = 1 LIMIT 1
+    </select>
+
 </mapper>

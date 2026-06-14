@@ -85,4 +85,24 @@
         </where>
     </select>
 
+    <select id="countUnreadByUserId" resultType="int">
+        SELECT COUNT(*) FROM user_notification WHERE user_id = #{userId} AND is_read = 0
+    </select>
+
+    <select id="countByType" resultType="int">
+        SELECT COUNT(*) FROM user_notification un
+        INNER JOIN system_notification sn ON un.notification_id = sn.id
+        WHERE sn.type = #{type} AND sn.create_time >= #{startDate} AND sn.create_time &lt;= #{endDate}
+    </select>
+
+    <select id="countReadNotifications" resultType="int">
+        SELECT COUNT(*) FROM user_notification
+        WHERE is_read = 1 AND create_time >= #{startDate} AND create_time &lt;= #{endDate}
+    </select>
+
+    <select id="countTotalNotifications" resultType="int">
+        SELECT COUNT(*) FROM user_notification
+        WHERE create_time >= #{startDate} AND create_time &lt;= #{endDate}
+    </select>
+
 </mapper>

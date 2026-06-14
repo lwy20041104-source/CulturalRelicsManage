@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ArchiveRelationMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.ArchiveRelation">
+        <id property="id" column="id"/>
+        <result property="archiveId" column="archive_id"/>
+        <result property="relationType" column="relation_type"/>
+        <result property="relationId" column="relation_id"/>
+        <result property="relationTime" column="relation_time"/>
+        <result property="relationDesc" column="relation_desc"/>
+    </resultMap>
+
+    <select id="selectByArchiveId" resultMap="BaseResultMap">
+        SELECT * FROM archive_relation
+        WHERE archive_id = #{archiveId}
+        ORDER BY relation_time DESC
+    </select>
+
+    <select id="selectByArchiveIdAndType" resultMap="BaseResultMap">
+        SELECT * FROM archive_relation
+        WHERE archive_id = #{archiveId} AND relation_type = #{relationType}
+        ORDER BY relation_time DESC
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.ArchiveRelation"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO archive_relation (archive_id, relation_type, relation_id, relation_time, relation_desc)
+        VALUES (#{archiveId}, #{relationType}, #{relationId}, #{relationTime}, #{relationDesc})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM archive_relation WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByArchiveId">
+        DELETE FROM archive_relation WHERE archive_id = #{archiveId}
+    </delete>
+
+    <select id="existsRelation" resultType="int">
+        SELECT COUNT(*) FROM archive_relation
+        WHERE archive_id = #{archiveId} AND relation_type = #{relationType} AND relation_id = #{relationId}
+    </select>
+
+</mapper>

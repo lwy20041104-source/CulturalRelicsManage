@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ImageLibraryMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.ImageLibrary">
+        <id property="id" column="id"/>
+        <result property="imageName" column="image_name"/>
+        <result property="originalName" column="original_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="fileType" column="file_type"/>
+        <result property="width" column="width"/>
+        <result property="height" column="height"/>
+        <result property="category" column="category"/>
+        <result property="tags" column="tags"/>
+        <result property="description" column="description"/>
+        <result property="uploaderId" column="uploader_id"/>
+        <result property="uploaderName" column="uploader_name"/>
+        <result property="isPublic" column="is_public"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="downloadCount" column="download_count"/>
+        <result property="status" column="status"/>
+        <result property="referenceType" column="reference_type"/>
+        <result property="referenceId" column="reference_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.entity.ImageLibrary"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO image_library (image_name, original_name, file_path, file_size, file_type,
+        width, height, category, tags, description, uploader_id, uploader_name,
+        is_public, view_count, download_count, status, create_time, update_time)
+        VALUES (#{imageName}, #{originalName}, #{filePath}, #{fileSize}, #{fileType},
+        #{width}, #{height}, #{category}, #{tags}, #{description}, #{uploaderId}, #{uploaderName},
+        #{isPublic}, #{viewCount}, #{downloadCount}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM image_library WHERE id = #{id}
+    </select>
+
+    <update id="updateById" parameterType="com.example.entity.ImageLibrary">
+        UPDATE image_library SET
+            image_name = #{imageName},
+            category = #{category},
+            tags = #{tags},
+            description = #{description},
+            is_public = #{isPublic},
+            reference_type = #{referenceType},
+            reference_id = #{referenceId},
+            update_time = #{updateTime},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM image_library WHERE id = #{id}
+    </delete>
+
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT * FROM image_library WHERE status = 1
+        <if test="imageName != null and imageName != ''">
+            AND image_name LIKE CONCAT('%', #{imageName}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="uploaderId != null">
+            AND uploader_id = #{uploaderId}
+        </if>
+        <if test="tags != null and tags != ''">
+            AND tags LIKE CONCAT('%', #{tags}, '%')
+        </if>
+        ORDER BY create_time DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM image_library WHERE status = 1
+        <if test="imageName != null and imageName != ''">
+            AND image_name LIKE CONCAT('%', #{imageName}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="uploaderId != null">
+            AND uploader_id = #{uploaderId}
+        </if>
+        <if test="tags != null and tags != ''">
+            AND tags LIKE CONCAT('%', #{tags}, '%')
+        </if>
+    </select>
+
+    <select id="selectByReference" resultMap="BaseResultMap">
+        SELECT * FROM image_library
+        WHERE status = 1
+          AND reference_type = #{referenceType}
+          AND reference_id = #{referenceId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="searchByKeyword" resultMap="BaseResultMap">
+        SELECT * FROM image_library WHERE status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (image_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR tags LIKE CONCAT('%', #{keyword}, '%')
+                 OR description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <update id="incrementViewCount">
+        UPDATE image_library SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementDownloadCount">
+        UPDATE image_library SET download_count = download_count + 1 WHERE id = #{id}
+    </update>
+
+    <select id="getCategoryStats" resultType="java.util.HashMap">
+        SELECT category, COUNT(*) as count, SUM(file_size) as totalSize
+        FROM image_library WHERE status = 1 GROUP BY category
+    </select>
+
+    <select id="getUploaderStats" resultType="java.util.HashMap">
+        SELECT uploader_name, COUNT(*) as count
+        FROM image_library WHERE status = 1 GROUP BY uploader_name
+        ORDER BY count DESC LIMIT 10
+    </select>
+
+    <select id="getStorageStats" resultType="java.util.HashMap">
+        SELECT
+            COUNT(*) as totalCount,
+            SUM(file_size) as totalSize,
+            AVG(file_size) as avgSize,
+            MAX(file_size) as maxSize
+        FROM image_library WHERE status = 1
+    </select>
+
+</mapper>

@@ -4,6 +4,7 @@ import com.baidu.aip.imageclassify.AipImageClassify;
 import com.example.config.BaiduAiConfig;
 import com.example.dto.ImageRecognitionResult;
 import com.example.dto.ImageRecognitionResult.CategorySuggestion;
+import com.example.service.BaiduAiRecognitionService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,7 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class BaiduAiRecognitionServiceImpl {
+public class BaiduAiRecognitionServiceImpl implements BaiduAiRecognitionService {
 
     private final AipImageClassify aipImageClassify;
     private final BaiduAiConfig baiduAiConfig;
@@ -304,6 +305,7 @@ public class BaiduAiRecognitionServiceImpl {
     /**
      * 检查百度AI是否可用
      */
+    @Override
     public boolean isAvailable() {
         return baiduAiConfig.isEnabled() && aipImageClassify != null;
     }
@@ -311,6 +313,7 @@ public class BaiduAiRecognitionServiceImpl {
     /**
      * 使用百度AI识别图片
      */
+    @Override
     public ImageRecognitionResult recognizeWithBaiduAi(byte[] imageData) {
         if (!isAvailable()) {
             log.warn("百度AI不可用");

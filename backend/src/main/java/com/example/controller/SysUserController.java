@@ -215,16 +215,22 @@ public class SysUserController {
     }
     
     /**
-     * 解锁用户账户
+     * 解锁用户账户（通过用户ID）
      */
     @PostMapping("/{userId}/unlock")
     @OperationLog(operationType = "解锁", operationModule = "用户管理", operationContent = "解锁用户账户")
     public Result<Boolean> unlockAccount(@PathVariable Long userId) {
         try {
-            SysUser user = sysUserService.getUserByUsername(null);
-            // 通过ID获取用户
-            // 这里需要添加通过ID获取用户的方法
-            // 暂时通过用户名解锁
+            SysUser user = sysUserService.getUserById(userId);
+            if (user == null) {
+                return Result.error("用户不存在");
+            }
+            loginSecurityService.unlockAccount(user.getUsername());
+            // 同步更新用户的 account_locked 状态
+            SysUser updateUser = new SysUser();
+            updateUser.setId(user.getId());
+            updateUser.setAccountLocked(0);
+            sysUserService.updateById(updateUser);
             return Result.success("账户解锁成功", true);
         } catch (Exception e) {
             return Result.error("解锁失败：" + e.getMessage());

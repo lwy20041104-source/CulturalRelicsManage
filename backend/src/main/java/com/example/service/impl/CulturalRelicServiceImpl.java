@@ -4,6 +4,7 @@ import com.example.common.CacheConstants;
 import com.example.common.PageResult;
 import com.example.entity.CulturalRelic;
 import com.example.mapper.CulturalRelicMapper;
+import com.example.mapper.RepairRecordMapper;
 import com.example.service.CulturalRelicService;
 import com.example.service.RelicImageRelationService;
 import com.example.util.ExportUtils;
@@ -30,11 +31,14 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
 
     private final CulturalRelicMapper culturalRelicMapper;
     private final RelicImageRelationService relicImageRelationService;
+    private final RepairRecordMapper repairRecordMapper;
 
     public CulturalRelicServiceImpl(CulturalRelicMapper culturalRelicMapper,
-                                   com.example.service.RelicImageRelationService relicImageRelationService) {
+                                   com.example.service.RelicImageRelationService relicImageRelationService,
+                                   RepairRecordMapper repairRecordMapper) {
         this.culturalRelicMapper = culturalRelicMapper;
         this.relicImageRelationService = relicImageRelationService;
+        this.repairRecordMapper = repairRecordMapper;
     }
 
     @Override
@@ -369,7 +373,9 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
 
     @Override
     public List<CulturalRelic> getAvailableForRepair() {
-        return culturalRelicMapper.selectAvailableForRepair();
+        // 获取正在进行修复的文物ID列表（修复业务逻辑在Service层组装，而非Mapper层硬编码）
+        List<Long> inProgressRelicIds = repairRecordMapper.selectInProgressRelicIds();
+        return culturalRelicMapper.selectAvailableForRepair(inProgressRelicIds);
     }
 
     @Override

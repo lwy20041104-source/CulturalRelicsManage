@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.RelicImageRelationMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.RelicImageRelation">
+        <id property="id" column="id"/>
+        <result property="relicId" column="relic_id"/>
+        <result property="imageId" column="image_id"/>
+        <result property="relationType" column="relation_type"/>
+        <result property="isMain" column="is_main"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap id="WithImageResultMap" type="com.example.entity.RelicImageRelation" extends="BaseResultMap">
+        <association property="image" javaType="com.example.entity.ImageLibrary">
+            <id property="id" column="image_id"/>
+            <result property="imageName" column="image_name"/>
+            <result property="fileName" column="file_name"/>
+            <result property="filePath" column="file_path"/>
+            <result property="fileSize" column="file_size"/>
+            <result property="width" column="width"/>
+            <result property="height" column="height"/>
+            <result property="fileType" column="file_type"/>
+        </association>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.entity.RelicImageRelation"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO relic_image_relation (relic_id, image_id, relation_type, is_main, sort_order, create_time, update_time)
+        VALUES (#{relicId}, #{imageId}, #{relationType}, #{isMain}, #{sortOrder}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM relic_image_relation WHERE id = #{id}
+    </select>
+
+    <select id="selectByRelicId" resultMap="BaseResultMap">
+        SELECT * FROM relic_image_relation WHERE relic_id = #{relicId} LIMIT 1
+    </select>
+
+    <select id="selectAllByRelicId" resultMap="BaseResultMap">
+        SELECT * FROM relic_image_relation
+        WHERE relic_id = #{relicId}
+        ORDER BY is_main DESC, sort_order ASC
+    </select>
+
+    <select id="selectAllByRelicIdWithImage" resultMap="WithImageResultMap">
+        SELECT r.id, r.relic_id, r.image_id, r.relation_type, r.is_main, r.sort_order,
+               r.create_time, r.update_time,
+               i.id AS 'image.id', i.image_name AS 'image.imageName',
+               i.file_name AS 'image.fileName', i.file_path AS 'image.filePath',
+               i.file_size AS 'image.fileSize', i.width AS 'image.width',
+               i.height AS 'image.height', i.file_type AS 'image.fileType'
+        FROM relic_image_relation r
+        LEFT JOIN image_library i ON r.image_id = i.id
+        WHERE r.relic_id = #{relicId}
+        ORDER BY r.is_main DESC, r.sort_order ASC
+    </select>
+
+    <select id="selectByImageId" resultMap="BaseResultMap">
+        SELECT * FROM relic_image_relation WHERE image_id = #{imageId} LIMIT 1
+    </select>
+
+    <select id="selectByRelicIdWithImage" resultMap="WithImageResultMap">
+        SELECT r.*, i.image_name, i.file_path, i.file_size, i.width, i.height, i.file_type
+        FROM relic_image_relation r
+        LEFT JOIN image_library i ON r.image_id = i.id
+        WHERE r.relic_id = #{relicId} AND i.status = 1
+        ORDER BY r.is_main DESC
+        LIMIT 1
+    </select>
+
+    <insert id="batchInsert">
+        INSERT INTO relic_image_relation (relic_id, image_id, relation_type, is_main, sort_order, create_time, update_time)
+        VALUES
+        <foreach collection="relations" item="item" separator=",">
+            (#{item.relicId}, #{item.imageId}, #{item.relationType}, #{item.isMain}, #{item.sortOrder}, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <delete id="deleteByRelicIdAndImageId">
+        DELETE FROM relic_image_relation WHERE relic_id = #{relicId} AND image_id = #{imageId}
+    </delete>
+
+    <update id="updateIsMain">
+        UPDATE relic_image_relation
+        SET is_main = #{isMain}, relation_type = #{relationType}
+        WHERE relic_id = #{relicId} AND image_id = #{imageId}
+    </update>
+
+    <update id="batchUpdateIsMain">
+        UPDATE relic_image_relation
+        SET is_main = #{isMain}, relation_type = #{relationType}
+        WHERE relic_id = #{relicId}
+    </update>
+
+    <update id="updateById" parameterType="com.example.entity.RelicImageRelation">
+        UPDATE relic_image_relation SET
+            image_id = #{imageId},
+            relation_type = #{relationType},
+            is_main = #{isMain},
+            sort_order = #{sortOrder},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM relic_image_relation WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByRelicId">
+        DELETE FROM relic_image_relation WHERE relic_id = #{relicId}
+    </delete>
+
+    <delete id="deleteByImageId">
+        DELETE FROM relic_image_relation WHERE image_id = #{imageId}
+    </delete>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM relic_image_relation ORDER BY create_time DESC
+    </select>
+
+    <select id="countRelicsWithImage" resultType="int">
+        SELECT COUNT(DISTINCT relic_id) FROM relic_image_relation
+    </select>
+
+    <select id="countRelicsWithoutImage" resultType="int">
+        SELECT COUNT(*) FROM cultural_relic r
+        WHERE NOT EXISTS (SELECT 1 FROM relic_image_relation ri WHERE ri.relic_id = r.id)
+    </select>
+
+    <select id="selectImagePathsByRelicIds" resultType="java.util.HashMap">
+        SELECT r.relic_id, i.file_path
+        FROM relic_image_relation r
+        JOIN image_library i ON r.image_id = i.id
+        WHERE r.relic_id IN
+        <foreach item="id" collection="relicIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND i.status = 1
+    </select>
+
+</mapper>
