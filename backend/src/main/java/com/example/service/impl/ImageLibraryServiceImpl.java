@@ -5,7 +5,7 @@ import com.example.common.PageResult;
 import com.example.entity.ImageLibrary;
 import com.example.mapper.ImageLibraryMapper;
 import com.example.service.ImageLibraryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,14 +28,18 @@ import java.util.UUID;
 /**
  * 图片库服务实现类
  */
+@Slf4j
 @Service
 public class ImageLibraryServiceImpl implements ImageLibraryService {
-    
-    @Autowired
-    private ImageLibraryMapper imageLibraryMapper;
-    
+
+    private final ImageLibraryMapper imageLibraryMapper;
+
     @Value("${file.upload-path:./uploads/}")
     private String uploadPath;
+
+    public ImageLibraryServiceImpl(ImageLibraryMapper imageLibraryMapper) {
+        this.imageLibraryMapper = imageLibraryMapper;
+    }
     
     @Override
     @Transactional
@@ -54,7 +58,7 @@ public class ImageLibraryServiceImpl implements ImageLibraryService {
             }
         } catch (Exception e) {
             // 如果读取图片尺寸失败，继续处理，只是尺寸为空
-            System.err.println("无法读取图片尺寸: " + e.getMessage());
+            log.warn("无法读取图片尺寸: {}", e.getMessage());
         }
         
         // 保存文件（这会转移文件，之后无法再读取 InputStream）

@@ -773,7 +773,6 @@
                               :src="resolveImageUrl(relic.imagePath)" 
                               :alt="relic.relicName"
                               @error="(e) => { console.error('图片加载失败:', relic.imagePath, e); e.target.src = 'https://via.placeholder.com/300x200?text=Image+Error' }"
-                              @load="() => console.log('图片加载成功:', relic.imagePath)"
                             />
                           </div>
                           <div v-else class="relic-card-image">
@@ -1478,7 +1477,6 @@ const myLoansStats = reactive({
 
 // 监听activeSection变化，自动加载对应数据
 watch(activeSection, async (newSection) => {
-  console.log('切换到section:', newSection)
   
   // 保存当前页面到localStorage，以便刷新后恢复
   localStorage.setItem('portalActiveSection', newSection)
@@ -1487,7 +1485,6 @@ watch(activeSection, async (newSection) => {
     // 切换到数据大屏时，等待DOM渲染完成后再初始化图表
     await nextTick()
     setTimeout(() => {
-      console.log('数据大屏页面已显示，开始初始化图表...')
       // 销毁旧的图表实例并重置为null
       if (categoryChartPortal) {
         categoryChartPortal.dispose()
@@ -1509,7 +1506,6 @@ watch(activeSection, async (newSection) => {
   } else if (newSection === 'reports') {
     // 切换到报表时，如果还没有加载过年度报告，则加载
     if (!annualData.value) {
-      console.log('首次进入报表页面，加载年度报告...')
       await nextTick()
       setTimeout(() => {
         loadAnnualReport()
@@ -1817,19 +1813,15 @@ const disabledReturnDate = (time) => {
 const backendBaseURL = request.defaults.baseURL  // http://localhost:8080/api
 
 const resolveImageUrl = (imagePath) => {
-  console.log('resolveImageUrl 输入:', imagePath)
   if (!imagePath) {
-    console.log('图片路径为空，返回占位图')
     return 'https://via.placeholder.com/300x200?text=No+Image'
   }
   
   // 如果是外部HTTP/HTTPS图片，使用代理
   if (/^https?:\/\//i.test(imagePath)) {
-    console.log('图片路径是外部URL，使用代理:', imagePath)
     // Base64 编码 URL
     const encodedUrl = btoa(imagePath)
     const proxyUrl = `${backendBaseURL}/proxy/image?url=${encodedUrl}`
-    console.log('代理URL:', proxyUrl)
     return proxyUrl
   }
   
@@ -1839,7 +1831,6 @@ const resolveImageUrl = (imagePath) => {
   if (!normalized.startsWith('/')) normalized = `/${normalized}`
   // 使用完整的 baseURL，包含 /api 前缀
   const fullUrl = `${backendBaseURL}${normalized}`
-  console.log('本地图片路径转换为:', fullUrl)
   return fullUrl
 }
 
@@ -2035,11 +2026,8 @@ const handlePrintDetail = () => {
 
 const loadStatistics = async () => {
   try {
-    console.log('开始加载统计数据...')
     const res = await getOverviewApi()
-    console.log('统计数据响应:', res)
     statistics.value = res.data || {}
-    console.log('统计数据已设置:', statistics.value)
   } catch (error) {
     console.error('加载统计数据失败:', error)
     ElMessage.error(t('loadStatisticsFailed'))
@@ -2048,11 +2036,8 @@ const loadStatistics = async () => {
 
 const loadCategories = async () => {
   try {
-    console.log('开始加载分类数据...')
     const res = await getCategoriesApi({ parentId: null })
-    console.log('分类数据响应:', res)
     categoryList.value = res.data || []
-    console.log('分类数据已设置:', categoryList.value)
   } catch (error) {
     console.error('加载分类失败:', error)
     ElMessage.error(t('loadCategoriesFailed'))
@@ -2061,12 +2046,9 @@ const loadCategories = async () => {
 
 const searchRelics = async () => {
   try {
-    console.log('开始搜索文物...', relicQuery)
     const res = await getRelicsPageApi(relicQuery)
-    console.log('文物数据响应:', res)
     relicList.value = res.data.records || []
     relicTotal.value = res.data.total || 0
-    console.log('文物数据已设置:', relicList.value.length, '条')
   } catch (error) {
     console.error('搜索文物失败:', error)
     ElMessage.error(t('searchRelicsFailed'))
@@ -2086,14 +2068,12 @@ const viewRelicDetail = async (relic) => {
   detailImages.value = []
   if (relic.imagePath) {
     detailImages.value.push(resolveImageUrl(relic.imagePath))
-    console.log('添加主图片:', resolveImageUrl(relic.imagePath))
   }
   
   // 尝试加载更多图片（如果有关联图片API）
   try {
     // 使用 /list/ 端点获取所有图片，而不是 /relic/ 端点（只返回主图）
     const response = await request.get(`/relic-images/list/${relic.id}`)
-    console.log('关联图片API响应:', response)
     
     // 处理返回的数据（可能是对象或数组）
     let relicImages = []
@@ -2107,8 +2087,6 @@ const viewRelicDetail = async (relic) => {
         relicImages = [response.data]
       }
     }
-    
-    console.log('处理后的图片列表:', relicImages)
     
     if (relicImages.length > 0) {
       relicImages.forEach(item => {
@@ -2132,17 +2110,12 @@ const viewRelicDetail = async (relic) => {
           const url = resolveImageUrl(imagePath)
           if (!detailImages.value.includes(url)) {
             detailImages.value.push(url)
-            console.log('添加关联图片:', url)
           }
         }
       })
     }
   } catch (e) {
-    console.log('加载关联图片失败（这是正常的，如果没有关联图片）:', e.message)
   }
-  
-  console.log('最终图片列表:', detailImages.value)
-  console.log('图片数量:', detailImages.value.length)
   
   // 构建时间轴数据
   relicTimeline.value = [
@@ -2197,9 +2170,7 @@ const viewRelicDetail = async (relic) => {
     relatedRelics.value = (response.data.records || [])
       .filter(r => r.id !== relic.id)
       .slice(0, 3)
-    console.log('关联文物:', relatedRelics.value.length, '个')
   } catch (e) {
-    console.log('加载关联文物失败:', e.message)
     relatedRelics.value = []
   }
 }
@@ -2232,11 +2203,8 @@ const getCategoryIcon = (categoryName) => {
 
 const loadAvailableRelics = async () => {
   try {
-    console.log('开始加载可借展文物...')
     const res = await getRelicsPageApi({ pageNum: 1, pageSize: 1000, status: '在库' })
-    console.log('可借展文物响应:', res)
     availableRelics.value = res.data.records || []
-    console.log('可借展文物已设置:', availableRelics.value.length, '条')
   } catch (error) {
     console.error('加载可借展文物失败:', error)
     ElMessage.error(t('loadRelicsFailed'))
@@ -2295,15 +2263,11 @@ const sendAiQuery = async () => {
   aiLoading.value = true
 
   try {
-    console.log('发送AI对话:', question, 'sessionId:', currentSessionId.value)
     const res = await queryRelicAiWithSessionApi(question, false, currentSessionId.value)
-    console.log('AI对话响应:', res)
-    console.log('返回的文物数据:', res.data.relics)
     
     // 检查每个文物的图片路径
     if (res.data.relics && res.data.relics.length > 0) {
       res.data.relics.forEach((relic, index) => {
-        console.log(`文物 ${index + 1} [${relic.relicName}] 图片路径:`, relic.imagePath)
       })
     }
     
@@ -2383,7 +2347,6 @@ const loadSessions = async () => {
     sessionsLoading.value = true
     const res = await getSessionsApi()
     sessionList.value = res.data || []
-    console.log('会话列表已加载:', sessionList.value.length)
   } catch (error) {
     console.error('加载会话列表失败:', error)
   } finally {
@@ -2416,8 +2379,6 @@ const loadSessionMessages = async (sessionId) => {
         })
       }
     }
-    
-    console.log('会话消息已加载:', chatHistory.value.length)
     
     // 滚动到底部
     nextTick(() => {
@@ -2506,16 +2467,13 @@ const deleteSession = async (sessionId) => {
 // 加载年度报告
 const loadAnnualReport = async () => {
   try {
-    console.log('加载年度报告，年份:', annualYear.value)
     const res = await getAnnualReportApi(annualYear.value)
-    console.log('年度报告API响应:', res)
     annualData.value = res.data
     
     await nextTick()
     
     if (!annualChart && annualChartRef.value) {
       annualChart = echarts.init(annualChartRef.value)
-      console.log('年度报告图表已初始化')
     }
     
     if (!annualChart) {
@@ -2524,7 +2482,6 @@ const loadAnnualReport = async () => {
     }
     
     const monthlyTrend = annualData.value.monthlyTrend || []
-    console.log('月度趋势数据:', monthlyTrend)
     
     annualChart.setOption({
       title: { 
@@ -2591,15 +2548,12 @@ const loadTrendAnalysis = async () => {
   
   try {
     const [startDate, endDate] = trendDateRange.value
-    console.log('加载趋势分析:', { startDate, endDate, type: trendType.value })
     const res = await getTrendAnalysisApi(startDate, endDate, trendType.value)
-    console.log('趋势分析API响应:', res)
     
     await nextTick()
     
     if (!trendChart && trendChartRef.value) {
       trendChart = echarts.init(trendChartRef.value)
-      console.log('趋势分析图表已初始化')
     }
     
     if (!trendChart) {
@@ -2608,7 +2562,6 @@ const loadTrendAnalysis = async () => {
     }
     
     const dataPoints = res.data.dataPoints || []
-    console.log('趋势数据点:', dataPoints)
     
     trendChart.setOption({
       title: { 
@@ -2638,16 +2591,13 @@ const loadTrendAnalysis = async () => {
 // 加载对比分析
 const loadComparisonAnalysis = async () => {
   try {
-    console.log('加载对比分析:', { year1: comparisonYear1.value, year2: comparisonYear2.value })
     const res = await getComparisonAnalysisApi(comparisonYear1.value, comparisonYear2.value)
-    console.log('对比分析API响应:', res)
     comparisonData.value = res.data
     
     await nextTick()
     
     if (!comparisonChart && comparisonChartRef.value) {
       comparisonChart = echarts.init(comparisonChartRef.value)
-      console.log('对比分析图表已初始化')
     }
     
     if (!comparisonChart) {
@@ -2656,7 +2606,6 @@ const loadComparisonAnalysis = async () => {
     }
     
     const { year1Data, year2Data } = comparisonData.value
-    console.log('对比数据:', { year1Data, year2Data })
     
     comparisonChart.setOption({
       title: { 
@@ -2704,11 +2653,8 @@ const loadComparisonAnalysis = async () => {
 // 加载数据大屏数据
 const loadDashboardData = async () => {
   try {
-    console.log('开始加载数据大屏数据...')
     const res = await getDashboardDataApi()
-    console.log('数据大屏API响应:', res)
     dashboardData.value = res.data || {}
-    console.log('数据大屏数据已设置:', dashboardData.value)
     
     await nextTick()
     updateDashboardCharts()
@@ -2720,17 +2666,6 @@ const loadDashboardData = async () => {
 
 // 初始化数据大屏图表
 const initDashboardCharts = () => {
-  console.log('初始化数据大屏图表...')
-  console.log('图表ref状态:', {
-    category: !!categoryChartPortalRef.value,
-    status: !!statusChartPortalRef.value,
-    era: !!eraChartPortalRef.value
-  })
-  console.log('图表实例状态:', {
-    categoryChart: !!categoryChartPortal,
-    statusChart: !!statusChartPortal,
-    eraChart: !!eraChartPortal
-  })
   
   if (categoryChartPortalRef.value && !categoryChartPortal) {
     const width = categoryChartPortalRef.value.clientWidth

@@ -10,13 +10,14 @@ import com.example.mapper.SysUserMapper;
 import com.example.service.LoanRecordService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
-import org.springframework.security.core.context.SecurityContextHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/loans")
 public class LoanRecordController {
@@ -116,7 +117,7 @@ public class LoanRecordController {
                 LoanRecord newLoan = loanRecordService.getById(request.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -132,7 +133,7 @@ public class LoanRecordController {
                     "/loans/approve"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -153,7 +154,7 @@ public class LoanRecordController {
                 LoanRecord newLoan = loanRecordService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -169,7 +170,7 @@ public class LoanRecordController {
                     "/loans/" + id + "/return"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -191,7 +192,7 @@ public class LoanRecordController {
             @RequestParam(required = false) String status
     ) {
         // 从 SecurityContext 获取当前用户名
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = userContextUtil.getCurrentUsername();
         return Result.success(loanRecordService.pageMyLoans(pageNum, pageSize, status, username));
     }
 
@@ -204,7 +205,7 @@ public class LoanRecordController {
         LoanRecord oldLoan = loanRecordService.getById(id);
         
         // 2. 从 SecurityContext 获取当前用户名
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username = userContextUtil.getCurrentUsername();
         boolean success = loanRecordService.userReturnLoan(id, username);
         
         // 3. 记录审计日志
@@ -213,7 +214,7 @@ public class LoanRecordController {
                 LoanRecord newLoan = loanRecordService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -229,27 +230,10 @@ public class LoanRecordController {
                     "/loans/" + id + "/user-return"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
         return Result.success("归还申请已提交", success);
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

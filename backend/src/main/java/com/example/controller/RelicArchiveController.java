@@ -9,7 +9,7 @@ import com.example.entity.RelicArchive;
 import com.example.service.RelicArchiveService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,18 +20,22 @@ import java.util.List;
 /**
  * 文物档案管理控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/archives")
 public class RelicArchiveController {
-    
-    @Autowired
-    private RelicArchiveService archiveService;
-    
-    @Autowired
-    private SysOperationLogService operationLogService;
-    
-    @Autowired
-    private UserContextUtil userContextUtil;
+
+    private final RelicArchiveService archiveService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
+
+    public RelicArchiveController(RelicArchiveService archiveService,
+                                  SysOperationLogService operationLogService,
+                                  UserContextUtil userContextUtil) {
+        this.archiveService = archiveService;
+        this.operationLogService = operationLogService;
+        this.userContextUtil = userContextUtil;
+    }
     
     /**
      * 分页查询档案列表
@@ -90,7 +94,7 @@ public class RelicArchiveController {
                 RelicArchive newArchive = archiveService.getArchiveDetail(archive.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -106,7 +110,7 @@ public class RelicArchiveController {
                     "/archives"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -129,7 +133,7 @@ public class RelicArchiveController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -145,7 +149,7 @@ public class RelicArchiveController {
                     "/archives/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -207,7 +211,7 @@ public class RelicArchiveController {
                 RelicArchive newArchive = archiveService.getArchiveDetail(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -223,7 +227,7 @@ public class RelicArchiveController {
                     "/archives/" + id + "/publish"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -280,22 +284,5 @@ public class RelicArchiveController {
     @GetMapping("/available-relics")
     public Result<List<com.example.entity.CulturalRelic>> getAvailableRelics() {
         return Result.success(archiveService.getAvailableRelicsForArchive());
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

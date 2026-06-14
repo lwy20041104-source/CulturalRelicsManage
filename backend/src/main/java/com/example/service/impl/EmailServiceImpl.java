@@ -2,7 +2,6 @@ package com.example.service.impl;
 
 import com.example.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,15 +17,18 @@ import javax.mail.internet.MimeMessage;
 @Slf4j
 @Service
 public class EmailServiceImpl implements EmailService {
-    
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
-    
+
+    private final JavaMailSender mailSender;
+
     @Value("${spring.mail.username:}")
     private String from;
-    
+
     @Value("${spring.mail.enabled:false}")
     private boolean mailEnabled;
+
+    public EmailServiceImpl(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
     
     @Override
     public boolean sendVerificationCode(String to, String code, int expireMinutes) {

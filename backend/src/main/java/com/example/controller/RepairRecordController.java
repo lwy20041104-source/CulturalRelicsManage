@@ -11,6 +11,7 @@ import com.example.service.NotificationService;
 import com.example.service.RepairRecordService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 /**
  * 文物修复记录控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/repairs")
 public class RepairRecordController {
@@ -55,21 +57,19 @@ public class RepairRecordController {
             @RequestParam(required = false) String repairExpert,
             Authentication authentication) {
         
-        System.out.println("========== 修复记录查询请求 ==========");
-        System.out.println("请求参数: pageNum=" + pageNum + ", pageSize=" + pageSize);
-        System.out.println("过滤条件: status=[" + status + "], priority=[" + priority + 
-                         "], relicName=[" + relicName + "], repairExpert=[" + repairExpert + "]");
+        log.info("修复记录查询请求: pageNum={}, pageSize={}, status={}, priority={}, relicName={}, repairExpert={}",
+                pageNum, pageSize, status, priority, relicName, repairExpert);
         
         // 获取当前用户权限，判断是否需要过滤申请人
         Long applicantIdFilter = null;
         if (authentication != null) {
             String username = authentication.getName();
-            System.out.println("当前用户: " + username);
+            log.debug("当前用户: {}", username);
             
             java.util.Collection<? extends GrantedAuthority> authorities =
                 authentication.getAuthorities();
             
-            System.out.println("用户权限: " + authorities.stream()
+            log.debug("用户权限: {}", authorities.stream()
                 .map(a -> a.getAuthority())
                 .collect(java.util.stream.Collectors.joining(", ")));
             
@@ -77,31 +77,30 @@ public class RepairRecordController {
             boolean isAdminOrApprover = authorities.stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_APPROVER"));
             
-            System.out.println("是否是管理员或审批员: " + isAdminOrApprover);
+            log.debug("是否是管理员或审批员: {}", isAdminOrApprover);
             
             // 如果不是管理员或审批员（即CURATOR等角色），只查询自己申请的
             if (!isAdminOrApprover) {
                 try {
                     applicantIdFilter = userContextUtil.getCurrentUserId();
-                    System.out.println("保管员权限过滤：只显示申请人ID=" + applicantIdFilter + "的记录");
+                    log.debug("保管员权限过滤：只显示申请人ID={}的记录", applicantIdFilter);
                 } catch (Exception e) {
-                    System.err.println("获取当前用户ID失败: " + e.getMessage());
+                    log.error("获取当前用户ID失败: {}", e.getMessage());
                 }
             } else {
-                System.out.println("管理员权限：显示所有记录");
+                log.debug("管理员权限：显示所有记录");
             }
         }
         
         PageResult<RepairRecord> result = repairRecordService.pageRecords(
                 pageNum, pageSize, status, priority, relicName, repairExpert, applicantIdFilter);
         
-        System.out.println("查询结果: total=" + result.getTotal() + ", records.size=" + result.getRecords().size());
+        log.debug("查询结果: total={}, records.size={}", result.getTotal(), result.getRecords().size());
         if (result.getRecords().size() > 0) {
-            System.out.println("记录状态分布: " + result.getRecords().stream()
+            log.debug("记录状态分布: {}", result.getRecords().stream()
                 .map(RepairRecord::getStatus)
                 .collect(Collectors.groupingBy(s -> s, Collectors.counting())));
         }
-        System.out.println("========================================");
         
         return Result.success(result);
     }
@@ -133,7 +132,7 @@ public class RepairRecordController {
                         return Result.error("无权查看此记录");
                     }
                 } catch (Exception e) {
-                    System.err.println("权限检查失败: " + e.getMessage());
+                    log.error("权限检查失败: {}", e.getMessage());
                     return Result.error("权限验证失败");
                 }
             }
@@ -199,7 +198,7 @@ public class RepairRecordController {
                     return Result.error("无权修改此申请");
                 }
             } catch (Exception e) {
-                System.err.println("权限检查失败: " + e.getMessage());
+                log.error("权限检查失败: {}", e.getMessage());
                 return Result.error("权限验证失败");
             }
         }
@@ -238,10 +237,9 @@ public class RepairRecordController {
                     updatedRecord.getRepairReason(),
                     currentUserId
                 );
-                System.out.println("修复申请更新通知已发送：repairId=" + id + ", relic=" + updatedRecord.getRelicName());
+                log.info("修复申请更新通知已发送：repairId={}, relic={}", id, updatedRecord.getRelicName());
             } catch (Exception e) {
-                System.err.println("发送修复申请更新通知失败: " + e.getMessage());
-                e.printStackTrace();
+                log.error("发送修复申请更新通知失败: {}", e.getMessage(), e);
             }
         }
         
@@ -251,7 +249,7 @@ public class RepairRecordController {
                 RepairRecord newRecord = repairRecordService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -267,7 +265,7 @@ public class RepairRecordController {
                     "/repairs/apply/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -294,7 +292,7 @@ public class RepairRecordController {
                 RepairRecord newRecord = repairRecordService.getById(request.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -310,7 +308,7 @@ public class RepairRecordController {
                     "/repairs/approve"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -326,11 +324,10 @@ public class RepairRecordController {
                     Boolean.TRUE.equals(request.getApproved()),
                     approverRealName
                 );
-                System.out.println("修复审批通知已发送：repairId=" + record.getId() + 
-                                 ", applicantId=" + record.getApplicantId() + 
-                                 ", approved=" + request.getApproved());
+                log.info("修复审批通知已发送：repairId={}, applicantId={}, approved={}",
+                        record.getId(), record.getApplicantId(), request.getApproved());
             } catch (Exception e) {
-                System.err.println("发送审批通知失败: " + e.getMessage());
+                log.error("发送审批通知失败: {}", e.getMessage());
             }
         }
         
@@ -355,7 +352,7 @@ public class RepairRecordController {
                 RepairRecord newRecord = repairRecordService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -371,7 +368,7 @@ public class RepairRecordController {
                     "/repairs/" + id + "/start"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -396,7 +393,7 @@ public class RepairRecordController {
                 RepairRecord newRecord = repairRecordService.getById(request.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -412,7 +409,7 @@ public class RepairRecordController {
                     "/repairs/progress"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -438,7 +435,7 @@ public class RepairRecordController {
                 RepairRecord newRecord = repairRecordService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -454,7 +451,7 @@ public class RepairRecordController {
                     "/repairs/" + id + "/complete"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -469,11 +466,10 @@ public class RepairRecordController {
                     record.getRelicName(),
                     qualityScore
                 );
-                System.out.println("修复完成通知已发送：repairId=" + record.getId() + 
-                                 ", applicantId=" + record.getApplicantId() + 
-                                 ", qualityScore=" + qualityScore);
+                log.info("修复完成通知已发送：repairId={}, applicantId={}, qualityScore={}",
+                        record.getId(), record.getApplicantId(), qualityScore);
             } catch (Exception e) {
-                System.err.println("发送完成通知失败: " + e.getMessage());
+                log.error("发送完成通知失败: {}", e.getMessage());
             }
         }
         
@@ -506,7 +502,7 @@ public class RepairRecordController {
                     return Result.error("无权删除此记录");
                 }
             } catch (Exception e) {
-                System.err.println("权限检查失败: " + e.getMessage());
+                log.error("权限检查失败: {}", e.getMessage());
                 return Result.error("权限验证失败");
             }
         }
@@ -525,10 +521,9 @@ public class RepairRecordController {
                     oldRecord.getRepairReason(),
                     currentUserId
                 );
-                System.out.println("修复申请撤回通知已发送：repairId=" + id + ", relic=" + oldRecord.getRelicName());
+                log.info("修复申请撤回通知已发送：repairId={}, relic={}", id, oldRecord.getRelicName());
             } catch (Exception e) {
-                System.err.println("发送修复申请撤回通知失败: " + e.getMessage());
-                e.printStackTrace();
+                log.error("发送修复申请撤回通知失败: {}", e.getMessage(), e);
             }
         }
         
@@ -537,7 +532,7 @@ public class RepairRecordController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -553,7 +548,7 @@ public class RepairRecordController {
                     "/repairs/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -567,22 +562,5 @@ public class RepairRecordController {
     public Result<Map<String, Long>> countByStatus() {
         Map<String, Long> result = repairRecordService.countByStatus();
         return Result.success(result);
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

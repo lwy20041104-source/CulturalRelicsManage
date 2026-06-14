@@ -333,7 +333,6 @@ const generateQRCode = async (relicId) => {
   try {
     // 自动使用当前访问的URL（支持localhost和局域网IP）
     const baseUrl = window.location.origin
-    console.log('生成二维码使用的baseUrl:', baseUrl)
     
     const res = await request.get(`/relics/${relicId}/qrcode`, {
       params: { baseUrl }

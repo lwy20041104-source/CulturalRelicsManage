@@ -5,7 +5,6 @@ import com.example.dto.ImageRecognitionResult;
 import com.example.dto.ImageRecognitionResult.CategorySuggestion;
 import com.example.service.RelicImageRecognitionService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,12 +30,15 @@ import java.util.Map;
 @Slf4j
 @Service
 public class RelicImageRecognitionServiceImpl implements RelicImageRecognitionService {
-    
-    @Autowired(required = false)
-    private BaiduAiRecognitionServiceImpl baiduAiRecognitionService;
-    
-    @Autowired
-    private BaiduAiConfig baiduAiConfig;
+
+    private final BaiduAiRecognitionServiceImpl baiduAiRecognitionService;
+    private final BaiduAiConfig baiduAiConfig;
+
+    public RelicImageRecognitionServiceImpl(BaiduAiRecognitionServiceImpl baiduAiRecognitionService,
+                                            BaiduAiConfig baiduAiConfig) {
+        this.baiduAiRecognitionService = baiduAiRecognitionService;
+        this.baiduAiConfig = baiduAiConfig;
+    }
     
     // 文物分类映射
     private static final Map<Long, String> CATEGORY_MAP = new HashMap<>();

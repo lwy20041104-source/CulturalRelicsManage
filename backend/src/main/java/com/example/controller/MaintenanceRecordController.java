@@ -8,6 +8,7 @@ import com.example.service.MaintenanceRecordService;
 import com.example.service.NotificationService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
+@Slf4j
 @RestController
 @RequestMapping("/maintenance")
 public class MaintenanceRecordController {
@@ -48,36 +50,36 @@ public class MaintenanceRecordController {
                 authentication.getAuthorities();
             
             // 打印所有权限信息用于调试
-            System.out.println("=== 维护记录查询权限检查 ===");
-            System.out.println("用户名: " + authentication.getName());
-            System.out.println("权限列表: " + authorities);
-            authorities.forEach(a -> System.out.println("  - " + a.getAuthority()));
+            log.debug("=== 维护记录查询权限检查 ===");
+            log.debug("用户名: {}", authentication.getName());
+            log.debug("权限列表: {}", authorities);
+            authorities.forEach(a -> log.debug("  - {}", a.getAuthority()));
             
             // 检查是否是管理员或审批员角色（ADMIN和APPROVER可以查看所有记录）
             boolean isAdminOrApprover = authorities.stream()
                 .anyMatch(a -> {
                     String authority = a.getAuthority();
                     boolean match = authority.equals("ROLE_ADMIN") || authority.equals("ROLE_APPROVER");
-                    System.out.println("检查权限: " + authority + " -> " + match);
+                    log.debug("检查权限: {} -> {}", authority, match);
                     return match;
                 });
             
-            System.out.println("是否是管理员或审批员: " + isAdminOrApprover);
+            log.debug("是否是管理员或审批员: {}", isAdminOrApprover);
             
             // 如果不是管理员或审批员（即CURATOR等角色），只查询自己的维护记录
             if (!isAdminOrApprover) {
                 try {
                     maintainerIdFilter = userContextUtil.getCurrentUserId();
-                    System.out.println("保管员权限过滤：只显示维护人ID=" + maintainerIdFilter + "的记录");
+                    log.debug("保管员权限过滤：只显示维护人ID={}的记录", maintainerIdFilter);
                 } catch (Exception e) {
-                    System.err.println("获取当前用户ID失败: " + e.getMessage());
+                    log.error("获取当前用户ID失败: {}", e.getMessage());
                 }
             } else {
-                System.out.println("管理员/审批员权限：显示所有维护记录");
+                log.debug("管理员/审批员权限：显示所有维护记录");
             }
-            System.out.println("=== 权限检查完成 ===");
+            log.debug("=== 权限检查完成 ===");
         } else {
-            System.out.println("警告: authentication 为 null");
+            log.debug("警告: authentication 为 null");
         }
         
         PageResult<MaintenanceRecord> page = maintenanceRecordService.pageRecords(
@@ -106,7 +108,7 @@ public class MaintenanceRecordController {
             Long currentUserId = userContextUtil.getCurrentUserId();
             record.setMaintainerId(currentUserId);
         } catch (Exception e) {
-            System.err.println("获取当前用户ID失败: " + e.getMessage());
+            log.error("获取当前用户ID失败: {}", e.getMessage());
             return Result.error("获取用户信息失败");
         }
         
@@ -129,10 +131,9 @@ public class MaintenanceRecordController {
                     record.getMaintenanceType(),
                     senderId
                 );
-                System.out.println("维护申请通知已发送：maintenanceId=" + record.getId() + ", relic=" + relicName);
+                log.info("维护申请通知已发送：maintenanceId={}, relic={}", record.getId(), relicName);
             } catch (Exception e) {
-                System.err.println("发送维护申请通知失败: " + e.getMessage());
-                e.printStackTrace();
+                log.error("发送维护申请通知失败: {}", e.getMessage(), e);
             }
         }
         
@@ -167,7 +168,7 @@ public class MaintenanceRecordController {
                     return Result.error("无权修改此申请");
                 }
             } catch (Exception e) {
-                System.err.println("权限检查失败: " + e.getMessage());
+                log.error("权限检查失败: {}", e.getMessage());
                 return Result.error("权限验证失败");
             }
         }
@@ -195,7 +196,7 @@ public class MaintenanceRecordController {
                 MaintenanceRecord newRecord = maintenanceRecordService.getById(record.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId, realName, "修改", "保养管理",
@@ -203,7 +204,7 @@ public class MaintenanceRecordController {
                     ipAddress, "PUT", "/maintenance"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -233,7 +234,7 @@ public class MaintenanceRecordController {
                     return Result.error("无权删除此记录");
                 }
             } catch (Exception e) {
-                System.err.println("权限检查失败: " + e.getMessage());
+                log.error("权限检查失败: {}", e.getMessage());
                 return Result.error("权限验证失败");
             }
         }
@@ -253,10 +254,9 @@ public class MaintenanceRecordController {
                     oldRecord.getMaintenanceType(),
                     currentUserId
                 );
-                System.out.println("维护申请撤回通知已发送：maintenanceId=" + id + ", relic=" + relicName);
+                log.info("维护申请撤回通知已发送：maintenanceId={}, relic={}", id, relicName);
             } catch (Exception e) {
-                System.err.println("发送维护申请撤回通知失败: " + e.getMessage());
-                e.printStackTrace();
+                log.error("发送维护申请撤回通知失败: {}", e.getMessage(), e);
             }
         }
         
@@ -265,7 +265,7 @@ public class MaintenanceRecordController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId, realName, "删除", "保养管理",
@@ -273,7 +273,7 @@ public class MaintenanceRecordController {
                     ipAddress, "DELETE", "/maintenance/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -322,12 +322,10 @@ public class MaintenanceRecordController {
                     approved,
                     approverRealName
                 );
-                System.out.println("维护审批通知已发送：maintenanceId=" + record.getId() + 
-                                 ", maintainerId=" + oldRecord.getMaintainerId() + 
-                                 ", approved=" + approved);
+                log.info("维护审批通知已发送：maintenanceId={}, maintainerId={}, approved={}",
+                        record.getId(), oldRecord.getMaintainerId(), approved);
             } catch (Exception e) {
-                System.err.println("发送审批通知失败: " + e.getMessage());
-                e.printStackTrace();
+                log.error("发送审批通知失败: {}", e.getMessage(), e);
             }
         }
         
@@ -337,7 +335,7 @@ public class MaintenanceRecordController {
                 MaintenanceRecord newRecord = maintenanceRecordService.getById(record.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId, realName, "审批", "保养管理",
@@ -345,25 +343,11 @@ public class MaintenanceRecordController {
                     ipAddress, "PUT", "/maintenance/approve"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
         String message = "已通过".equals(record.getStatus()) ? "审批通过" : "审批拒绝";
         return Result.success(message, success);
-    }
-    
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

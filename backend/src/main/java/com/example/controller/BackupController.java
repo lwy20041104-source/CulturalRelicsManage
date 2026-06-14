@@ -11,7 +11,7 @@ import com.example.service.SysOperationLogService;
 import com.example.task.AutoBackupTask;
 import com.example.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.io.File;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -32,18 +32,21 @@ import java.nio.charset.StandardCharsets;
 @RestController
 @RequestMapping("/backup")
 public class BackupController {
-    
-    @Autowired
-    private BackupService backupService;
-    
-    @Autowired
-    private SysOperationLogService operationLogService;
-    
-    @Autowired
-    private UserContextUtil userContextUtil;
-    
-    @Autowired
-    private AutoBackupTask autoBackupTask;
+
+    private final BackupService backupService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
+    private final AutoBackupTask autoBackupTask;
+
+    public BackupController(BackupService backupService,
+                            SysOperationLogService operationLogService,
+                            UserContextUtil userContextUtil,
+                            AutoBackupTask autoBackupTask) {
+        this.backupService = backupService;
+        this.operationLogService = operationLogService;
+        this.userContextUtil = userContextUtil;
+        this.autoBackupTask = autoBackupTask;
+    }
     
     /**
      * 分页查询备份列表
@@ -108,7 +111,7 @@ public class BackupController {
                 try {
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -208,7 +211,7 @@ public class BackupController {
                     SysBackupConfig newConfig = backupService.getBackupConfig();
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -265,22 +268,5 @@ public class BackupController {
             log.error("触发自动备份失败", e);
             return Result.error("触发自动备份失败: " + e.getMessage());
         }
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

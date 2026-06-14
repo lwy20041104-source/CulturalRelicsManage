@@ -1,6 +1,10 @@
 package com.example.service.impl;
 
-import com.example.mapper.*;
+import com.example.entity.CulturalRelic;
+import com.example.mapper.CulturalRelicMapper;
+import com.example.mapper.LoanRecordMapper;
+import com.example.mapper.MaintenanceRecordMapper;
+import com.example.mapper.RepairRecordMapper;
 import com.example.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,7 +13,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 报表服务实现

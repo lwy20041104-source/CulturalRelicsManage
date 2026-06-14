@@ -347,8 +347,6 @@ const previewDocument = (doc) => {
   const filePath = doc.filePath.startsWith('/') ? doc.filePath : `/${doc.filePath}`
   const url = `${baseURL}${filePath}`
   
-  console.log('预览文件URL:', url)
-  
   // 根据文件格式决定预览方式
   const fileFormat = doc.fileFormat?.toLowerCase()
   

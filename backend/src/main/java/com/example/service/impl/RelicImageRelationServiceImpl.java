@@ -6,7 +6,8 @@ import com.example.mapper.ImageLibraryMapper;
 import com.example.mapper.RelicImageRelationMapper;
 import com.example.service.ImageLibraryService;
 import com.example.service.RelicImageRelationService;
-import com.example.utils.FileStorageUtil;
+import com.example.util.FileStorageUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ import java.util.Map;
 /**
  * 文物图片关联服务实现类
  */
+@Slf4j
 @Service
 public class RelicImageRelationServiceImpl implements RelicImageRelationService {
     
@@ -338,8 +340,7 @@ public class RelicImageRelationServiceImpl implements RelicImageRelationService 
                 successCount++;
             } catch (Exception e) {
                 failedCount++;
-                System.err.println("上传文件失败: " + file.getOriginalFilename() + ", " + e.getMessage());
-                e.printStackTrace();
+                log.error("上传文件失败: {}, {}", file.getOriginalFilename(), e.getMessage(), e);
             }
         }
         
@@ -462,11 +463,11 @@ public class RelicImageRelationServiceImpl implements RelicImageRelationService 
             List<RelicImageRelation> relations = relationMapper.selectAllByRelicId(relicId);
             
             if (relations == null || relations.isEmpty()) {
-                System.out.println("文物没有关联的图片：relicId=" + relicId);
+                log.info("文物没有关联的图片：relicId={}", relicId);
                 return true;
             }
             
-            System.out.println("开始删除文物的所有图片：relicId=" + relicId + ", 图片数量=" + relations.size());
+            log.info("开始删除文物的所有图片：relicId={}, 图片数量={}", relicId, relations.size());
             
             // 2. 遍历删除每张图片
             for (RelicImageRelation relation : relations) {
@@ -477,35 +478,33 @@ public class RelicImageRelationServiceImpl implements RelicImageRelationService 
                     ImageLibrary image = imageLibraryMapper.selectById(imageId);
                     
                     if (image != null) {
-                        System.out.println("准备删除图片：imageId=" + imageId + ", filePath=" + image.getFilePath());
+                        log.info("准备删除图片：imageId={}, filePath={}", imageId, image.getFilePath());
                         
                         // 2.2 删除图片库记录（物理文件由文件系统管理，这里只删除数据库记录）
                         imageLibraryMapper.deleteById(imageId);
-                        System.out.println("已删除图片库记录：imageId=" + imageId);
+                        log.info("已删除图片库记录：imageId={}", imageId);
                     }
                     
                     // 2.3 删除关联记录（如果外键约束没有自动删除）
                     try {
                         relationMapper.deleteByRelicIdAndImageId(relicId, imageId);
-                        System.out.println("已删除图片关联记录：relicId=" + relicId + ", imageId=" + imageId);
+                        log.info("已删除图片关联记录：relicId={}, imageId={}", relicId, imageId);
                     } catch (Exception e) {
                         // 外键约束可能已经自动删除，忽略错误
-                        System.out.println("关联记录可能已被外键约束自动删除：relicId=" + relicId + ", imageId=" + imageId);
+                        log.info("关联记录可能已被外键约束自动删除：relicId={}, imageId={}", relicId, imageId);
                     }
                     
                 } catch (Exception e) {
-                    System.err.println("删除图片失败：imageId=" + imageId + ", error=" + e.getMessage());
-                    e.printStackTrace();
+                    log.error("删除图片失败：imageId={}, error={}", imageId, e.getMessage(), e);
                     // 继续删除其他图片
                 }
             }
             
-            System.out.println("文物的所有图片删除完成：relicId=" + relicId);
+            log.info("文物的所有图片删除完成：relicId={}", relicId);
             return true;
             
         } catch (Exception e) {
-            System.err.println("删除文物图片失败：relicId=" + relicId + ", error=" + e.getMessage());
-            e.printStackTrace();
+            log.error("删除文物图片失败：relicId={}, error={}", relicId, e.getMessage(), e);
             throw new RuntimeException("删除文物图片失败", e);
         }
     }

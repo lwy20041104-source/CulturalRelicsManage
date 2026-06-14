@@ -4,12 +4,12 @@ import com.example.annotation.OperationLog;
 import com.example.entity.SysUser;
 import com.example.mapper.SysUserMapper;
 import com.example.service.SysOperationLogService;
+import com.example.util.UserContextUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,11 +19,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 
+@Slf4j
 @Aspect
 @Component
 public class OperationLogAspect {
-    
-    private static final Logger logger = LoggerFactory.getLogger(OperationLogAspect.class);
     
     private final SysOperationLogService logService;
     private final SysUserMapper userMapper;
@@ -31,7 +30,7 @@ public class OperationLogAspect {
     public OperationLogAspect(SysOperationLogService logService, SysUserMapper userMapper) {
         this.logService = logService;
         this.userMapper = userMapper;
-        logger.info("OperationLogAspect initialized successfully");
+        log.info("OperationLogAspect initialized successfully");
     }
     
     @Around("@annotation(com.example.annotation.OperationLog)")
@@ -40,7 +39,7 @@ public class OperationLogAspect {
         Method method = signature.getMethod();
         OperationLog annotation = method.getAnnotation(OperationLog.class);
         
-        logger.info("AOP intercepted method: {}.{}", joinPoint.getTarget().getClass().getName(), method.getName());
+        log.info("AOP intercepted method: {}.{}", joinPoint.getTarget().getClass().getName(), method.getName());
         
         String operator = "未知用户";
         String ipAddress = "未知";
@@ -61,10 +60,10 @@ public class OperationLogAspect {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
-                ipAddress = getIpAddress(request);
+                ipAddress = UserContextUtil.getClientIp(request);
             }
         } catch (Exception e) {
-            logger.warn("Failed to get user info: {}", e.getMessage());
+            log.warn("Failed to get user info: {}", e.getMessage());
         }
         
         String operationType = annotation.operationType();
@@ -83,32 +82,12 @@ public class OperationLogAspect {
             throw e;
         } finally {
             try {
-                logger.info("Recording operation log: operator={}, type={}, module={}, content={}, result={}", 
+                log.info("Recording operation log: operator={}, type={}, module={}, content={}, result={}", 
                     operator, operationType, operationModule, operationContent, operationResult);
                 logService.log(operator, operationType, operationModule, operationContent, operationResult, ipAddress);
             } catch (Exception e) {
-                logger.error("Failed to record operation log: {}", e.getMessage(), e);
+                log.error("Failed to record operation log: {}", e.getMessage(), e);
             }
         }
-    }
-    
-    private String getIpAddress(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_CLIENT_IP");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

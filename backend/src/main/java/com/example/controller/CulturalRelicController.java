@@ -8,7 +8,8 @@ import com.example.service.CulturalRelicService;
 import com.example.service.RelicImageRelationService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
-import com.example.utils.FileStorageUtil;
+import com.example.util.FileStorageUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import static com.example.util.QRCodeUtil.generateQRCodeLabelBase64;
 import static com.example.util.QRCodeUtil.generateRelicQRCodeUrl;
 
+@Slf4j
 @RestController
 @RequestMapping("/relics")
 public class CulturalRelicController {
@@ -93,13 +95,8 @@ public class CulturalRelicController {
             @RequestParam(value = "imageId", required = false) Long imageId) {
         try {
             // 记录请求参数
-            System.out.println("=== 新增文物请求 ===");
-            System.out.println("文物名称: " + relicName);
-            System.out.println("年代: " + era);
-            System.out.println("材质: " + material);
-            System.out.println("分类ID: " + categoryId);
-            System.out.println("状态: " + status);
-            System.out.println("有图片: " + (imageFile != null && !imageFile.isEmpty()));
+            log.info("新增文物请求: relicName={}, era={}, material={}, categoryId={}, status={}, hasImage={}",
+                     relicName, era, material, categoryId, status, imageFile != null && !imageFile.isEmpty());
             
             // 构建文物对象
             CulturalRelic relic = new CulturalRelic();
@@ -122,11 +119,10 @@ public class CulturalRelicController {
             // 保存文物和图片
             Long relicId = culturalRelicService.saveWithImage(relic, imageFile, imageId, uploaderId, uploaderName);
             
-            System.out.println("文物保存成功，ID: " + relicId);
+            log.info("文物保存成功，ID: {}", relicId);
             return Result.success("新增成功", relicId);
         } catch (Exception e) {
-            System.err.println("新增文物失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("新增文物失败: {}", e.getMessage(), e);
             return Result.error("新增失败: " + e.getMessage());
         }
     }
@@ -146,7 +142,7 @@ public class CulturalRelicController {
                 CulturalRelic newRelic = culturalRelicService.getById(relic.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -163,7 +159,7 @@ public class CulturalRelicController {
                 );
             } catch (Exception e) {
                 // 记录日志失败不影响业务操作
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -183,7 +179,7 @@ public class CulturalRelicController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -199,7 +195,7 @@ public class CulturalRelicController {
                     "/relics/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -247,7 +243,7 @@ public class CulturalRelicController {
         try {
             String realName = userContextUtil.getCurrentUserRealName();
             Long userId = userContextUtil.getCurrentUserId();
-            String ipAddress = getClientIp(request);
+            String ipAddress = UserContextUtil.getClientIp(request);
             
             for (Long id : ids) {
                 CulturalRelic oldRelic = culturalRelicService.getById(id);
@@ -274,27 +270,10 @@ public class CulturalRelicController {
                 }
             }
         } catch (Exception e) {
-            System.err.println("记录审计日志失败: " + e.getMessage());
+            log.error("记录审计日志失败: {}", e.getMessage());
         }
         
         return Result.success("批量修改状态成功", culturalRelicService.batchUpdateStatus(ids, status));
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
     
     /**

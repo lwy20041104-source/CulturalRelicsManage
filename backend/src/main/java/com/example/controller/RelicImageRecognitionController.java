@@ -4,7 +4,6 @@ import com.example.common.Result;
 import com.example.dto.ImageRecognitionResult;
 import com.example.service.RelicImageRecognitionService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,9 +18,12 @@ import java.util.Map;
 @RequestMapping("/relic-recognition")
 @CrossOrigin
 public class RelicImageRecognitionController {
-    
-    @Autowired
-    private RelicImageRecognitionService recognitionService;
+
+    private final RelicImageRecognitionService recognitionService;
+
+    public RelicImageRecognitionController(RelicImageRecognitionService recognitionService) {
+        this.recognitionService = recognitionService;
+    }
     
     /**
      * 上传图片进行识别

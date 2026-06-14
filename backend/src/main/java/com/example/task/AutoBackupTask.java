@@ -4,7 +4,6 @@ import com.example.entity.SysBackup;
 import com.example.entity.SysBackupConfig;
 import com.example.service.BackupService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +19,11 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class AutoBackupTask {
 
-    @Autowired
-    private BackupService backupService;
+    private final BackupService backupService;
+
+    public AutoBackupTask(BackupService backupService) {
+        this.backupService = backupService;
+    }
 
     /**
      * 每小时检查一次是否需要执行自动备份

@@ -5,8 +5,7 @@ import com.example.entity.LoanRecord;
 import com.example.service.CulturalRelicService;
 import com.example.service.LoanRecordService;
 import com.example.service.NotificationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +17,9 @@ import java.util.List;
  * 借展逾期检查定时任务
  * 每天凌晨1点检查是否有逾期的借展记录
  */
+@Slf4j
 @Component
 public class LoanOverdueCheckTask {
-    
-    private static final Logger log = LoggerFactory.getLogger(LoanOverdueCheckTask.class);
     
     private final LoanRecordService loanRecordService;
     private final CulturalRelicService culturalRelicService;

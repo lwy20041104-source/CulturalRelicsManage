@@ -168,8 +168,6 @@ const loadAnnualReport = async () => {
     const res = await getAnnualReportApi(annualYear.value)
     annualData.value = res.data
     
-    console.log('年度报告数据:', annualData.value)
-    
     // 等待DOM更新后再初始化图表
     await nextTick()
     
@@ -184,8 +182,6 @@ const loadAnnualReport = async () => {
     }
     
     const monthlyTrend = annualData.value.monthlyTrend || []
-    
-    console.log('月度趋势数据:', monthlyTrend)
     
     annualChart.setOption({
       title: { text: `${annualYear.value}${t('report.year')}${t('report.monthlyTrend')}` },
@@ -238,8 +234,6 @@ const loadTrendAnalysis = async () => {
   try {
     const [startDate, endDate] = trendDateRange.value
     const res = await getTrendAnalysisApi(startDate, endDate, trendType.value)
-    
-    console.log('趋势分析数据:', res.data)
     
     // 等待DOM更新后再初始化图表
     await nextTick()

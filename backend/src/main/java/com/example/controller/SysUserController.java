@@ -11,6 +11,7 @@ import com.example.service.LoginSecurityService;
 import com.example.service.SysOperationLogService;
 import com.example.service.SysUserService;
 import com.example.util.UserContextUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
 public class SysUserController {
@@ -61,9 +63,9 @@ public class SysUserController {
     @OperationLog(operationType = "新增", operationModule = "用户管理", operationContent = "新增用户")
     @Transactional
     public Result<Boolean> save(@RequestBody Map<String, Object> requestData) {
-        System.out.println("=== 新增用户请求数据 ===");
-        System.out.println("requestData: " + requestData);
-        System.out.println("museumId: " + requestData.get("museumId"));
+        log.info("=== 新增用户请求数据 ===");
+        log.info("requestData: {}", requestData);
+        log.info("museumId: {}", requestData.get("museumId"));
         
         // 提取用户信息
         SysUser user = new SysUser();
@@ -82,21 +84,21 @@ public class SysUserController {
         user.setUpdateTime(LocalDateTime.now());
         
         boolean success = sysUserService.save(user);
-        System.out.println("用户保存结果: " + success + ", 用户ID: " + user.getId());
+        log.info("用户保存结果: {}, 用户ID: {}", success, user.getId());
         
         // 如果是借展人角色且提供了博物馆ID，创建关联
         if (success && requestData.get("museumId") != null) {
             Long museumId = Long.valueOf(requestData.get("museumId").toString());
-            System.out.println("创建用户博物馆关联: userId=" + user.getId() + ", museumId=" + museumId);
+            log.info("创建用户博物馆关联: userId={}, museumId={}", user.getId(), museumId);
             
             UserMuseum userMuseum = new UserMuseum();
             userMuseum.setUserId(user.getId());
             userMuseum.setMuseumId(museumId);
             userMuseum.setIsPrimary(1);
             int insertResult = userMuseumMapper.insert(userMuseum);
-            System.out.println("博物馆关联插入结果: " + insertResult);
+            log.info("博物馆关联插入结果: {}", insertResult);
         } else {
-            System.out.println("未创建博物馆关联 - success: " + success + ", museumId: " + requestData.get("museumId"));
+            log.info("未创建博物馆关联 - success: {}, museumId: {}", success, requestData.get("museumId"));
         }
         
         return Result.success("新增成功", success);
@@ -144,7 +146,7 @@ public class SysUserController {
                 SysUser newUser = sysUserService.getUserById(userId);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long operatorId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     operatorId,
@@ -160,7 +162,7 @@ public class SysUserController {
                     "/users"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -180,7 +182,7 @@ public class SysUserController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -196,7 +198,7 @@ public class SysUserController {
                     "/users/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -341,7 +343,7 @@ public class SysUserController {
         if (success && oldUser != null) {
             try {
                 SysUser newUser = sysUserService.getUserById(currentUser.getId());
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     currentUser.getId(),
@@ -357,11 +359,11 @@ public class SysUserController {
                     "/users/profile"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
-        return Result.success("个人信息更新成功", success);
+    return Result.success("个人信息更新成功", success);
     }
     
     /**
@@ -376,22 +378,5 @@ public class SysUserController {
         } catch (Exception e) {
             return Result.error("解锁失败：" + e.getMessage());
         }
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

@@ -9,17 +9,15 @@ import com.example.mapper.SysUserMapper;
 import com.example.service.CulturalRelicService;
 import com.example.service.LoanRecordService;
 import com.example.service.NotificationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 public class LoanRecordServiceImpl implements LoanRecordService {
-
-    private static final Logger log = LoggerFactory.getLogger(LoanRecordServiceImpl.class);
 
     private final CulturalRelicService culturalRelicService;
     private final LoanRecordMapper loanRecordMapper;

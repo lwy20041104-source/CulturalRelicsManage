@@ -6,6 +6,7 @@ import com.example.entity.RelicImageRelation;
 import com.example.service.RelicImageRelationService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.Map;
 /**
  * 文物图片关联控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/relic-images")
 public class RelicImageRelationController {
@@ -76,7 +78,7 @@ public class RelicImageRelationController {
                     RelicImageRelation newRelation = relicImageRelationService.getRelicMainImage(relicId);
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -92,7 +94,7 @@ public class RelicImageRelationController {
                         "/relic-images/set"
                     );
                 } catch (Exception e) {
-                    System.err.println("记录审计日志失败: " + e.getMessage());
+                    log.error("记录审计日志失败: {}", e.getMessage());
                 }
             }
             
@@ -118,7 +120,7 @@ public class RelicImageRelationController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -134,7 +136,7 @@ public class RelicImageRelationController {
                     "/relic-images/remove/" + relicId
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -187,7 +189,7 @@ public class RelicImageRelationController {
             
             return Result.success("上传完成", result);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("操作失败: {}", e.getMessage(), e);
             return Result.error("上传失败: " + e.getMessage());
         }
     }
@@ -212,7 +214,7 @@ public class RelicImageRelationController {
                 try {
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -228,7 +230,7 @@ public class RelicImageRelationController {
                         "/relic-images/" + relicId + "/" + imageId
                     );
                 } catch (Exception e) {
-                    System.err.println("记录审计日志失败: " + e.getMessage());
+                    log.error("记录审计日志失败: {}", e.getMessage());
                 }
             }
             
@@ -263,7 +265,7 @@ public class RelicImageRelationController {
                     RelicImageRelation newRelation = relicImageRelationService.getRelicMainImage(relicId);
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -279,7 +281,7 @@ public class RelicImageRelationController {
                         "/relic-images/set-main"
                     );
                 } catch (Exception e) {
-                    System.err.println("记录审计日志失败: " + e.getMessage());
+                    log.error("记录审计日志失败: {}", e.getMessage());
                 }
             }
             
@@ -334,22 +336,5 @@ public class RelicImageRelationController {
     public Result<List<RelicImageRelation>> listAll() {
         List<RelicImageRelation> relations = relicImageRelationService.listAll();
         return Result.success(relations);
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

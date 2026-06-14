@@ -9,7 +9,6 @@ import com.example.service.RepairMaterialService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,15 +23,18 @@ import java.util.Map;
 @RestController
 @RequestMapping("/repair-materials")
 public class RepairMaterialController {
-    
-    @Autowired
-    private RepairMaterialService materialService;
-    
-    @Autowired
-    private SysOperationLogService operationLogService;
-    
-    @Autowired
-    private UserContextUtil userContextUtil;
+
+    private final RepairMaterialService materialService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
+
+    public RepairMaterialController(RepairMaterialService materialService,
+                                    SysOperationLogService operationLogService,
+                                    UserContextUtil userContextUtil) {
+        this.materialService = materialService;
+        this.operationLogService = operationLogService;
+        this.userContextUtil = userContextUtil;
+    }
     
     /**
      * 分页查询材料列表
@@ -124,7 +126,7 @@ public class RepairMaterialController {
                     RepairMaterial newMaterial = materialService.getMaterialById(id);
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -169,7 +171,7 @@ public class RepairMaterialController {
                 try {
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -216,7 +218,7 @@ public class RepairMaterialController {
                     RepairMaterial newMaterial = materialService.getMaterialById(id);
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(request);
+                    String ipAddress = UserContextUtil.getClientIp(request);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -334,22 +336,5 @@ public class RepairMaterialController {
             log.error("删除材料使用记录失败", e);
             return Result.error("删除材料使用记录失败: " + e.getMessage());
         }
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

@@ -6,12 +6,14 @@ import com.example.entity.CulturalRelicCategory;
 import com.example.service.CulturalRelicCategoryService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/categories")
 public class CulturalRelicCategoryController {
@@ -57,7 +59,7 @@ public class CulturalRelicCategoryController {
                 CulturalRelicCategory newCategory = categoryService.getById(category.getId());
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId, realName, "修改", "分类管理",
@@ -65,7 +67,7 @@ public class CulturalRelicCategoryController {
                     ipAddress, "PUT", "/categories"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -85,7 +87,7 @@ public class CulturalRelicCategoryController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId, realName, "删除", "分类管理",
@@ -93,24 +95,10 @@ public class CulturalRelicCategoryController {
                     ipAddress, "DELETE", "/categories/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
         return Result.success("删除成功", success);
-    }
-    
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

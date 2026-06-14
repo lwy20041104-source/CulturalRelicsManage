@@ -318,7 +318,6 @@ const startPolling = () => {
   // 连接WebSocket
   const userId = sessionStorage.getItem('userId')
   if (userId) {
-    console.log('🚀 启动WebSocket连接，用户ID:', userId)
     webSocketService.connect(userId, handleWebSocketNotification)
   } else {
     console.warn('⚠️ 未找到用户ID，无法连接WebSocket')
@@ -348,11 +347,9 @@ const stopPolling = () => {
 
 // 处理WebSocket推送的通知
 const handleWebSocketNotification = (notification) => {
-  console.log('📬 处理WebSocket通知:', notification)
   
   // 隐藏逾期未归还的通知
   if (notification.type === 'LOAN_OVERDUE') {
-    console.log('🚫 已过滤逾期未归还通知')
     return
   }
   

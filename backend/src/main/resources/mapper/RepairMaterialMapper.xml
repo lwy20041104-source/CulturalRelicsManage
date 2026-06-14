@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.RepairMaterialMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.entity.RepairMaterial">
+        <id column="id" property="id"/>
+        <result column="material_name" property="materialName"/>
+        <result column="material_code" property="materialCode"/>
+        <result column="category" property="category"/>
+        <result column="unit" property="unit"/>
+        <result column="unit_price" property="unitPrice"/>
+        <result column="stock_quantity" property="stockQuantity"/>
+        <result column="supplier" property="supplier"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 分页查询材料列表 -->
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM repair_material
+        WHERE 1=1
+        <if test="materialName != null and materialName != ''">
+            AND material_name LIKE CONCAT('%', #{materialName}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计材料数量 -->
+    <select id="countList" resultType="long">
+        SELECT COUNT(*) FROM repair_material
+        WHERE 1=1
+        <if test="materialName != null and materialName != ''">
+            AND material_name LIKE CONCAT('%', #{materialName}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM repair_material WHERE id = #{id}
+    </select>
+
+    <!-- 根据材料编号查询 -->
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT * FROM repair_material WHERE material_code = #{materialCode}
+    </select>
+
+    <!-- 查询所有材料（用于下拉选择） -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM repair_material ORDER BY material_name
+    </select>
+
+    <!-- 查询库存不足的材料 -->
+    <select id="selectLowStock" resultMap="BaseResultMap">
+        SELECT * FROM repair_material WHERE stock_quantity &lt; #{threshold} ORDER BY stock_quantity
+    </select>
+
+    <!-- 插入材料 -->
+    <insert id="insert" parameterType="com.example.entity.RepairMaterial" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repair_material (material_name, material_code, category, unit,
+        unit_price, stock_quantity, supplier, remark, create_time, update_time)
+        VALUES (#{materialName}, #{materialCode}, #{category}, #{unit},
+        #{unitPrice}, #{stockQuantity}, #{supplier}, #{remark}, NOW(), NOW())
+    </insert>
+
+    <!-- 更新材料 -->
+    <update id="updateById" parameterType="com.example.entity.RepairMaterial">
+        UPDATE repair_material SET
+            material_name = #{materialName},
+            material_code = #{materialCode},
+            category = #{category},
+            unit = #{unit},
+            unit_price = #{unitPrice},
+            stock_quantity = #{stockQuantity},
+            supplier = #{supplier},
+            remark = #{remark},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新库存数量 -->
+    <update id="updateStock">
+        UPDATE repair_material SET
+            stock_quantity = stock_quantity + #{quantity},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除材料 -->
+    <delete id="deleteById">
+        DELETE FROM repair_material WHERE id = #{id}
+    </delete>
+
+    <!-- 获取材料类别列表 -->
+    <select id="selectCategories" resultType="string">
+        SELECT DISTINCT category FROM repair_material WHERE category IS NOT NULL ORDER BY category
+    </select>
+
+</mapper>

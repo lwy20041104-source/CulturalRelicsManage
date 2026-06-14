@@ -884,8 +884,6 @@ const openEdit = async (row) => {
       const res = await getRelicImagesApi(row.id)
       const images = res.data || []
       
-      console.log('加载的图片数据:', images)
-      
       // 按主图优先、排序号排序
       images.sort((a, b) => {
         if (a.isMain !== b.isMain) return b.isMain - a.isMain
@@ -895,7 +893,6 @@ const openEdit = async (row) => {
       // 保存已有图片
       existingImages.value = images
       
-      console.log('existingImages.value:', existingImages.value)
     } catch (error) {
       console.error('加载图片失败:', error)
     }
@@ -1805,13 +1802,8 @@ const openAIRecognition = async () => {
   try {
     // 使用第一张图片进行识别
     const fileItem = newImageFileList.value[0]
-    console.log('文件对象:', fileItem)
-    
     // 获取原始文件对象
     const firstImage = fileItem.raw || fileItem
-    console.log('原始文件:', firstImage)
-    console.log('文件类型:', firstImage.type)
-    console.log('文件大小:', firstImage.size)
     
     if (!firstImage || !(firstImage instanceof File)) {
       ElMessage.error('无效的文件对象')

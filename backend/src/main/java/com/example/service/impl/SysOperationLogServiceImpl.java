@@ -7,6 +7,7 @@ import com.example.entity.SysOperationLog;
 import com.example.mapper.SysOperationLogMapper;
 import com.example.service.SysOperationLogService;
 import com.example.util.AuditLogUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class SysOperationLogServiceImpl implements SysOperationLogService {
     
@@ -71,61 +73,54 @@ public class SysOperationLogServiceImpl implements SysOperationLogService {
                               String resourceType, Long resourceId, Object beforeData, Object afterData,
                               String ipAddress, String requestMethod, String requestUrl) {
         try {
-            System.out.println("========== 开始记录审计日志 ==========");
-            System.out.println("userId: " + userId);
-            System.out.println("operator: " + operator);
-            System.out.println("operationType: " + operationType);
-            System.out.println("operationModule: " + operationModule);
-            System.out.println("resourceType: " + resourceType);
-            System.out.println("resourceId: " + resourceId);
+            log.info("开始记录审计日志: userId={}, operator={}, operationType={}, module={}, resourceType={}, resourceId={}",
+                     userId, operator, operationType, operationModule, resourceType, resourceId);
             
-            SysOperationLog log = new SysOperationLog();
-            log.setUserId(userId);
-            log.setOperator(operator);
-            log.setOperationType(operationType);
-            log.setOperationModule(operationModule);
-            log.setResourceType(resourceType);
-            log.setResourceId(resourceId);
-            log.setIpAddress(ipAddress);
-            log.setRequestMethod(requestMethod);
-            log.setRequestUrl(requestUrl);
-            log.setOperationTime(LocalDateTime.now());
-            log.setOperationResult("成功");
+            SysOperationLog operationLog = new SysOperationLog();
+            operationLog.setUserId(userId);
+            operationLog.setOperator(operator);
+            operationLog.setOperationType(operationType);
+            operationLog.setOperationModule(operationModule);
+            operationLog.setResourceType(resourceType);
+            operationLog.setResourceId(resourceId);
+            operationLog.setIpAddress(ipAddress);
+            operationLog.setRequestMethod(requestMethod);
+            operationLog.setRequestUrl(requestUrl);
+            operationLog.setOperationTime(LocalDateTime.now());
+            operationLog.setOperationResult("成功");
             
             // 转换为JSON
             String beforeJson = AuditLogUtil.toJson(beforeData);
             String afterJson = AuditLogUtil.toJson(afterData);
-            log.setBeforeData(beforeJson);
-            log.setAfterData(afterJson);
+            operationLog.setBeforeData(beforeJson);
+            operationLog.setAfterData(afterJson);
             
-            System.out.println("beforeData length: " + (beforeJson != null ? beforeJson.length() : 0));
-            System.out.println("afterData length: " + (afterJson != null ? afterJson.length() : 0));
+            log.info("审计日志数据长度: beforeData={}, afterData={}", 
+                     beforeJson != null ? beforeJson.length() : 0, 
+                     afterJson != null ? afterJson.length() : 0);
             
             // 比较差异
             Map<String, String> fieldLabels = getFieldLabels(resourceType);
             List<DataChangeDTO> changes = AuditLogUtil.compareObjects(beforeData, afterData, fieldLabels);
             String changedFieldsJson = AuditLogUtil.changesToJson(changes);
-            log.setChangedFields(changedFieldsJson);
+            operationLog.setChangedFields(changedFieldsJson);
             
-            System.out.println("changedFields: " + changedFieldsJson);
+            log.info("changedFields: {}", changedFieldsJson);
             
             // 生成操作内容
             String operationContent = String.format("%s%s（ID:%d）", operationType, operationModule, resourceId);
-            log.setOperationContent(operationContent);
+            operationLog.setOperationContent(operationContent);
             
-            System.out.println("operationContent: " + operationContent);
-            System.out.println("准备插入数据库...");
+            log.info("operationContent: {}", operationContent);
+            log.info("准备插入数据库...");
             
-            int result = logMapper.insertEnhanced(log);
+            int result = logMapper.insertEnhanced(operationLog);
             
-            System.out.println("插入结果: " + result);
-            System.out.println("生成的日志ID: " + log.getId());
-            System.out.println("========== 审计日志记录完成 ==========");
+            log.info("插入结果: {}", result);
+            log.info("生成的日志ID: {}", operationLog.getId());
+            log.info("审计日志记录完成");
         } catch (Exception e) {
-            System.err.println("========== 审计日志记录失败 ==========");
-            System.err.println("错误信息: " + e.getMessage());
-            e.printStackTrace();
-            System.err.println("========================================");
+            log.error("审计日志记录失败: {}", e.getMessage(), e);
         }
     }
     

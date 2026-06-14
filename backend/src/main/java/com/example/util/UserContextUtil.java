@@ -2,14 +2,18 @@ package com.example.util;
 
 import com.example.entity.SysUser;
 import com.example.mapper.SysUserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 用户上下文工具类
  * 用于获取当前登录用户的信息
  */
+@Slf4j
 @Component
 public class UserContextUtil {
     
@@ -74,7 +78,7 @@ public class UserContextUtil {
             
             return user != null ? user.getId() : null;
         } catch (Exception e) {
-            System.err.println("获取当前用户ID失败: " + e.getMessage());
+            log.error("获取当前用户ID失败: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -94,5 +98,25 @@ public class UserContextUtil {
         } catch (Exception e) {
             return null;
         }
+    }
+    
+    /**
+     * 获取客户端真实IP地址（静态工具方法）
+     */
+    public static String getClientIp(HttpServletRequest request) {
+        if (request == null) {
+            return "未知";
+        }
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
     }
 }

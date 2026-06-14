@@ -14,8 +14,7 @@ import com.example.mapper.SysUserMapper;
 import com.example.mapper.UserNotificationMapper;
 import com.example.service.NotificationService;
 import com.example.service.WebSocketNotificationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +27,10 @@ import java.util.stream.Collectors;
 /**
  * 通知服务实现类
  */
+@Slf4j
 @Service
 public class NotificationServiceImpl implements NotificationService {
-    
-    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
-    
+
     private final SystemNotificationMapper notificationMapper;
     private final UserNotificationMapper userNotificationMapper;
     private final NotificationConfigMapper configMapper;

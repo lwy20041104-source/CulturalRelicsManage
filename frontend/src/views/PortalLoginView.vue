@@ -247,18 +247,12 @@ const handleLogin = async () => {
       // 跳转到前台门户
       router.push('/portal')
     } catch (e) {
-      console.log('登录错误对象:', e)
-      console.log('错误响应:', e?.response)
-      console.log('错误数据:', e?.response?.data)
-      console.log('错误消息:', e?.response?.data?.message)
-      
       // 尝试多种方式获取错误信息
       let msg = e?.response?.data?.message 
              || e?.message 
              || e?.data?.message
              || t('portalLogin.loginFailed')
       
-      console.log('最终显示的消息:', msg)
       ElMessage.error(msg)
     } finally {
       loading.value = false

@@ -7,10 +7,12 @@ import com.example.dto.ImageRecognitionResult.CategorySuggestion;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 百度AI图像识别服务实现
@@ -18,12 +20,15 @@ import java.util.*;
 @Slf4j
 @Service
 public class BaiduAiRecognitionServiceImpl {
-    
-    @Autowired(required = false)
-    private AipImageClassify aipImageClassify;
-    
-    @Autowired
-    private BaiduAiConfig baiduAiConfig;
+
+    private final AipImageClassify aipImageClassify;
+    private final BaiduAiConfig baiduAiConfig;
+
+    public BaiduAiRecognitionServiceImpl(AipImageClassify aipImageClassify,
+                                         BaiduAiConfig baiduAiConfig) {
+        this.aipImageClassify = aipImageClassify;
+        this.baiduAiConfig = baiduAiConfig;
+    }
     
     // 百度AI识别关键词到文物分类的映射
     private static final Map<String, Long> KEYWORD_TO_CATEGORY = new HashMap<>();

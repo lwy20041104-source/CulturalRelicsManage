@@ -5,7 +5,7 @@ import com.example.entity.CulturalRelic;
 import com.example.service.CulturalRelicService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +25,7 @@ import java.util.UUID;
 /**
  * 3D文物模型管理控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/relics")
 @CrossOrigin
@@ -36,14 +37,17 @@ public class Relic3DController {
     @Value("${file.upload.url-prefix:http://localhost:8080/uploads/3d-models}")
     private String urlPrefix;
 
-    @Autowired(required = false)
-    private CulturalRelicService culturalRelicService;
-    
-    @Autowired(required = false)
-    private SysOperationLogService operationLogService;
-    
-    @Autowired(required = false)
-    private UserContextUtil userContextUtil;
+    private final CulturalRelicService culturalRelicService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
+
+    public Relic3DController(CulturalRelicService culturalRelicService,
+                             SysOperationLogService operationLogService,
+                             UserContextUtil userContextUtil) {
+        this.culturalRelicService = culturalRelicService;
+        this.operationLogService = operationLogService;
+        this.userContextUtil = userContextUtil;
+    }
 
     /**
      * 上传3D模型
@@ -119,7 +123,7 @@ public class Relic3DController {
                     CulturalRelic newRelic = culturalRelicService.getById(id);
                     String realName = userContextUtil.getCurrentUserRealName();
                     Long userId = userContextUtil.getCurrentUserId();
-                    String ipAddress = getClientIp(httpRequest);
+                    String ipAddress = UserContextUtil.getClientIp(httpRequest);
                     
                     operationLogService.logDataChange(
                         userId,
@@ -135,8 +139,7 @@ public class Relic3DController {
                         "/relics/" + id + "/3d-model"
                     );
                 } catch (Exception e) {
-                    System.err.println("记录审计日志失败: " + e.getMessage());
-                    e.printStackTrace();
+                    log.error("记录审计日志失败: {}", e.getMessage(), e);
                 }
             }
 
@@ -150,7 +153,7 @@ public class Relic3DController {
             return Result.success(result);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("文件上传失败: {}", e.getMessage(), e);
             return Result.error("文件上传失败: " + e.getMessage());
         }
     }
@@ -177,7 +180,7 @@ public class Relic3DController {
 
             return Result.success("删除成功");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("删除失败: {}", e.getMessage(), e);
             return Result.error("删除失败: " + e.getMessage());
         }
     }
@@ -248,16 +251,10 @@ public class Relic3DController {
                 CulturalRelic newRelic = culturalRelicService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
-                System.out.println("========== 3D模型审计日志调试 ==========");
-                System.out.println("oldRelic: " + oldRelic);
-                System.out.println("oldRelic.model3dUrl: " + (oldRelic != null ? oldRelic.getModel3dUrl() : "null"));
-                System.out.println("newRelic: " + newRelic);
-                System.out.println("newRelic.model3dUrl: " + (newRelic != null ? newRelic.getModel3dUrl() : "null"));
-                System.out.println("userId: " + userId);
-                System.out.println("realName: " + realName);
-                System.out.println("========================================");
+                log.info("开始记录3D模型审计日志: oldRelic={}, newRelic={}, userId={}, realName={}",
+                         oldRelic, newRelic, userId, realName);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -273,8 +270,7 @@ public class Relic3DController {
                     "/relics/" + id + "/3d-model-url"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
-                e.printStackTrace();
+            log.error("记录审计日志失败: {}", e.getMessage(), e);
             }
             
             // 返回结果
@@ -285,7 +281,7 @@ public class Relic3DController {
             
             return Result.success(result);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("保存失败: {}", e.getMessage(), e);
             return Result.error("保存失败: " + e.getMessage());
         }
     }
@@ -297,18 +293,17 @@ public class Relic3DController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CURATOR')")
     public Result<String> delete3DModelUrl(@PathVariable Long id, HttpServletRequest httpRequest) {
         try {
-            System.out.println("========== 开始删除3D模型 ==========");
-            System.out.println("文物ID: " + id);
+            log.info("开始删除3D模型: relicId={}", id);
             
             // 1. 获取操作前的文物数据
             CulturalRelic oldRelic = null;
             if (culturalRelicService != null) {
                 oldRelic = culturalRelicService.getById(id);
                 if (oldRelic == null) {
-                    System.out.println("错误: 文物不存在");
+                    log.error("错误: 文物不存在");
                     return Result.error("文物不存在");
                 }
-                System.out.println("删除前的3D模型URL: " + oldRelic.getModel3dUrl());
+                log.info("删除前的3D模型URL: {}", oldRelic.getModel3dUrl());
                 // 创建副本用于审计日志
                 oldRelic = cloneRelic(oldRelic);
             } else {
@@ -321,20 +316,20 @@ public class Relic3DController {
                 String filename = modelUrl.substring(modelUrl.lastIndexOf("/") + 1);
                 Path filePath = Paths.get(uploadPath, filename);
                 boolean fileDeleted = Files.deleteIfExists(filePath);
-                System.out.println("本地文件删除结果: " + fileDeleted + ", 文件路径: " + filePath);
+                log.info("本地文件删除结果: {}, 文件路径: {}", fileDeleted, filePath);
             }
             
             // 3. 使用自定义SQL清除数据库中的3D模型信息（显式设置为NULL）
-            System.out.println("准备清除数据库中的3D模型信息");
+            log.info("准备清除数据库中的3D模型信息");
             int updateResult = culturalRelicService.clear3DModelInfo(id);
-            System.out.println("数据库更新结果: " + updateResult);
+            log.info("数据库更新结果: {}", updateResult);
             
             // 验证更新是否成功
             CulturalRelic verifyRelic = culturalRelicService.getById(id);
-            System.out.println("更新后的3D模型URL: " + verifyRelic.getModel3dUrl());
+            log.info("更新后的3D模型URL: {}", verifyRelic.getModel3dUrl());
             
             if (verifyRelic.getModel3dUrl() != null) {
-                System.err.println("警告: 3D模型URL未能成功清除");
+                log.warn("警告: 3D模型URL未能成功清除");
                 return Result.error("删除失败: 数据库更新未生效");
             }
             
@@ -343,7 +338,7 @@ public class Relic3DController {
                 CulturalRelic newRelic = culturalRelicService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(httpRequest);
+                String ipAddress = UserContextUtil.getClientIp(httpRequest);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -359,34 +354,15 @@ public class Relic3DController {
                     "/relics/" + id + "/3d-model-url"
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
-                e.printStackTrace();
+            log.error("记录审计日志失败: {}", e.getMessage(), e);
             }
             
-            System.out.println("========== 删除3D模型完成 ==========");
+            log.info("删除3D模型完成");
             return Result.success("删除成功");
         } catch (Exception e) {
-            System.err.println("删除3D模型异常:");
-            e.printStackTrace();
+            log.error("删除3D模型异常: {}", e.getMessage(), e);
             return Result.error("删除失败: " + e.getMessage());
         }
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
     
     /**

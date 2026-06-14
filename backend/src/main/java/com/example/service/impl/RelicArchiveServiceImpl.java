@@ -1,13 +1,22 @@
 package com.example.service.impl;
 
 import com.example.common.PageResult;
-import com.example.entity.*;
-import com.example.mapper.*;
+import com.example.entity.RelicArchive;
+import com.example.entity.ArchiveDocument;
+import com.example.entity.ArchiveHistory;
+import com.example.entity.ArchiveRelation;
+import com.example.entity.CulturalRelic;
+import com.example.entity.SysUser;
+import com.example.mapper.RelicArchiveMapper;
+import com.example.mapper.ArchiveDocumentMapper;
+import com.example.mapper.ArchiveHistoryMapper;
+import com.example.mapper.ArchiveRelationMapper;
+import com.example.mapper.CulturalRelicMapper;
 import com.example.service.RelicArchiveService;
 import com.example.service.CulturalRelicService;
-import com.example.utils.FileStorageUtil;
+import com.example.util.FileStorageUtil;
+import com.example.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,33 +38,36 @@ import java.util.List;
 @Slf4j
 @Service
 public class RelicArchiveServiceImpl implements RelicArchiveService {
-    
-    @Autowired
-    private RelicArchiveMapper archiveMapper;
-    
-    @Autowired
-    private ArchiveDocumentMapper documentMapper;
-    
-    @Autowired
-    private ArchiveHistoryMapper historyMapper;
-    
-    @Autowired
-    private ArchiveRelationMapper relationMapper;
-    
-    @Autowired
-    private CulturalRelicService relicService;
-    
-    @Autowired
-    private CulturalRelicMapper relicMapper;
-    
-    @Autowired
-    private com.example.service.SysUserService sysUserService;
-    
-    @Autowired
-    private FileStorageUtil fileStorageUtil;
-    
-    @Autowired(required = false)
-    private HttpServletRequest request;
+
+    private final RelicArchiveMapper archiveMapper;
+    private final ArchiveDocumentMapper documentMapper;
+    private final ArchiveHistoryMapper historyMapper;
+    private final ArchiveRelationMapper relationMapper;
+    private final CulturalRelicService relicService;
+    private final CulturalRelicMapper relicMapper;
+    private final com.example.service.SysUserService sysUserService;
+    private final FileStorageUtil fileStorageUtil;
+    private final HttpServletRequest request;
+
+    public RelicArchiveServiceImpl(RelicArchiveMapper archiveMapper,
+                                   ArchiveDocumentMapper documentMapper,
+                                   ArchiveHistoryMapper historyMapper,
+                                   ArchiveRelationMapper relationMapper,
+                                   CulturalRelicService relicService,
+                                   CulturalRelicMapper relicMapper,
+                                   com.example.service.SysUserService sysUserService,
+                                   FileStorageUtil fileStorageUtil,
+                                   HttpServletRequest request) {
+        this.archiveMapper = archiveMapper;
+        this.documentMapper = documentMapper;
+        this.historyMapper = historyMapper;
+        this.relationMapper = relationMapper;
+        this.relicService = relicService;
+        this.relicMapper = relicMapper;
+        this.sysUserService = sysUserService;
+        this.fileStorageUtil = fileStorageUtil;
+        this.request = request;
+    }
     
     @Override
     public PageResult<RelicArchive> pageArchives(Integer pageNum, Integer pageSize, 
@@ -500,7 +512,7 @@ public class RelicArchiveServiceImpl implements RelicArchiveService {
         }
         
         if (request != null) {
-            history.setIpAddress(getClientIp());
+            history.setIpAddress(UserContextUtil.getClientIp(this.request));
         }
         
         historyMapper.insert(history);
@@ -555,22 +567,6 @@ public class RelicArchiveServiceImpl implements RelicArchiveService {
         }
     }
     
-    /**
-     * 获取客户端IP
-     */
-    private String getClientIp() {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
-    }
     
     /**
      * 生成档案PDF

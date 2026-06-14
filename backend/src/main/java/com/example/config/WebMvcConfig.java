@@ -1,5 +1,6 @@
 package com.example.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -11,6 +12,7 @@ import java.io.File;
  * Web MVC 配置
  * 配置静态资源访问路径
  */
+@Slf4j
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
     
@@ -36,6 +38,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + absoluteUploadPath);
         
-        System.out.println("配置静态资源访问路径: /api/uploads/** -> " + absoluteUploadPath);
+        log.info("配置静态资源访问路径: /api/uploads/** -> {}", absoluteUploadPath);
     }
 }

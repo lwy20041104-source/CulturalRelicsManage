@@ -5,8 +5,7 @@ import com.example.dto.AiRelicQueryResponse;
 import com.example.entity.CulturalRelic;
 import com.example.service.CulturalRelicService;
 import com.example.service.RelicAiService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriUtils;
 
@@ -29,10 +28,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+@Slf4j
 @Service
 public class RelicAiServiceImpl implements RelicAiService {
-
-    private static final Logger log = LoggerFactory.getLogger(RelicAiServiceImpl.class);
 
     private static final int MAX_RESULTS = 5;
     private static final int MAX_WEB_RESULTS = 1;

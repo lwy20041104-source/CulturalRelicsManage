@@ -269,12 +269,6 @@ const loadData = async () => {
     const res = await getDashboardDataApi()
     dashboardData.value = res.data || {}
     
-    console.log('仪表盘数据:', dashboardData.value)
-    console.log('分类统计:', dashboardData.value.categoryStats)
-    console.log('年代统计:', dashboardData.value.eraStats)
-    console.log('借展统计:', dashboardData.value.loanStats)
-    console.log('修复统计:', dashboardData.value.repairStats)
-    
     // 更新图表
     updateCharts()
   } catch (error) {

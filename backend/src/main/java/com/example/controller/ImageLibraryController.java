@@ -6,7 +6,7 @@ import com.example.entity.ImageLibrary;
 import com.example.service.ImageLibraryService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -25,18 +25,22 @@ import java.util.Map;
 /**
  * 图片库管理控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/images")
 public class ImageLibraryController {
-    
-    @Autowired
-    private ImageLibraryService imageLibraryService;
-    
-    @Autowired
-    private SysOperationLogService operationLogService;
-    
-    @Autowired
-    private UserContextUtil userContextUtil;
+
+    private final ImageLibraryService imageLibraryService;
+    private final SysOperationLogService operationLogService;
+    private final UserContextUtil userContextUtil;
+
+    public ImageLibraryController(ImageLibraryService imageLibraryService,
+                                  SysOperationLogService operationLogService,
+                                  UserContextUtil userContextUtil) {
+        this.imageLibraryService = imageLibraryService;
+        this.operationLogService = operationLogService;
+        this.userContextUtil = userContextUtil;
+    }
     
     /**
      * 上传图片
@@ -169,7 +173,7 @@ public class ImageLibraryController {
                 ImageLibrary newImage = imageLibraryService.getById(id);
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -185,7 +189,7 @@ public class ImageLibraryController {
                     "/images/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -208,7 +212,7 @@ public class ImageLibraryController {
             try {
                 String realName = userContextUtil.getCurrentUserRealName();
                 Long userId = userContextUtil.getCurrentUserId();
-                String ipAddress = getClientIp(request);
+                String ipAddress = UserContextUtil.getClientIp(request);
                 
                 operationLogService.logDataChange(
                     userId,
@@ -224,7 +228,7 @@ public class ImageLibraryController {
                     "/images/" + id
                 );
             } catch (Exception e) {
-                System.err.println("记录审计日志失败: " + e.getMessage());
+                log.error("记录审计日志失败: {}", e.getMessage());
             }
         }
         
@@ -333,22 +337,5 @@ public class ImageLibraryController {
         stats.put("uploaderStats", imageLibraryService.getUploaderStats());
         stats.put("storageStats", imageLibraryService.getStorageStats());
         return Result.success(stats);
-    }
-    
-    /**
-     * 获取客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 }

@@ -4,19 +4,26 @@ import com.example.dto.DataChangeDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * 审计日志工具类
  * 用于比较对象变更并生成变更记录
  */
+@Slf4j
 public class AuditLogUtil {
-    
-    private static final Logger logger = LoggerFactory.getLogger(AuditLogUtil.class);
+
     private static final ObjectMapper objectMapper;
     
     static {
@@ -73,7 +80,7 @@ public class AuditLogUtil {
                 }
             }
         } catch (Exception e) {
-            logger.error("比较对象差异失败", e);
+            log.error("比较对象差异失败", e);
         }
         
         return changes;
@@ -90,7 +97,7 @@ public class AuditLogUtil {
         try {
             return objectMapper.writeValueAsString(obj);
         } catch (Exception e) {
-            logger.error("对象转JSON失败", e);
+            log.error("对象转JSON失败", e);
             return null;
         }
     }
@@ -106,7 +113,7 @@ public class AuditLogUtil {
         try {
             return objectMapper.writeValueAsString(changes);
         } catch (Exception e) {
-            logger.error("变更列表转JSON失败", e);
+            log.error("变更列表转JSON失败", e);
             return null;
         }
     }

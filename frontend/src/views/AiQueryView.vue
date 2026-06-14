@@ -287,8 +287,6 @@ const loadSessionMessages = async (sessionId) => {
     const res = await getSessionMessagesApi(sessionId)
     const messages = res.data || []
     
-    console.log('加载的消息列表:', messages)
-    
     // 转换消息格式为chatHistory格式
     chatHistory.value = []
     
@@ -315,7 +313,6 @@ const loadSessionMessages = async (sessionId) => {
           try {
             // 尝试解析JSON字符串
             aiResponse = JSON.parse(aiMsg.content)
-            console.log('成功解析AI响应 (JSON字符串):', aiResponse)
           } catch (parseError) {
             console.error('JSON解析失败，使用原始内容:', parseError, aiMsg.content)
             // 如果解析失败，创建一个简单的响应对象
@@ -332,7 +329,6 @@ const loadSessionMessages = async (sessionId) => {
         } else {
           // 如果已经是对象，直接使用
           aiResponse = aiMsg.content
-          console.log('AI响应已经是对象:', aiResponse)
         }
         
         // 确保aiResponse有必要的字段
@@ -349,8 +345,6 @@ const loadSessionMessages = async (sessionId) => {
         console.error('处理消息失败:', e, userMsg, aiMsg)
       }
     }
-    
-    console.log('转换后的聊天历史:', chatHistory.value)
     
     await nextTick()
     scrollToBottom()

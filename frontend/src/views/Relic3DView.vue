@@ -160,7 +160,6 @@ const fetchRelicInfo = async () => {
         } else {
           // 对于没有扩展名的链接，默认尝试作为GLTF/GLB格式加载
           modelType.value = 'gltf'
-          console.log('链接没有扩展名，默认使用GLTF格式加载')
         }
       }
     }

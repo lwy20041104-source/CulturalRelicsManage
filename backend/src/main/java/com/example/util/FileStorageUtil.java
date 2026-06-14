@@ -1,5 +1,6 @@
-package com.example.utils;
+package com.example.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class FileStorageUtil {
 
@@ -33,7 +35,7 @@ public class FileStorageUtil {
         // 确保目录存在
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
-            System.out.println("创建上传目录: " + uploadDir.toAbsolutePath());
+            log.info("创建上传目录: {}", uploadDir.toAbsolutePath());
         }
         
         // 获取原始文件名和后缀
@@ -51,12 +53,12 @@ public class FileStorageUtil {
         Path targetPath = uploadDir.resolve(filename);
         file.transferTo(targetPath.toFile());
         
-        System.out.println("文件已保存到: " + targetPath.toAbsolutePath());
+        log.info("文件已保存到: {}", targetPath.toAbsolutePath());
         
         // 返回规范化的相对路径（用于数据库存储和URL访问）
         // 确保路径格式为 /uploads/filename，避免双斜杠
         String relativePath = "/" + normalizedUploadPath + "/" + filename;
-        System.out.println("返回的相对路径: " + relativePath);
+        log.info("返回的相对路径: {}", relativePath);
         
         return relativePath;
     }

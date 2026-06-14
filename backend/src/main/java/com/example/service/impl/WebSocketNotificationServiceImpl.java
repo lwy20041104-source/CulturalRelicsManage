@@ -6,8 +6,7 @@ import com.example.entity.SysUser;
 import com.example.mapper.SysRoleMapper;
 import com.example.mapper.SysUserMapper;
 import com.example.service.WebSocketNotificationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +15,9 @@ import java.util.List;
 /**
  * WebSocket通知推送服务实现类
  */
+@Slf4j
 @Service
 public class WebSocketNotificationServiceImpl implements WebSocketNotificationService {
-    
-    private static final Logger log = LoggerFactory.getLogger(WebSocketNotificationServiceImpl.class);
     
     private final SimpMessagingTemplate messagingTemplate;
     private final SysUserMapper userMapper;
