@@ -10,7 +10,6 @@ import RelicsView from '../views/RelicsView.vue'
 import CategoriesView from '../views/CategoriesView.vue'
 import LoansView from '../views/LoansView.vue'
 import MaintenanceView from '../views/MaintenanceView.vue'
-import UsersView from '../views/UsersView.vue'
 import AiQueryView from '../views/AiQueryView.vue'
 import AiChatHistoryView from '../views/AiChatHistoryView.vue'
 import OperationLogsView from '../views/OperationLogsView.vue'
@@ -42,7 +41,6 @@ const routes = [
     redirect: '/dashboard',
     children: [
       { path: '/dashboard', component: DashboardView, meta: { perm: 'dashboard:view' } },
-      { path: '/users', component: UsersView, meta: { perm: 'users:manage' } },
       { path: '/employees', component: () => import('../views/EmployeesView.vue'), meta: { perm: 'users:manage' } },
       { path: '/loaners', component: () => import('../views/LoanersView.vue'), meta: { perm: 'users:manage' } },
       { path: '/ai-query', component: AiQueryView },

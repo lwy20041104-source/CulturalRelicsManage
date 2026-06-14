@@ -31,6 +31,13 @@
           {{ scope.row.status === 1 ? $t('common.enabled') : $t('common.disabled') }}
         </template>
       </el-table-column>
+      <el-table-column :label="$t('user.accountLocked')" width="100">
+        <template #default="scope">
+          <el-tag :type="scope.row.accountLocked === 1 ? 'danger' : 'success'" size="small">
+            {{ scope.row.accountLocked === 1 ? $t('user.locked') : $t('user.unlocked') }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('common.operation')" width="220" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
@@ -92,6 +99,12 @@
             <el-option :label="$t('common.disabled')" :value="2" />
           </el-select>
         </el-form-item>
+        <el-form-item :label="$t('user.accountLocked')" prop="accountLocked">
+          <el-select v-model="form.accountLocked" style="width: 100%">
+            <el-option :label="$t('user.unlocked')" :value="0" />
+            <el-option :label="$t('user.locked')" :value="1" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">{{ $t('common.cancel') }}</el-button>
@@ -108,6 +121,11 @@
         <el-descriptions-item :label="$t('common.status')">
           <el-tag :type="currentDetail.status === 1 ? 'success' : 'info'">
             {{ currentDetail.status === 1 ? $t('common.enabled') : $t('common.disabled') }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item :label="$t('user.accountLocked')">
+          <el-tag :type="currentDetail.accountLocked === 1 ? 'danger' : 'success'">
+            {{ currentDetail.accountLocked === 1 ? $t('user.locked') : $t('user.unlocked') }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="$t('user.phone')">{{ currentDetail.phone || '—' }}</el-descriptions-item>
@@ -146,7 +164,8 @@ const form = reactive({
   roleId: null, 
   phone: '', 
   email: '', 
-  status: 1 
+  status: 1,
+  accountLocked: 0
 })
 
 // 只显示员工角色（系统管理员、文物保管员、借展审批员）
@@ -297,7 +316,8 @@ const resetForm = () => {
     roleId: null, 
     phone: '', 
     email: '', 
-    status: 1 
+    status: 1,
+    accountLocked: 0 
   })
   formRef.value?.clearValidate()
 }
@@ -317,7 +337,8 @@ const openEdit = (row) => {
     roleId: row.roleId,
     phone: row.phone,
     email: row.email,
-    status: row.status
+    status: row.status,
+    accountLocked: row.accountLocked !== undefined ? row.accountLocked : 0
   })
   formRef.value?.clearValidate()
   dialogVisible.value = true

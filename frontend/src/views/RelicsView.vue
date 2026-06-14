@@ -160,8 +160,8 @@
         </el-form-item>
         <el-form-item :label="$t('relic.material')" prop="material"><el-input v-model="form.material" /></el-form-item>
         <el-form-item :label="$t('relic.category')" prop="categoryId">
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <el-select v-model="form.categoryId" style="flex: 1" clearable>
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <el-select v-model="form.categoryId" style="flex: 1; min-width: 200px;" clearable>
               <el-option v-for="item in categoryOptions" :key="item.id" :label="item.categoryName" :value="item.id" />
             </el-select>
             <el-button 
@@ -169,11 +169,12 @@
               :icon="MagicStick" 
               @click="openAIRecognition"
               :disabled="newImageFileList.length === 0"
+              style="flex-shrink: 0;"
             >
               AI识别
             </el-button>
           </div>
-          <div class="form-tip">提示：上传图片后可使用AI自动识别分类</div>
+          <div class="form-tip" style="margin-top: 6px;">提示：上传图片后可使用AI自动识别分类</div>
         </el-form-item>
         <el-form-item :label="$t('relic.status')" prop="status">
           <el-select v-model="form.status">

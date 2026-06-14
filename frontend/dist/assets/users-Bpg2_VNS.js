@@ -1,0 +1,1 @@
+import{q as e}from"./index-DqzdnNcP.js";const r=s=>e.get("/users",{params:s}),o=()=>e.get("/users/roles"),p=s=>e.post("/users",s),a=s=>e.put("/users",s),u=s=>e.delete(`/users/${s}`),i=()=>e.get("/users/profile"),c=s=>e.put("/users/profile",s);export{r as a,p as b,i as c,u as d,c as e,o as g,a as u};

@@ -120,6 +120,7 @@ public class SysUserController {
         user.setPhone((String) requestData.get("phone"));
         user.setRoleId(requestData.get("roleId") != null ? Long.valueOf(requestData.get("roleId").toString()) : null);
         user.setStatus(requestData.get("status") != null ? Integer.valueOf(requestData.get("status").toString()) : 1);
+        user.setAccountLocked(requestData.get("accountLocked") != null ? Integer.valueOf(requestData.get("accountLocked").toString()) : null);
         user.setUpdateTime(LocalDateTime.now());
         
         boolean success = sysUserService.updateById(user);

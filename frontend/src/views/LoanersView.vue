@@ -31,6 +31,13 @@
           {{ scope.row.status === 1 ? $t('common.enabled') : $t('common.disabled') }}
         </template>
       </el-table-column>
+      <el-table-column :label="$t('user.accountLocked')" width="100">
+        <template #default="scope">
+          <el-tag :type="scope.row.accountLocked === 1 ? 'danger' : 'success'" size="small">
+            {{ scope.row.accountLocked === 1 ? $t('user.locked') : $t('user.unlocked') }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('common.operation')" width="220" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
@@ -102,6 +109,12 @@
             <el-option :label="$t('common.disabled')" :value="2" />
           </el-select>
         </el-form-item>
+        <el-form-item :label="$t('user.accountLocked')" prop="accountLocked">
+          <el-select v-model="form.accountLocked" style="width: 100%">
+            <el-option :label="$t('user.unlocked')" :value="0" />
+            <el-option :label="$t('user.locked')" :value="1" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">{{ $t('common.cancel') }}</el-button>
@@ -165,7 +178,8 @@ const form = reactive({
   museumId: null,
   phone: '', 
   email: '', 
-  status: 1 
+  status: 1,
+  accountLocked: 0
 })
 
 // 获取借展人角色ID
@@ -324,7 +338,8 @@ const resetForm = () => {
     museumId: null,
     phone: '', 
     email: '', 
-    status: 1 
+    status: 1,
+    accountLocked: 0 
   })
   formRef.value?.clearValidate()
 }
@@ -345,6 +360,7 @@ const openEdit = async (row) => {
     phone: row.phone,
     email: row.email,
     status: row.status,
+    accountLocked: row.accountLocked !== undefined ? row.accountLocked : 0,
     museumId: null
   })
   

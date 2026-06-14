@@ -5,6 +5,7 @@ import com.example.common.PageResult;
 import com.example.entity.CulturalRelic;
 import com.example.mapper.CulturalRelicMapper;
 import com.example.service.CulturalRelicService;
+import com.example.service.RelicImageRelationService;
 import com.example.util.ExportUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -19,7 +20,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,7 +29,7 @@ import java.util.List;
 public class CulturalRelicServiceImpl implements CulturalRelicService {
 
     private final CulturalRelicMapper culturalRelicMapper;
-    private final com.example.service.RelicImageRelationService relicImageRelationService;
+    private final RelicImageRelationService relicImageRelationService;
 
     public CulturalRelicServiceImpl(CulturalRelicMapper culturalRelicMapper,
                                    com.example.service.RelicImageRelationService relicImageRelationService) {
