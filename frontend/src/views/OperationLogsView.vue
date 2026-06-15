@@ -14,13 +14,7 @@
         <el-input v-model="query.operationModule" :placeholder="$t('operationLog.operationModel')" clearable style="width: 200px" @keyup.enter="search" />
         <el-button type="primary" @click="search">{{ $t('common.search') }}</el-button>
         <el-button @click="resetSearch">{{ $t('common.reset') }}</el-button>
-        <el-button :icon="RefreshIcon" @click="refreshData" :loading="loading">{{$t('common.refresh')}}</el-button>
-        <el-switch 
-          v-model="autoRefresh" 
-          :active-text="$t('operationLog.autoRefresh')" 
-          @change="toggleAutoRefresh"
-          style="margin-left: 10px"
-        />
+
       </div>
     </template>
 
@@ -154,7 +148,7 @@
 <script setup>
 import { onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Refresh as RefreshIcon } from '@element-plus/icons-vue'
+
 import { getOperationLogsPageApi, getOperationLogByIdApi } from '../api/operationLogs'
 
 const { t } = useI18n()
@@ -164,8 +158,6 @@ const total = ref(0)
 const loading = ref(false)
 const detailDialogVisible = ref(false)
 const currentDetail = ref(null)
-const autoRefresh = ref(true) // 默认开启自动刷新
-const refreshTimer = ref(null)
 const query = reactive({ pageNum: 1, pageSize: 10, operator: '', operationType: '', operationModule: '' })
 
 // 计算是否有数据变更
@@ -230,10 +222,6 @@ const loadData = async (silent = false) => {
   }
 }
 
-const refreshData = () => {
-  loadData()
-}
-
 const search = () => {
   query.pageNum = 1
   loadData()
@@ -250,45 +238,17 @@ const viewDetail = async (row) => {
   detailDialogVisible.value = true
 }
 
-// 启动自动刷新
-const startAutoRefresh = () => {
-  if (refreshTimer.value) {
-    clearInterval(refreshTimer.value)
-  }
-  // 每5秒自动刷新一次（静默刷新，不显示loading）
-  refreshTimer.value = setInterval(() => {
-    loadData(true)
-  }, 5000)
-}
-
-// 停止自动刷新
-const stopAutoRefresh = () => {
-  if (refreshTimer.value) {
-    clearInterval(refreshTimer.value)
-    refreshTimer.value = null
-  }
-}
-
-// 切换自动刷新
-const toggleAutoRefresh = (value) => {
-  if (value) {
-    startAutoRefresh()
-  } else {
-    stopAutoRefresh()
-  }
+const handleOperationDone = () => {
+  loadData(true)
 }
 
 onMounted(() => {
   loadData()
-  // 默认启动自动刷新
-  if (autoRefresh.value) {
-    startAutoRefresh()
-  }
+  window.addEventListener('operation-done', handleOperationDone)
 })
 
 onUnmounted(() => {
-  // 组件卸载时清理定时器
-  stopAutoRefresh()
+  window.removeEventListener('operation-done', handleOperationDone)
 })
 </script>
 

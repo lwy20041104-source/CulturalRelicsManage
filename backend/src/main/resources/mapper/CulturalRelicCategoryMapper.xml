@@ -28,6 +28,10 @@
         ORDER BY c.parent_id ASC, c.sort_order ASC
     </select>
 
+    <select id="selectByName" resultType="com.example.entity.CulturalRelicCategory">
+        SELECT * FROM cultural_relic_category WHERE category_name = #{categoryName} LIMIT 1
+    </select>
+
     <insert id="insert" parameterType="com.example.entity.CulturalRelicCategory" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO cultural_relic_category (category_name, parent_id, sort_order, description, create_time, update_time)
         VALUES (#{categoryName}, #{parentId}, #{sortOrder}, #{description}, #{createTime}, #{updateTime})

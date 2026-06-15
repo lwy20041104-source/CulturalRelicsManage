@@ -11,7 +11,7 @@
           <el-option :label="$t('repair.rejected')" value="已拒绝" />
         </el-select>
         <el-button type="primary" @click="loadData">{{ $t('common.search') }}</el-button>
-        <el-button type="success" @click="openApply">{{ $t('repair.addRepair') }}</el-button>
+        <el-button type="success" v-if="canApply" @click="openApply">{{ $t('repair.addRepair') }}</el-button>
       </div>
     </template>
 
@@ -236,7 +236,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRepairsPageApi, applyRepairApi, deleteRepairApi, getEnabledExpertsApi } from '../api/repairs'
@@ -247,6 +247,12 @@ const { t } = useI18n()
 
 const tableData = ref([])
 const total = ref(0)
+
+// 判断当前用户是否可以申请修复（仅管理员和保管员）
+const canApply = computed(() => {
+  const role = sessionStorage.getItem('role')
+  return role === 'ADMIN' || role === 'CURATOR'
+})
 const allMaterialOptions = ref([])
 const relicOptions = ref([])
 const expertOptions = ref([])

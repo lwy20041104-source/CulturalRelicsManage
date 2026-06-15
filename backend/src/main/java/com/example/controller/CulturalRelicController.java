@@ -325,7 +325,7 @@ public class CulturalRelicController {
     @OperationLog(operationType = "新增", operationModule = "文物管理", operationContent = "导入文物数据")
     public Result<String> importExcel(@RequestParam("file") MultipartFile file) throws Exception {
         int count = culturalRelicService.importExcel(file);
-        return Result.success("导入成功，共导入 " + count + " 条数据");
+        return Result.success("导入成功，共导入 " + count + " 条数据", null);
     }
     
     /**

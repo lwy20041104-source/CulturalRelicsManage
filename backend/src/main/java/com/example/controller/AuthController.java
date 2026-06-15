@@ -81,9 +81,18 @@ public class AuthController {
         } finally {
             // 手动记录登录日志
             try {
-                String operator = user != null && user.getRealName() != null && !user.getRealName().isEmpty() 
-                    ? user.getRealName() 
-                    : (request.getUsername() != null ? request.getUsername() : "未知用户");
+                String operator;
+                if (user != null && user.getRealName() != null && !user.getRealName().isEmpty()) {
+                    operator = user.getRealName();
+                } else if (request.getUsername() != null) {
+                    // 登录失败时 user 为 null，通过用户名查询真实姓名
+                    SysUser dbUser = sysUserService.getUserByUsername(request.getUsername());
+                    operator = (dbUser != null && dbUser.getRealName() != null && !dbUser.getRealName().isEmpty())
+                        ? dbUser.getRealName()
+                        : request.getUsername();
+                } else {
+                    operator = "未知用户";
+                }
                 logService.log(operator, "登录", "系统认证", "用户登录", operationResult, ipAddress);
             } catch (Exception e) {
                 // 记录日志失败不影响登录

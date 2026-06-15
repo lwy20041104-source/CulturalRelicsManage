@@ -41,6 +41,10 @@ request.interceptors.response.use(
     }
     
     // 业务成功，返回data
+    // 非GET请求成功后派发全局事件，供操作日志等页面实时刷新
+    if (response.config.method && response.config.method.toLowerCase() !== 'get') {
+      window.dispatchEvent(new CustomEvent('operation-done'))
+    }
     return data
   },
   error => {

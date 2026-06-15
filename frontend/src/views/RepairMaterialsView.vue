@@ -30,7 +30,7 @@
         <el-button @click="resetSearch">
           {{ $t('common.reset') }}
         </el-button>
-        <el-button type="success" @click="showCreateDialog">
+        <el-button type="success" v-if="canEdit" @click="showCreateDialog">
           {{ $t('repairMaterials.addMaterial') }}
         </el-button>
         <el-button type="warning" @click="showLowStock">
@@ -62,13 +62,13 @@
           <el-button link type="primary" @click="showStatistics(row)">
             {{ $t('repairMaterials.statistics') }}
           </el-button>
-          <el-button link type="warning" @click="showUpdateStock(row)">
+          <el-button v-if="canEdit" link type="warning" @click="showUpdateStock(row)">
             {{ $t('repairMaterials.updateStock') }}
           </el-button>
-          <el-button link type="primary" @click="showEditDialog(row)">
+          <el-button v-if="canEdit" link type="primary" @click="showEditDialog(row)">
             {{ $t('common.edit') }}
           </el-button>
-          <el-button link type="danger" @click="handleDelete(row)">
+          <el-button v-if="canEdit" link type="danger" @click="handleDelete(row)">
             {{ $t('common.delete') }}
           </el-button>
         </template>
@@ -227,6 +227,12 @@ import {
 } from '../api/repairMaterial'
 
 const { t } = useI18n()
+
+// 判断当前用户是否可以编辑（仅管理员和保管员）
+const canEdit = computed(() => {
+  const role = sessionStorage.getItem('role')
+  return role === 'ADMIN' || role === 'CURATOR'
+})
 
 // 数据
 const loading = ref(false)

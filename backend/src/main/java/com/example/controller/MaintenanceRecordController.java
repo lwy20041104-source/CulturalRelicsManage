@@ -41,6 +41,7 @@ public class MaintenanceRecordController {
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String relicName,
             org.springframework.security.core.Authentication authentication
     ) {
         // 获取当前用户权限，判断是否需要过滤维护人
@@ -83,7 +84,7 @@ public class MaintenanceRecordController {
         }
         
         PageResult<MaintenanceRecord> page = maintenanceRecordService.pageRecords(
-                pageNum, pageSize, maintainerIdFilter, status, null, null);
+                pageNum, pageSize, maintainerIdFilter, status, null, relicName);
         return Result.success(page);
     }
 
@@ -116,6 +117,10 @@ public class MaintenanceRecordController {
         record.setStatus("待审批");
         record.setCreateTime(LocalDateTime.now());
         record.setUpdateTime(LocalDateTime.now());
+        // maintainer字段为NOT NULL，填充空字符串避免数据库约束错误
+        if (record.getMaintainerName() == null || record.getMaintainerName().isEmpty()) {
+            record.setMaintainerName("");
+        }
         
         boolean success = maintenanceRecordService.save(record);
         

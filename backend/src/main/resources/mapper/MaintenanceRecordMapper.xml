@@ -57,9 +57,9 @@
 
     <insert id="insert" parameterType="com.example.entity.MaintenanceRecord" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO maintenance_record
-        (relic_id, maintenance_type, maintenance_date, maintenance_content, maintainer_id, status, remark, create_time, update_time)
+        (relic_id, maintenance_type, maintenance_date, maintenance_content, maintainer, maintainer_id, status, remark, create_time, update_time)
         VALUES
-        (#{relicId}, #{maintenanceType}, #{maintenanceDate}, #{maintenanceContent}, #{maintainerId}, #{status}, #{remark}, #{createTime}, #{updateTime})
+        (#{relicId}, #{maintenanceType}, #{maintenanceDate}, #{maintenanceContent}, #{maintainerName}, #{maintainerId}, #{status}, #{remark}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="updateById" parameterType="com.example.entity.MaintenanceRecord">

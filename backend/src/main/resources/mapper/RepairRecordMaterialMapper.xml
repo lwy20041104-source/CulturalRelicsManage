@@ -16,7 +16,6 @@
         <result property="materialName" column="material_name"/>
         <result property="materialCode" column="material_code"/>
         <result property="unit" column="unit"/>
-        <result property="repairCode" column="repair_code"/>
     </resultMap>
 
     <select id="selectByRepairRecordId" resultMap="BaseResultMap">
@@ -28,9 +27,8 @@
     </select>
 
     <select id="selectByMaterialId" resultMap="BaseResultMap">
-        SELECT rrm.*, rr.repair_code
+        SELECT rrm.*
         FROM repair_record_material rrm
-        LEFT JOIN repair_record rr ON rrm.repair_record_id = rr.id
         WHERE rrm.material_id = #{materialId}
         ORDER BY rrm.create_time DESC
     </select>

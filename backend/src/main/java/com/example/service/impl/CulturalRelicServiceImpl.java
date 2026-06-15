@@ -3,8 +3,10 @@ package com.example.service.impl;
 import com.example.common.CacheConstants;
 import com.example.common.PageResult;
 import com.example.entity.CulturalRelic;
+import com.example.entity.CulturalRelicCategory;
 import com.example.mapper.CulturalRelicMapper;
 import com.example.mapper.RepairRecordMapper;
+import com.example.service.CulturalRelicCategoryService;
 import com.example.service.CulturalRelicService;
 import com.example.service.RelicImageRelationService;
 import com.example.util.ExportUtils;
@@ -32,13 +34,16 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
     private final CulturalRelicMapper culturalRelicMapper;
     private final RelicImageRelationService relicImageRelationService;
     private final RepairRecordMapper repairRecordMapper;
+    private final CulturalRelicCategoryService categoryService;
 
     public CulturalRelicServiceImpl(CulturalRelicMapper culturalRelicMapper,
                                    com.example.service.RelicImageRelationService relicImageRelationService,
-                                   RepairRecordMapper repairRecordMapper) {
+                                   RepairRecordMapper repairRecordMapper,
+                                   CulturalRelicCategoryService categoryService) {
         this.culturalRelicMapper = culturalRelicMapper;
         this.relicImageRelationService = relicImageRelationService;
         this.repairRecordMapper = repairRecordMapper;
+        this.categoryService = categoryService;
     }
 
     @Override
@@ -273,19 +278,38 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
                 
                 try {
                     CulturalRelic relic = new CulturalRelic();
+                    // 列0: 名称*
                     relic.setRelicName(getCellValue(row.getCell(0)));
-                    relic.setEra(getCellValue(row.getCell(1)));
-                    relic.setMaterial(getCellValue(row.getCell(2)));
-                    relic.setStatus(getCellValue(row.getCell(3)));
-                    relic.setDimensions(getCellValue(row.getCell(4)));
-                    
-                    String weightStr = getCellValue(row.getCell(5));
+                    // 列1: 图片
+                    relic.setImagePath(getCellValue(row.getCell(1)));
+                    // 列2: 年代*
+                    relic.setEra(getCellValue(row.getCell(2)));
+                    // 列3: 材质*
+                    relic.setMaterial(getCellValue(row.getCell(3)));
+                    // 列4: 状态*
+                    relic.setStatus(getCellValue(row.getCell(4)));
+                    // 列5: 3D模型
+                    relic.setModel3dUrl(getCellValue(row.getCell(5)));
+                    // 列6: 文物分类*（通过分类名称查找分类ID）
+                    String categoryName = getCellValue(row.getCell(6));
+                    if (categoryName != null && !categoryName.trim().isEmpty()) {
+                        CulturalRelicCategory category = categoryService.getByCategoryName(categoryName.trim());
+                        if (category != null) {
+                            relic.setCategoryId(category.getId());
+                            relic.setCategoryName(category.getCategoryName());
+                        } else {
+                            relic.setCategoryName(categoryName.trim());
+                        }
+                    }
+                    // 列7: 尺寸
+                    relic.setDimensions(getCellValue(row.getCell(7)));
+                    // 列8: 重量(kg)
+                    String weightStr = getCellValue(row.getCell(8));
                     if (weightStr != null && !weightStr.trim().isEmpty()) {
                         relic.setWeight(Double.parseDouble(weightStr));
                     }
-                    
-                    relic.setOrigin(getCellValue(row.getCell(6)));
-                    relic.setDescription(getCellValue(row.getCell(7)));
+                    // 列9: 描述
+                    relic.setDescription(getCellValue(row.getCell(9)));
                     relic.setCreateTime(LocalDateTime.now());
                     relic.setUpdateTime(LocalDateTime.now());
                     
@@ -319,7 +343,7 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
         
         // 创建标题行
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"名称*", "年代*", "材质*", "状态*", "尺寸", "重量(kg)", "来源", "描述"};
+        String[] headers = {"名称*", "图片", "年代*", "材质*", "状态*", "3D模型", "文物分类*", "尺寸", "重量(kg)", "描述"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -329,13 +353,15 @@ public class CulturalRelicServiceImpl implements CulturalRelicService {
         // 添加示例数据
         Row exampleRow = sheet.createRow(1);
         exampleRow.createCell(0).setCellValue("青铜鼎");
-        exampleRow.createCell(1).setCellValue("商朝");
-        exampleRow.createCell(2).setCellValue("青铜");
-        exampleRow.createCell(3).setCellValue("在库");
-        exampleRow.createCell(4).setCellValue("高30cm，口径25cm");
-        exampleRow.createCell(5).setCellValue(15.5);
-        exampleRow.createCell(6).setCellValue("河南安阳出土");
-        exampleRow.createCell(7).setCellValue("商代晚期青铜礼器");
+        exampleRow.createCell(1).setCellValue("/uploads/example.jpg");
+        exampleRow.createCell(2).setCellValue("商朝");
+        exampleRow.createCell(3).setCellValue("青铜");
+        exampleRow.createCell(4).setCellValue("在库");
+        exampleRow.createCell(5).setCellValue("/models/example.glb");
+        exampleRow.createCell(6).setCellValue("青铜器");
+        exampleRow.createCell(7).setCellValue("高30cm，口径25cm");
+        exampleRow.createCell(8).setCellValue(15.5);
+        exampleRow.createCell(9).setCellValue("商代晚期青铜礼器，保存完整。");
         
         // 自动调整列宽
         for (int i = 0; i < headers.length; i++) {

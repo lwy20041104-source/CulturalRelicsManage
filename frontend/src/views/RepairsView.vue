@@ -18,7 +18,7 @@
         </el-select>
         <el-input v-model="query.repairExpert" :placeholder="$t('repair.repairExpert')" style="width: 150px" @keyup.enter="loadData" />
         <el-button type="primary" @click="loadData">{{ $t('common.search') }}</el-button>
-        <el-button type="success" @click="openApply">{{ $t('repair.addRepair') }}</el-button>
+        <el-button type="success" v-if="canApply" @click="openApply">{{ $t('repair.addRepair') }}</el-button>
       </div>
     </template>
 
@@ -363,6 +363,12 @@ const total = ref(0)
 const isAdminOrApprover = computed(() => {
   const role = sessionStorage.getItem('role')
   return role === 'ADMIN' || role === 'APPROVER'
+})
+
+// 判断当前用户是否可以申请修复（仅管理员和保管员）
+const canApply = computed(() => {
+  const role = sessionStorage.getItem('role')
+  return role === 'ADMIN' || role === 'CURATOR'
 })
 
 // 材料对话框相关

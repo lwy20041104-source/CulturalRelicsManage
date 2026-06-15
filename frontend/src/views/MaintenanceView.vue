@@ -2,12 +2,14 @@
   <el-card class="view-card">
     <template #header>
       <div class="toolbar">
-        <el-button type="success" @click="openAdd">{{ $t('maintenance.addMaintenance') }}</el-button>
-        <el-select v-model="query.status" :placeholder="$t('common.status')" clearable style="width: 150px" @change="loadData">
+        <el-input v-model="query.relicName" :placeholder="$t('maintenance.relicName')" style="width: 200px" @keyup.enter="loadData" />
+        <el-select v-model="query.status" :placeholder="$t('common.status')" clearable style="width: 140px">
           <el-option label="待审批" value="待审批" />
           <el-option label="已通过" value="已通过" />
           <el-option label="已拒绝" value="已拒绝" />
         </el-select>
+        <el-button type="primary" @click="loadData">{{ $t('common.search') }}</el-button>
+        <el-button v-if="canApply" type="success" @click="openAdd">{{ $t('maintenance.addMaintenance') }}</el-button>
       </div>
     </template>
 
@@ -197,7 +199,7 @@ const detailDialogVisible = ref(false)
 const currentDetail = ref(null)
 const formRef = ref()
 const approveFormRef = ref()
-const query = reactive({ pageNum: 1, pageSize: 10, status: null })
+const query = reactive({ pageNum: 1, pageSize: 10, status: null, relicName: '' })
 const form = reactive({ id: null, relicId: null, maintenanceType: '日常维护', maintenanceDate: '', maintenanceContent: '', remark: '' })
 const approveForm = reactive({ id: null, relicName: '', maintenanceType: '', maintenanceContent: '', status: '已通过', approveRemark: '' })
 
@@ -205,6 +207,12 @@ const approveForm = reactive({ id: null, relicName: '', maintenanceType: '', mai
 const isAdminOrApprover = computed(() => {
   const role = sessionStorage.getItem('role')
   return role === 'ADMIN' || role === 'APPROVER'
+})
+
+// 判断当前用户是否可以申请维护（仅管理员和保管员）
+const canApply = computed(() => {
+  const role = sessionStorage.getItem('role')
+  return role === 'ADMIN' || role === 'CURATOR'
 })
 
 // 自定义维护日期验证规则
@@ -263,7 +271,7 @@ const loadData = async () => {
 }
 
 const loadRelics = async () => {
-  const res = await getRelicsPageApi({ pageNum: 1, pageSize: 1000 })
+  const res = await getRelicsPageApi({ pageNum: 1, pageSize: 1000, status: '在库' })
   relicOptions.value = res.data.records || []
 }
 

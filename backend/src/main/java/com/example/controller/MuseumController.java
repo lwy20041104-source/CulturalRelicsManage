@@ -8,6 +8,7 @@ import com.example.service.MuseumService;
 import com.example.service.SysOperationLogService;
 import com.example.util.UserContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -136,11 +137,14 @@ public class MuseumController {
             return Result.error("博物馆不存在");
         }
         
+        // 保存修改前的快照（用于审计日志，逻辑删除后会改变 oldMuseum）
+        Museum beforeUpdate = new Museum();
+        BeanUtils.copyProperties(oldMuseum, beforeUpdate);
+        
         // 2. 逻辑删除：将状态改为0（无合作）
-        Museum museum = new Museum();
-        museum.setId(id);
-        museum.setStatus(0);
-        boolean success = museumService.updateById(museum);
+        // 必须用完整的 Museum 对象更新，否则全字段 update SQL 会将其他字段清空
+        oldMuseum.setStatus(0);
+        boolean success = museumService.updateById(oldMuseum);
         
         // 3. 记录审计日志
         if (success) {
@@ -152,7 +156,7 @@ public class MuseumController {
                 
                 operationLogService.logDataChange(
                     userId, realName, "删除", "博物馆管理",
-                    "MUSEUM", id, oldMuseum, newMuseum,
+                    "MUSEUM", id, beforeUpdate, newMuseum,
                     ipAddress, "DELETE", "/museums/" + id
                 );
             } catch (Exception e) {

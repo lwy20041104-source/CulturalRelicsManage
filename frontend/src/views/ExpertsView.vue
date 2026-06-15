@@ -5,7 +5,7 @@
         <el-input v-model="query.expertName" :placeholder="$t('expert.expertName')" style="width: 200px" @keyup.enter="loadData" />
         <el-input v-model="query.specialty" :placeholder="$t('expert.specialty')" style="width: 200px" @keyup.enter="loadData" />
         <el-button type="primary" @click="loadData">{{ $t('common.search') }}</el-button>
-        <el-button type="success" @click="openAdd">{{ $t('expert.addExpert') }}</el-button>
+        <el-button type="success" v-if="canEdit" @click="openAdd">{{ $t('expert.addExpert') }}</el-button>
       </div>
     </template>
 
@@ -30,8 +30,8 @@
       <el-table-column :label="$t('common.operation')" width="230" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="viewDetail(scope.row)">{{ $t('common.detail') }}</el-button>
-          <el-button link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
-          <el-button link type="danger" @click="remove(scope.row.id)">{{ $t('common.delete') }}</el-button>
+          <el-button v-if="canEdit" link type="primary" @click="openEdit(scope.row)">{{ $t('common.edit') }}</el-button>
+          <el-button v-if="canEdit" link type="danger" @click="remove(scope.row.id)">{{ $t('common.delete') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -120,12 +120,18 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getExpertsPageApi, addExpertApi, updateExpertApi, deleteExpertApi } from '../api/experts'
 
 const { t } = useI18n()
+
+// 判断当前用户是否可以编辑（仅管理员和保管员）
+const canEdit = computed(() => {
+  const role = sessionStorage.getItem('role')
+  return role === 'ADMIN' || role === 'CURATOR'
+})
 
 const tableData = ref([])
 const total = ref(0)

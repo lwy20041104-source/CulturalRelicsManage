@@ -380,9 +380,13 @@ const unlockAccount = async (row) => {
     t('common.warning'),
     { type: 'warning' }
   )
-  await unlockUserApi(row.id)
-  ElMessage.success(t('user.unlockSuccess'))
-  loadData()
+  try {
+    await unlockUserApi(row.id)
+    ElMessage.success(t('user.unlockSuccess'))
+    loadData()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e.message || t('common.operationFailed'))
+  }
 }
 
 const handleSelectionChange = (selection) => {

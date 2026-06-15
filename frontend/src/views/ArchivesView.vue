@@ -176,22 +176,24 @@
         <div class="info-section">
           <h3>{{ $t('archive.archiveBasicInformation') }}</h3>
           <table class="info-table">
-            <tr>
-              <td class="label">{{ $t('archive.archiveCode') }}:</td>
-              <td class="value">{{ printPreviewData.archiveCode }}</td>
-              <td class="label">{{ $t('archive.archiveType') }}:</td>
-              <td class="value">{{ getArchiveTypeName(printPreviewData.archiveType) }}</td>
-            </tr>
-            <tr>
-              <td class="label">{{ $t('archive.archiveTitle') }}:</td>
-              <td class="value" colspan="3">{{ printPreviewData.archiveTitle }}</td>
-            </tr>
-            <tr>
-              <td class="label">{{ $t('common.status') }}:</td>
-              <td class="value">{{ getStatusName(printPreviewData.status) }}</td>
-              <td class="label">{{ $t('archive.version') }}:</td>
-              <td class="value">v{{ printPreviewData.version }}</td>
-            </tr>
+            <tbody>
+              <tr>
+                <td class="label">{{ $t('archive.archiveCode') }}:</td>
+                <td class="value">{{ printPreviewData.archiveCode }}</td>
+                <td class="label">{{ $t('archive.archiveType') }}:</td>
+                <td class="value">{{ getArchiveTypeName(printPreviewData.archiveType) }}</td>
+              </tr>
+              <tr>
+                <td class="label">{{ $t('archive.archiveTitle') }}:</td>
+                <td class="value" colspan="3">{{ printPreviewData.archiveTitle }}</td>
+              </tr>
+              <tr>
+                <td class="label">{{ $t('common.status') }}:</td>
+                <td class="value">{{ getStatusName(printPreviewData.status) }}</td>
+                <td class="label">{{ $t('archive.version') }}:</td>
+                <td class="value">v{{ printPreviewData.version }}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
 
@@ -199,18 +201,20 @@
         <div class="info-section" v-if="printPreviewData.relic">
           <h3>{{ $t('archive.relatedCulturalRelicInformation') }}</h3>
           <table class="info-table">
-            <tr>
-              <td class="label">{{ $t('relic.relicName') }}:</td>
-              <td class="value">{{ printPreviewData.relic.relicName }}</td>
-              <td class="label">{{ $t('relic.relicCode') }}:</td>
-              <td class="value">{{ printPreviewData.relic.relicCode }}</td>
-            </tr>
-            <tr v-if="printPreviewData.relic.categoryName || printPreviewData.relic.eraName">
-              <td class="label">{{ $t('relic.category') }}:</td>
-              <td class="value">{{ printPreviewData.relic.categoryName || '—' }}</td>
-              <td class="label">{{ $t('relic.era') }}:</td>
-              <td class="value">{{ printPreviewData.relic.eraName || '—' }}</td>
-            </tr>
+            <tbody>
+              <tr>
+                <td class="label">{{ $t('relic.relicName') }}:</td>
+                <td class="value">{{ printPreviewData.relic.relicName }}</td>
+                <td class="label">{{ $t('relic.relicCode') }}:</td>
+                <td class="value">{{ printPreviewData.relic.relicCode }}</td>
+              </tr>
+              <tr v-if="printPreviewData.relic.categoryName || printPreviewData.relic.eraName">
+                <td class="label">{{ $t('relic.category') }}:</td>
+                <td class="value">{{ printPreviewData.relic.categoryName || '—' }}</td>
+                <td class="label">{{ $t('relic.era') }}:</td>
+                <td class="value">{{ printPreviewData.relic.eraName || '—' }}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
 
@@ -224,18 +228,20 @@
         <div class="info-section">
           <h3>{{ $t('archive.archiveInformation') }}</h3>
           <table class="info-table">
-            <tr>
-              <td class="label">{{ $t('common.creator') }}:</td>
-              <td class="value">{{ printPreviewData.createdBy || '—' }}</td>
-              <td class="label">{{ $t('common.createTime') }}:</td>
-              <td class="value">{{ formatDateTime(printPreviewData.createdTime) }}</td>
-            </tr>
-            <tr v-if="printPreviewData.updatedBy || printPreviewData.updatedTime">
-              <td class="label">{{ $t('common.updater') }}:</td>
-              <td class="value">{{ printPreviewData.updatedBy || '—' }}</td>
-              <td class="label">{{ $t('common.updateTime') }}:</td>
-              <td class="value">{{ formatDateTime(printPreviewData.updatedTime) || '—' }}</td>
-            </tr>
+            <tbody>
+              <tr>
+                <td class="label">{{ $t('common.creator') }}:</td>
+                <td class="value">{{ printPreviewData.createdBy || '—' }}</td>
+                <td class="label">{{ $t('common.createTime') }}:</td>
+                <td class="value">{{ formatDateTime(printPreviewData.createdTime) }}</td>
+              </tr>
+              <tr v-if="printPreviewData.updatedBy || printPreviewData.updatedTime">
+                <td class="label">{{ $t('common.updater') }}:</td>
+                <td class="value">{{ printPreviewData.updatedBy || '—' }}</td>
+                <td class="label">{{ $t('common.updateTime') }}:</td>
+                <td class="value">{{ formatDateTime(printPreviewData.updatedTime) || '—' }}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
 

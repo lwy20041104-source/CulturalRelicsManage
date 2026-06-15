@@ -25,6 +25,11 @@ public class CulturalRelicCategoryServiceImpl implements CulturalRelicCategorySe
     }
 
     @Override
+    public CulturalRelicCategory getByCategoryName(String categoryName) {
+        return categoryMapper.selectByName(categoryName);
+    }
+
+    @Override
     @Cacheable(value = CacheConstants.CATEGORY_CACHE, key = "#parentId == null ? 'all' : #parentId")
     public List<CulturalRelicCategory> listByParentId(Long parentId) {
         if (parentId == null) {

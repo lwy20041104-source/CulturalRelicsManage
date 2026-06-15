@@ -220,21 +220,12 @@ public class SysUserController {
     @PostMapping("/{userId}/unlock")
     @OperationLog(operationType = "解锁", operationModule = "用户管理", operationContent = "解锁用户账户")
     public Result<Boolean> unlockAccount(@PathVariable Long userId) {
-        try {
-            SysUser user = sysUserService.getUserById(userId);
-            if (user == null) {
-                return Result.error("用户不存在");
-            }
-            loginSecurityService.unlockAccount(user.getUsername());
-            // 同步更新用户的 account_locked 状态
-            SysUser updateUser = new SysUser();
-            updateUser.setId(user.getId());
-            updateUser.setAccountLocked(0);
-            sysUserService.updateById(updateUser);
-            return Result.success("账户解锁成功", true);
-        } catch (Exception e) {
-            return Result.error("解锁失败：" + e.getMessage());
+        SysUser user = sysUserService.getUserById(userId);
+        if (user == null) {
+            return Result.error("用户不存在");
         }
+        loginSecurityService.unlockAccount(user.getUsername());
+        return Result.success("账户解锁成功", true);
     }
     
     /**
@@ -324,6 +315,13 @@ public class SysUserController {
         String password = (String) requestData.get("password");
         if (password != null && !password.trim().isEmpty()) {
             user.setPassword(password);
+        }
+        
+        // 保留必须字段（不修改，但 updateById 校验需要）
+        user.setRoleId(currentUser.getRoleId());
+        user.setStatus(currentUser.getStatus());
+        if (user.getUsername() == null) {
+            user.setUsername(currentUser.getUsername());
         }
         
         user.setUpdateTime(LocalDateTime.now());
