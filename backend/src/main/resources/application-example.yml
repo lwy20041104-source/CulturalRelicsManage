@@ -1,3 +1,7 @@
+# ============================================
+# 应用配置文件模板
+# 使用方式: 复制为 application.yml 并修改为你的实际配置
+# ============================================
 spring:
   mvc:
     pathmatch:
@@ -6,20 +10,16 @@ spring:
     name: cultural-relics-manage
   profiles:
     active: dev
-    # 邮箱配置切换：
-    # - 使用QQ邮箱：include: mail-qq
-    # - 使用163邮箱：include: mail-163
-    # 修改后需要重启服务
     include: mail-qq
   datasource:
     url: jdbc:mysql://localhost:3306/cultural_relics?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password: 1234
+    username: 你的数据库用户名
+    password: 你的数据库密码
     driver-class-name: com.mysql.cj.jdbc.Driver
   redis:
     host: localhost
     port: 6379
-    password: 
+    password: 你的Redis密码(可选)
     timeout: 10000ms
     jedis:
       pool:
@@ -31,7 +31,6 @@ spring:
       enabled: true
       max-file-size: 10MB
       max-request-size: 10MB
-      file-size-threshold: 0
 
 mybatis:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -49,11 +48,9 @@ logging:
   level:
     root: info
     com.example: debug
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
 jwt:
-  secret: Y3VsdHVyYWwtcmVsaWNzLW1hbmFnZS1zZWNyZXQta2V5LTIwMjQ=
+  secret: 请生成一个Base64编码的密钥(至少256位)
   expiration: 86400000
   refresh-expiration: 604800000
 
@@ -61,33 +58,21 @@ file:
   upload-path: ./uploads/
   max-size: 10485760
 
-# 百度AI配置
+# 百度AI配置 (可选)
 baidu:
   ai:
-    # 是否启用百度AI识别（false则使用规则识别）
-    enabled: true
-    # 百度AI应用的APP_ID
-    app-id: 123167153
-    # 百度AI应用的API_KEY
-    api-key: 07e6YDQgDAXfMj84a86h9xWR
-    # 百度AI应用的SECRET_KEY
-    secret-key: RsnP0zSkekccmCVhX5XcqNOOXhVcQKOS
-    # 识别置信度阈值（0-1之间，低于此值将使用规则识别作为补充）
+    enabled: false
+    app-id: 你的百度AI APP_ID
+    api-key: 你的百度AI API_KEY
+    secret-key: 你的百度AI SECRET_KEY
     confidence-threshold: 0.6
 
-# DeepSeek AI配置
+# DeepSeek AI配置 (可选)
 deepseek:
-  # DeepSeek API Key（请替换为您的实际API Key）
-  api-key: sk-40278446331f49a1945fda8f551fc0ca
-  # DeepSeek API地址
+  api-key: 你的DeepSeek API Key
   api-url: https://api.deepseek.com/v1/chat/completions
-  # 使用的模型
   model: deepseek-chat
-  # 最大tokens数
   max-tokens: 2000
-  # 温度参数（0-2，越高越随机）
   temperature: 0.7
-  # 连接超时时间（毫秒）
   connect-timeout: 10000
-  # 读取超时时间（毫秒）
   read-timeout: 30000

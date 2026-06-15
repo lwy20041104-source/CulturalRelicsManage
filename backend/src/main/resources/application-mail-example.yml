@@ -1,18 +1,19 @@
-# 163邮箱配置
+# QQ邮箱配置模板
+# 使用方式: 复制为 application-mail-qq.yml 并填入你的QQ邮箱授权码
 spring:
   mail:
     enabled: true
-    host: smtp.163.com
+    host: smtp.qq.com
     port: 465
-    username: lwy1472583692024@163.com
-    password: MSsMnpMSWfPuJ3bQ
+    username: 你的QQ邮箱地址
+    password: 你的QQ邮箱SMTP授权码
     properties:
       mail:
         smtp:
           auth: true
           ssl:
             enable: true
-            trust: smtp.163.com
+            trust: smtp.qq.com
           socketFactory:
             class: javax.net.ssl.SSLSocketFactory
             port: 465
