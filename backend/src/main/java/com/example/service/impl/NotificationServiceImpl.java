@@ -279,7 +279,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendMaintenanceApprovalNotification(Long maintenanceId, Long maintainerId, String relicName, boolean approved, String approverName) {
+    public void sendMaintenanceApprovalNotification(Long maintenanceId, Long maintainerId, String relicName, boolean approved, String approverName, Long approverId) {
         SystemNotification notification = new SystemNotification();
         notification.setTitle(approved ? "维护申请已通过" : "维护申请已拒绝");
         notification.setContent(String.format("文物\"%s\"的维护申请已被 %s %s。", 
@@ -308,6 +308,70 @@ public class NotificationServiceImpl implements NotificationService {
             log.info("维护审批结果WebSocket通知已推送：userId={}, approved={}", maintainerId, approved);
         } catch (Exception e) {
             log.error("维护审批结果WebSocket推送失败：userId={}, error={}", maintainerId, e.getMessage(), e);
+        }
+        
+        // 通知其他审批员和管理员：申请已被处理
+        notifyColleaguesApprovalHandled(maintenanceId, relicName, "维护", approved, approverName, approverId);
+    }
+    
+    /**
+     * 通知其他审批员和管理员：申请已被某人处理
+     */
+    private void notifyColleaguesApprovalHandled(Long relatedId, String relicName, String bizType, 
+                                                  boolean approved, String approverName, Long excludeUserId) {
+        try {
+            log.info("开始发送同僚通知：relatedId={}, relicName={}, bizType={}, approved={}, approver={}, excludeUserId={}",
+                    relatedId, relicName, bizType, approved, approverName, excludeUserId);
+            
+            SystemNotification colleagueNotification = new SystemNotification();
+            String action = approved ? "审批通过" : "拒绝";
+            colleagueNotification.setTitle(String.format("%s申请已被处理", bizType));
+            colleagueNotification.setContent(String.format("文物\"%s\"的%s申请已被 %s %s。", 
+                    relicName, bizType, approverName, action));
+            colleagueNotification.setType(approved ? "APPROVAL_HANDLED_APPROVED" : "APPROVAL_HANDLED_REJECTED");
+            colleagueNotification.setPriority("LOW");
+            colleagueNotification.setRelatedType(bizType.equals("维护") ? "MAINTENANCE" : "REPAIR");
+            colleagueNotification.setRelatedId(relatedId);
+            colleagueNotification.setSenderName(approverName);
+            colleagueNotification.setCreateTime(LocalDateTime.now());
+            
+            // 获取所有审批员和管理员
+            java.util.List<Long> colleagueIds = getUserIdsByRoleCodes(
+                    java.util.Arrays.asList("ADMIN", "APPROVER"), 
+                    colleagueNotification.getType());
+            
+            // 排除当前审批人
+            colleagueIds.remove(excludeUserId);
+            
+            if (colleagueIds.isEmpty()) {
+                log.info("没有其他需要通知的审批员/管理员");
+                return;
+            }
+            
+            // 保存通知
+            notificationMapper.insert(colleagueNotification);
+            
+            // 为每个同僚创建通知关联
+            for (Long userId : colleagueIds) {
+                UserNotification un = new UserNotification();
+                un.setNotificationId(colleagueNotification.getId());
+                un.setUserId(userId);
+                un.setIsRead(0);
+                un.setCreateTime(LocalDateTime.now());
+                userNotificationMapper.insert(un);
+                
+                // WebSocket推送
+                try {
+                    NotificationVO vo = convertToVO(colleagueNotification);
+                    webSocketNotificationService.sendNotificationToUser(userId, vo);
+                } catch (Exception e) {
+                    log.warn("同僚通知WebSocket推送失败：userId={}, error={}", userId, e.getMessage());
+                }
+            }
+            
+            log.info("同僚通知发送完成：{}位审批员/管理员已收到通知", colleagueIds.size());
+        } catch (Exception e) {
+            log.error("发送同僚通知失败：{}", e.getMessage(), e);
         }
     }
     
@@ -360,7 +424,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
     
     @Override
-    public void sendRepairApprovalNotification(Long repairId, Long applicantId, String relicName, boolean approved, String approverName) {
+    public void sendRepairApprovalNotification(Long repairId, Long applicantId, String relicName, boolean approved, String approverName, Long approverId) {
         SystemNotification notification = new SystemNotification();
         notification.setTitle(approved ? "修复申请已通过" : "修复申请已拒绝");
         notification.setContent(String.format("文物\"%s\"的修复申请已被 %s %s。", 
@@ -390,6 +454,9 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception e) {
             log.error("修复审批结果WebSocket推送失败：userId={}, error={}", applicantId, e.getMessage(), e);
         }
+        
+        // 通知其他审批员和管理员：申请已被处理
+        notifyColleaguesApprovalHandled(repairId, relicName, "修复", approved, approverName, approverId);
     }
     
     @Override

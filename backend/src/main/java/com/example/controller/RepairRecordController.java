@@ -317,15 +317,17 @@ public class RepairRecordController {
             try {
                 RepairRecord record = repairRecordService.getById(request.getId());
                 String approverRealName = userContextUtil.getCurrentUserRealName();
+                Long approverId = userContextUtil.getCurrentUserId();
                 notificationService.sendRepairApprovalNotification(
                     record.getId(),
                     record.getApplicantId(),
                     record.getRelicName(),
                     Boolean.TRUE.equals(request.getApproved()),
-                    approverRealName
+                    approverRealName,
+                    approverId
                 );
-                log.info("修复审批通知已发送：repairId={}, applicantId={}, approved={}",
-                        record.getId(), record.getApplicantId(), request.getApproved());
+                log.info("修复审批通知已发送：repairId={}, applicantId={}, approved={}, approverId={}",
+                        record.getId(), record.getApplicantId(), request.getApproved(), approverId);
             } catch (Exception e) {
                 log.error("发送审批通知失败: {}", e.getMessage());
             }

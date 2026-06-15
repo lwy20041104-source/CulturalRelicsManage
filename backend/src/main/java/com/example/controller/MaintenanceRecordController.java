@@ -14,6 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -97,11 +98,11 @@ public class MaintenanceRecordController {
             return Result.error("维护日期不能为空");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = LocalDate.now();
         
-        // 维护日期必须是当前时间及以后
-        if (record.getMaintenanceDate().isBefore(now)) {
-            return Result.error("维护日期必须是当前时间及以后");
+        // 维护日期必须是今天或今天之后
+        if (record.getMaintenanceDate().toLocalDate().isBefore(today)) {
+            return Result.error("维护日期必须是今天或今天之后");
         }
         
         // 设置维护人ID为当前用户
@@ -320,15 +321,17 @@ public class MaintenanceRecordController {
                 boolean approved = "已通过".equals(record.getStatus());
                 String approverRealName = userContextUtil.getCurrentUserRealName();
                 
+                Long approverId = userContextUtil.getCurrentUserId();
                 notificationService.sendMaintenanceApprovalNotification(
                     record.getId(),
                     oldRecord.getMaintainerId(),
                     relicName,
                     approved,
-                    approverRealName
+                    approverRealName,
+                    approverId
                 );
-                log.info("维护审批通知已发送：maintenanceId={}, maintainerId={}, approved={}",
-                        record.getId(), oldRecord.getMaintainerId(), approved);
+                log.info("维护审批通知已发送：maintenanceId={}, maintainerId={}, approved={}, approverId={}",
+                        record.getId(), oldRecord.getMaintainerId(), approved, approverId);
             } catch (Exception e) {
                 log.error("发送审批通知失败: {}", e.getMessage(), e);
             }

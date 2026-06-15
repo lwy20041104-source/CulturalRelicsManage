@@ -266,6 +266,8 @@ const handleNotificationClick = async (item) => {
     router.push('/loans')
   } else if (item.relatedType === 'REPAIR' && item.relatedId) {
     router.push('/repairs')
+  } else if (item.relatedType === 'MAINTENANCE' && item.relatedId) {
+    router.push('/maintenance')
   }
 }
 

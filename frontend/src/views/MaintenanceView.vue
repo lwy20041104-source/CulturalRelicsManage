@@ -32,7 +32,7 @@
       </el-table-column>
       <el-table-column :label="$t('maintenance.maintenanceDate')" width="170">
         <template #default="scope">
-          <span v-if="scope.row.relicName">{{ formatDateTime(scope.row.maintenanceDate) }}</span>
+          <span v-if="scope.row.relicName">{{ formatDate(scope.row.maintenanceDate) }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('maintenance.maintainer')" width="120">
@@ -107,8 +107,8 @@
         <el-form-item :label="$t('maintenance.maintenanceDate')" prop="maintenanceDate">
           <el-date-picker 
             v-model="form.maintenanceDate" 
-            type="datetime" 
-            value-format="YYYY-MM-DD HH:mm:ss"
+            type="date" 
+            value-format="YYYY-MM-DD"
             :disabled-date="disabledMaintenanceDate"
             :placeholder="$t('common.pleaseSelect')"
             style="width: 100%"
@@ -160,7 +160,7 @@
             {{ currentDetail.maintenanceType }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item :label="$t('maintenance.maintenanceDate')">{{ formatDateTime(currentDetail.maintenanceDate) || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('maintenance.maintenanceDate')">{{ formatDate(currentDetail.maintenanceDate) || '—' }}</el-descriptions-item>
         <el-descriptions-item :label="$t('maintenance.maintainer')">{{ currentDetail.maintainerName || currentDetail.maintainer || '—' }}</el-descriptions-item>
         <el-descriptions-item :label="$t('common.status')">
           <el-tag v-if="currentDetail.status === '待审批'" type="warning">{{ currentDetail.status }}</el-tag>
@@ -220,11 +220,13 @@ const validateMaintenanceDate = (rule, value, callback) => {
   if (!value) {
     callback(new Error(t('validation.required')))
   } else {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
     const selectedDate = new Date(value)
-    const now = new Date()
+    selectedDate.setHours(0, 0, 0, 0)
     
-    if (selectedDate < now) {
-      callback(new Error('维护日期必须是当前时间及以后'))
+    if (selectedDate < today) {
+      callback(new Error('维护日期必须是今天或今天之后'))
     } else {
       callback()
     }
@@ -245,15 +247,21 @@ const approveRules = {
   status: [{ required: true, message: '请选择审批结果', trigger: 'change' }]
 }
 
-// 禁用当前时间之前的日期（维护日期）
+// 禁用当前日期之前的日期（允许选择今天及之后）
 const disabledMaintenanceDate = (time) => {
-  const now = new Date()
-  return time.getTime() < now.getTime()
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return time.getTime() < today.getTime()
 }
 
 const formatDateTime = (value) => {
   if (!value) return ''
   return String(value).replace('T', ' ').substring(0, 19)
+}
+
+const formatDate = (value) => {
+  if (!value) return ''
+  return String(value).replace('T', ' ').substring(0, 10)
 }
 
 const loadData = async () => {
@@ -281,16 +289,13 @@ const resetForm = () => {
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
-  const seconds = String(now.getSeconds()).padStart(2, '0')
-  const currentDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  const currentDate = `${year}-${month}-${day}`
   
   Object.assign(form, { 
     id: null, 
     relicId: null, 
     maintenanceType: '日常维护', 
-    maintenanceDate: currentDateTime,  // 默认为当前日期时间
+    maintenanceDate: currentDate,  // 默认为当前日期
     maintenanceContent: '', 
     remark: '' 
   })

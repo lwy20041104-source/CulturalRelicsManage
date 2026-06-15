@@ -136,8 +136,9 @@ public interface NotificationService {
      * @param relicName 文物名称
      * @param approved 是否通过
      * @param approverName 审批人姓名
+     * @param approverId 审批人ID（用于排除自身，通知其他审批员）
      */
-    void sendRepairApprovalNotification(Long repairId, Long applicantId, String relicName, boolean approved, String approverName);
+    void sendRepairApprovalNotification(Long repairId, Long applicantId, String relicName, boolean approved, String approverName, Long approverId);
     
     /**
      * 发送用户主动归还文物通知
@@ -176,8 +177,9 @@ public interface NotificationService {
      * @param relicName 文物名称
      * @param approved 是否通过
      * @param approverName 审批人姓名
+     * @param approverId 审批人ID（用于排除自身，通知其他审批员）
      */
-    void sendMaintenanceApprovalNotification(Long maintenanceId, Long maintainerId, String relicName, boolean approved, String approverName);
+    void sendMaintenanceApprovalNotification(Long maintenanceId, Long maintainerId, String relicName, boolean approved, String approverName, Long approverId);
     
     /**
      * 发送维护申请撤回通知
