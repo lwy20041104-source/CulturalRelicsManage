@@ -11,7 +11,7 @@
  Target Server Version : 80031
  File Encoding         : 65001
 
- Date: 20/05/2026 13:10:59
+ Date: 15/06/2026 07:59:49
 */
 
 SET NAMES utf8mb4;
@@ -37,7 +37,7 @@ CREATE TABLE `ai_chat_message`  (
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_message_type`(`message_type`) USING BTREE,
   INDEX `idx_create_time`(`create_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 142 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AI对话消息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 143 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AI对话消息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of ai_chat_message
@@ -194,7 +194,7 @@ CREATE TABLE `ai_chat_session`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_create_time`(`create_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 46 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AI对话会话表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 47 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AI对话会话表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of ai_chat_session
@@ -262,7 +262,7 @@ CREATE TABLE `ai_query_result`  (
   INDEX `idx_message_id`(`message_id`) USING BTREE,
   INDEX `idx_relic_id`(`relic_id`) USING BTREE,
   INDEX `idx_is_external`(`is_external`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 174 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AI查询结果详情表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 175 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AI查询结果详情表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of ai_query_result
@@ -462,7 +462,7 @@ CREATE TABLE `archive_document`  (
   INDEX `idx_document_type`(`document_type`) USING BTREE,
   INDEX `idx_upload_time`(`upload_time`) USING BTREE,
   CONSTRAINT `archive_document_ibfk_1` FOREIGN KEY (`archive_id`) REFERENCES `relic_archive` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案文档表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案文档表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of archive_document
@@ -509,7 +509,7 @@ CREATE TABLE `archive_history`  (
   INDEX `idx_operation_time`(`operation_time`) USING BTREE,
   INDEX `idx_operation_type`(`operation_type`) USING BTREE,
   CONSTRAINT `archive_history_ibfk_1` FOREIGN KEY (`archive_id`) REFERENCES `relic_archive` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 54 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案历史记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 55 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案历史记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of archive_history
@@ -576,7 +576,7 @@ CREATE TABLE `archive_relation`  (
   INDEX `idx_relation_type`(`relation_type`) USING BTREE,
   INDEX `idx_relation_id`(`relation_id`) USING BTREE,
   CONSTRAINT `archive_relation_ibfk_1` FOREIGN KEY (`archive_id`) REFERENCES `relic_archive` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案关联关系表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案关联关系表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of archive_relation
@@ -619,115 +619,115 @@ CREATE TABLE `cultural_relic`  (
   INDEX `idx_status`(`status`) USING BTREE,
   INDEX `idx_model_3d_url`(`model_3d_url`) USING BTREE,
   CONSTRAINT `fk_cultural_relic_category` FOREIGN KEY (`category_id`) REFERENCES `cultural_relic_category` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 284 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 285 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cultural_relic
 -- ----------------------------
-INSERT INTO `cultural_relic` VALUES (2, 'WW202501002', '北魏石佛头像', 9, '南北朝', '石', '山西大同', '高25cm', 8.00, '北魏时期石雕佛头像，雕刻精美，面容慈祥', '借展中', '/uploads/c6c6d69e1b2c4f9b9249750249e0722c.webp', 'https://sketchfab.com/3d-models/stone-bodhisattva-head-9366562c76ba4615962ac291bd18206f', NULL, '2025-01-02 10:00:00', '2026-05-15 08:28:41');
-INSERT INTO `cultural_relic` VALUES (3, 'WW202501003', '北魏石佛像', 9, '南北朝', '石', '河南洛阳', '高80cm', 50.00, '北魏时期完整石佛造像，艺术价值极高', '修复中', '/uploads/7d1c8d9746954228ad84bb360a48e958.webp', 'https://sketchfab.com/3d-models/objstone-buddha-head-sculpture-9616e574c3b04c388bf0351400f7f0c9', NULL, '2025-01-03 10:00:00', '2026-05-06 16:21:33');
-INSERT INTO `cultural_relic` VALUES (4, 'WW202501004', '北魏造像碑', 6, '南北朝', '石', '河北邯郸', '高120cm', 150.00, '北魏造像碑，碑文清晰，造像精美', '借展中', '/uploads/3a61faebc0ef44638ca78150f3bc978d.webp', 'https://sketchfab.com/3d-models/statue-stone-pagoda-5914c2f384f34c92a5f80fbc53857628', NULL, '2025-01-04 10:00:00', '2026-05-06 17:42:12');
-INSERT INTO `cultural_relic` VALUES (5, 'WW202501005', '曾侯乙编钟', 1, '战国', '青铜', '湖北随州', '高265cm', 2500.00, '战国时期曾侯乙墓出土编钟，音律完整，国宝级文物', '修复中', '/uploads/32877c4cd94f4c7f98de18818a8c5104.webp', 'https://sketchfab.com/3d-models/ancient-bronze-bells-chinese-ritual-bells-collection-3d0d0a6f3c8a4b1a9b7e2c1d5f8a9c0d', NULL, '2025-01-05 10:00:00', '2026-05-06 17:42:23');
-INSERT INTO `cultural_relic` VALUES (6, 'WW202501006', '春秋青铜编钟', 1, '春秋', '青铜', '河南新郑', '高45cm', 15.00, '春秋时期青铜编钟，铸造精良', '在库', '/uploads/045f072278a640b0b5a1ab25a4bcc4d7.jpeg', 'https://sketchfab.com/3d-models/bronze-ritual-bell-spring-and-autumn-period-8a46b212628d48d5ab02a77e02697f1b', '2026-05-06 20:17:07', '2025-01-06 10:00:00', '2026-05-06 20:17:07');
-INSERT INTO `cultural_relic` VALUES (7, 'WW202501007', '大禹鼎', 1, '商朝', '青铜', '河南安阳', '高87cm', 75.00, '商代青铜重器，铭文记载大禹治水功绩', '在库', '/uploads/3536f8a54033417db069185f5a53ed4e.webp', 'https://sketchfab.com/3d-models/chinese-bronze-ding-vessel-300371f38b92494fbb2a5f1709db2104', NULL, '2025-01-07 10:00:00', '2026-05-06 18:10:08');
-INSERT INTO `cultural_relic` VALUES (8, 'WW202501008', '东汉铜灯', 1, '汉朝', '青铜', '河北满城', '高48cm', 5.00, '东汉时期青铜灯具，设计巧妙，实用性强', '在库', '/uploads/6cd196faa27044cabfd3257132e0a023.jpg', 'https://sketchfab.com/3d-models/bronze-lamp-han-dynasty-ancient-china-3d-model-8b2f1c6a4d9e4f7a9b3c2d1e5f6a7b8c', NULL, '2025-01-08 10:00:00', '2026-05-06 18:10:20');
-INSERT INTO `cultural_relic` VALUES (9, 'WW202501009', '汉碑残拓', 6, '汉朝', '纸', '陕西西安', '50x70cm', 0.10, '汉代石碑拓片，虽有残缺但文字清晰', '借展中', '/uploads/e423867d6e4f4aac83af6cb469f4bbc7.webp', 'https://sketchfab.com/3d-models/han-dynasty-stone-stele-chinese-inscription-3d-model-6da715a8159045bda0e896de63ace624', '2026-05-06 20:17:23', '2025-01-09 10:00:00', '2026-05-06 20:17:23');
-INSERT INTO `cultural_relic` VALUES (10, 'WW202501010', '汉代彩绘陶俑', 2, '汉朝', '陶', '陕西咸阳', '高35cm', 2.00, '', '借展中', '/uploads/7a334f27bf404354b547edc28f274458.webp', 'https://sketchfab.com/3d-models/chinese-tomb-figures-618-906-ce-611a95a8551348bdb9230faa4fcc0820', '2026-05-06 20:18:25', '2025-01-10 10:00:00', '2026-05-06 20:18:25');
-INSERT INTO `cultural_relic` VALUES (11, 'WW202501011', '汉代漆盘', 10, '汉朝', '漆木', '湖南长沙', '直径30cm', 0.50, '汉代漆器，纹饰精美，保存完好', '在库', '/uploads/7a49cbe142044f7c9d0a77ae81f5407c.webp', 'https://sketchfab.com/3d-models/ting-food-vessel-12th-c-bce-3186ab05ebe04717af18181e5757205d', '2026-05-08 12:21:06', '2025-01-11 10:00:00', '2026-05-08 12:58:39');
-INSERT INTO `cultural_relic` VALUES (12, 'WW202501012', '汉代青铜镜', 1, '汉朝', '青铜', '河南洛阳', '直径18cm', 0.80, '汉代铜镜，纹饰精美，铭文清晰', '借展中', '/uploads/678d29b16b5b4f12975d11fc2234feb3.webp', NULL, NULL, '2025-01-12 10:00:00', '2026-05-15 09:03:36');
-INSERT INTO `cultural_relic` VALUES (13, 'WW202501013', '汉代石碑', 6, '汉朝', '石', '山东曲阜', '高180cm', 500.00, '汉代石碑，碑文完整，书法价值高', '在库', '/uploads/e371e143cebe48abb5ef249fd426ccd1.webp', NULL, NULL, '2025-01-13 10:00:00', '2026-04-23 16:27:36');
-INSERT INTO `cultural_relic` VALUES (14, 'WW202501014', '汉代丝织残片', 8, '汉朝', '丝绸', '新疆吐鲁番', '20x30cm', 0.05, '汉代丝织品残片，纹样精美，极为珍贵', '借展中', '/uploads/3d0187ad0349445fabf4e0b33c512579.jpg', NULL, NULL, '2025-01-14 10:00:00', '2026-04-23 20:30:56');
-INSERT INTO `cultural_relic` VALUES (15, 'WW202501015', '汉代玉衣片', 4, '汉朝', '玉', '河北定州', '10x8cm', 0.20, '汉代金缕玉衣残片，工艺精湛', '在库', '/uploads/a6175e984ff14c8389805dd4508cb84e.webp', NULL, NULL, '2025-01-15 10:00:00', '2026-04-23 17:06:21');
-INSERT INTO `cultural_relic` VALUES (17, 'WW202501017', '汉五铢钱范', 7, '汉朝', '陶', '河南洛阳', '15x10cm', 0.50, '汉代铸钱模具，研究古代铸币工艺的重要实物', '在库', '/uploads/afabd4e7a71d49ad8ac87373a7a3fb48.webp', NULL, NULL, '2025-01-17 10:00:00', '2026-04-23 17:06:35');
-INSERT INTO `cultural_relic` VALUES (18, 'WW202501018', '和田白玉佩', 4, '清朝', '和田玉', '新疆和田', '长8cm', 0.15, '清代和田白玉佩，玉质温润，雕工精细', '在库', '/uploads/17a595c9464541eaa43c2a2b77afd543.jpg', NULL, NULL, '2025-01-18 10:00:00', '2026-04-23 17:13:25');
-INSERT INTO `cultural_relic` VALUES (19, 'WW202501019', '金代鎏金杯', 5, '金朝', '鎏金银', '黑龙江哈尔滨', '高12cm', 0.30, '金代鎏金银杯，工艺精湛，保存完好', '在库', '/uploads/48f50558423a4fa98876114cd7cc1914.webp', NULL, NULL, '2025-01-19 10:00:00', '2026-04-23 17:11:10');
-INSERT INTO `cultural_relic` VALUES (20, 'WW202501020', '开元通宝套币', 7, '唐朝', '铜', '陕西西安', '直径2.4cm', 0.20, '唐代开元通宝成套钱币，品相完好', '在库', '/uploads/b1a5dc0a56e649cb98dcd54893ce2cf9.jpg', NULL, NULL, '2025-01-20 10:00:00', '2026-04-23 17:07:48');
-INSERT INTO `cultural_relic` VALUES (21, 'WW202501021', '辽代玉鸟佩', 4, '辽朝', '玉', '内蒙古赤峰', '长6cm', 0.08, '辽代玉雕鸟形佩饰，造型生动', '在库', '/uploads/433fa46930e04a3fbf0737ed392d4fd6.webp', NULL, NULL, '2025-01-21 10:00:00', '2026-04-23 17:10:55');
-INSERT INTO `cultural_relic` VALUES (22, 'WW202501022', '鎏金银壶', 5, '唐朝', '鎏金银', '陕西西安', '高25cm', 1.20, '唐代鎏金银壶，造型优美，工艺精湛', '在库', '/uploads/8e9d1bac019c4e6fa93bf0d8537b4245.webp', NULL, NULL, '2025-01-22 10:00:00', '2026-04-23 17:07:53');
-INSERT INTO `cultural_relic` VALUES (23, 'WW202501023', '民国漆盒', 10, '民国', '漆木', '北京', '直径15cm', 0.30, '民国时期漆盒，工艺精美', '在库', '/uploads/d3200cbab3b049fc961bfade69089eac.jpg', NULL, NULL, '2025-01-23 10:00:00', '2026-04-23 17:14:59');
-INSERT INTO `cultural_relic` VALUES (24, 'WW202501024', '民国旗袍', 8, '民国', '丝绸', '上海', '长120cm', 0.50, '民国时期旗袍，保存完好，具有时代特色', '在库', '/uploads/3c3c740446124bc794e2339c33eb37ea.webp', NULL, NULL, '2025-01-24 10:00:00', '2026-04-23 17:15:04');
-INSERT INTO `cultural_relic` VALUES (25, 'WW202501025', '明代补子', 8, '明朝', '丝绸', '北京', '30x30cm', 0.20, '明代官服补子，刺绣精美', '借展中', '/uploads/3b5b872bc4574442be36bdfa7525f43d.webp', NULL, NULL, '2025-01-25 10:00:00', '2026-04-23 20:31:57');
-INSERT INTO `cultural_relic` VALUES (26, 'WW202501026', '明代黄花梨椅', 10, '明朝', '黄花梨木', '广东', '高95cm', 15.00, '明代黄花梨圈椅，造型优美，包浆自然', '在库', '/uploads/970e5599235e41aabb14c8275df4475e.webp', NULL, NULL, '2025-01-26 10:00:00', '2026-04-23 17:11:57');
-INSERT INTO `cultural_relic` VALUES (27, 'WW202501027', '明代金簪', 5, '明朝', '金', '北京', '长15cm', 0.10, '明代金簪，工艺精细，保存完好', '在库', '/uploads/971880acf0944e498e2c11a133011590.webp', NULL, NULL, '2025-01-27 10:00:00', '2026-04-23 17:12:01');
-INSERT INTO `cultural_relic` VALUES (28, 'WW202501028', '明代龙袍', 10, '明朝', '丝绸', '北京', '长150cm', 2.00, '明代皇室龙袍，刺绣精美，极为珍贵', '在库', '/uploads/e4bed460f71d495d945fd6630cdcf323.webp', NULL, NULL, '2025-01-28 10:00:00', '2026-04-23 16:28:53');
-INSERT INTO `cultural_relic` VALUES (29, 'WW202501029', '明代木雕佛龛', 9, '明朝', '木', '福建', '高60cm', 10.00, '明代木雕佛龛，雕刻精美，保存完好', '在库', '/uploads/3f14bc2165a04e32a96846dd28c20158.webp', NULL, NULL, '2025-01-29 10:00:00', '2026-04-23 17:12:06');
-INSERT INTO `cultural_relic` VALUES (30, 'WW202501030', '明代青花盘', 2, '明朝', '瓷', '江西景德镇', '直径35cm', 1.50, '明代青花瓷盘，纹饰精美，品相完好', '在库', '/uploads/0fa0b165b82c4ca3bde7575dc4e79e39.webp', NULL, NULL, '2025-01-30 10:00:00', '2026-04-23 17:12:14');
-INSERT INTO `cultural_relic` VALUES (31, 'WW202501031', '明代青花碗', 2, '明朝', '瓷', '江西景德镇', '直径15cm', 0.30, '明代青花碗，胎质细腻，青花发色纯正', '在库', '/uploads/4baa8e62f5d54bdea8c5afe846b3ddf9.webp', NULL, NULL, '2025-01-31 10:00:00', '2026-04-23 17:12:19');
-INSERT INTO `cultural_relic` VALUES (32, 'WW202501032', '明代唐寅山水画', 3, '明朝', '纸本', '江苏苏州', '120x60cm', 0.50, '明代唐寅山水画作，笔墨精妙，极为珍贵', '在库', '/uploads/3f8291c4743e4e078f1f5b47e69bdcce.webp', NULL, NULL, '2025-02-01 10:00:00', '2026-04-23 17:12:29');
-INSERT INTO `cultural_relic` VALUES (33, 'WW202501033', '明代剔红盒', 10, '明朝', '漆木', '北京', '直径20cm', 0.80, '明代剔红漆盒，雕刻精美，保存完好', '借展中', '/uploads/aab685aa93184206a68ad8a41bb8a604.webp', NULL, NULL, '2025-02-02 10:00:00', '2026-04-23 20:32:10');
-INSERT INTO `cultural_relic` VALUES (34, 'WW202501034', '明代铜佛', 9, '明朝', '青铜', '山西五台山', '高40cm', 8.00, '明代铜佛造像，铸造精良，神态庄严', '在库', '/uploads/e22c85430b234395a7e4911fb9f36541.webp', NULL, NULL, '2025-02-03 10:00:00', '2026-04-23 17:12:44');
-INSERT INTO `cultural_relic` VALUES (35, 'WW202501035', '明代银锭', 5, '明朝', '银', '云南', '重50两', 1.50, '明代银锭，铭文清晰，保存完好', '在库', '/uploads/e9f595acac3f40f18e29d3a921144290.jpg', NULL, NULL, '2025-02-04 10:00:00', '2026-04-23 17:12:50');
-INSERT INTO `cultural_relic` VALUES (36, 'WW202501036', '明代银香炉', 5, '明朝', '银', '江苏南京', '高18cm', 1.00, '明代银香炉，造型典雅，工艺精湛', '在库', '/uploads/019f1b7f43cd415ca0a9263fc8ea7053.webp', NULL, NULL, '2025-02-05 10:00:00', '2026-04-23 17:12:54');
-INSERT INTO `cultural_relic` VALUES (37, 'WW202501037', '明代玉如意', 4, '明朝', '玉', '北京', '长40cm', 0.80, '明代玉如意，玉质温润，雕工精细', '在库', '/uploads/47e94f29a81244c0ae8f71c8ede34dfb.webp', NULL, NULL, '2025-02-06 10:00:00', '2026-04-23 17:12:59');
-INSERT INTO `cultural_relic` VALUES (38, 'WW202501038', '明代云锦服饰', 8, '明朝', '云锦', '江苏南京', '长130cm', 1.50, '明代云锦服饰，织造精美，色彩艳丽', '借展中', '/uploads/7cb302c8ff474f1bbb00064077ff6447.webp', NULL, NULL, '2025-02-07 10:00:00', '2026-04-29 22:00:33');
-INSERT INTO `cultural_relic` VALUES (39, 'WW202501039', '秦半两钱', 7, '秦朝', '铜', '陕西咸阳', '直径3.2cm', 0.05, '秦代半两钱，中国最早的统一货币', '在库', '/uploads/e1411506fcf94f5a8bedd3eeda9b7378.webp', NULL, NULL, '2025-02-08 10:00:00', '2026-04-23 17:05:18');
-INSERT INTO `cultural_relic` VALUES (40, 'WW202501040', '秦朝铜诏版', 1, '秦朝', '青铜', '陕西西安', '30x20cm', 5.00, '秦代诏书铜版，文字清晰，极为珍贵', '在库', '/uploads/88572677c666468e8c66144f43d24186.webp', NULL, NULL, '2025-02-09 10:00:00', '2026-04-23 17:05:24');
-INSERT INTO `cultural_relic` VALUES (41, 'WW202501041', '清代白玉如意', 4, '清朝', '白玉', '北京', '长35cm', 0.60, '清代白玉如意，玉质上乘，雕工精美', '在库', '/uploads/bd43d42531484560933d09ec7502f243.jpg', NULL, NULL, '2025-02-10 10:00:00', '2026-04-23 17:13:29');
-INSERT INTO `cultural_relic` VALUES (42, 'WW202501042', '清代鼻烟壶', 4, '清朝', '玉石', '北京', '高8cm', 0.10, '清代鼻烟壶，小巧精致，工艺精湛', '在库', '/uploads/3a92d4aea53e4857a9ce860f15c511c2.webp', NULL, NULL, '2025-02-11 10:00:00', '2026-04-23 17:13:34');
-INSERT INTO `cultural_relic` VALUES (43, 'WW202501043', '清代翡翠手镯', 4, '清朝', '翡翠', '云南', '直径6cm', 0.08, '清代翡翠手镯，色泽鲜艳，质地细腻', '在库', '/uploads/529731d36ef8408590babfb9f4cd584c.webp', NULL, NULL, '2025-02-12 10:00:00', '2026-04-23 17:13:39');
-INSERT INTO `cultural_relic` VALUES (44, 'WW202501044', '清代粉彩瓶', 2, '清朝', '瓷', '江西景德镇', '高45cm', 3.00, '清代粉彩瓷瓶，色彩艳丽，绘画精美', '在库', '/uploads/c77e9d65149544b98c254da1592b9650.webp', NULL, NULL, '2025-02-13 10:00:00', '2026-04-23 17:13:42');
-INSERT INTO `cultural_relic` VALUES (45, 'WW202501045', '清代官服', 8, '清朝', '丝绸', '北京', '长140cm', 2.00, '清代官服，品级清晰，保存完好', '在库', '/uploads/0306afb2748e4cdb96e5292143173bf6.webp', NULL, NULL, '2025-02-14 10:00:00', '2026-04-27 13:36:17');
-INSERT INTO `cultural_relic` VALUES (46, 'WW202501046', '清代红木柜', 10, '清朝', '红木', '广东', '高180cm', 80.00, '清代红木柜，造型端庄，雕刻精美', '在库', '/uploads/ff357c7d674f40a5b8000c918182f7fe.webp', NULL, NULL, '2025-02-15 10:00:00', '2026-04-23 17:13:52');
-INSERT INTO `cultural_relic` VALUES (47, 'WW202501047', '清代花鸟立轴', 3, '清朝', '纸本', '北京', '150x60cm', 0.50, '清代花鸟画立轴，设色雅致，笔墨精妙', '在库', '/uploads/58a4b9b01b7740ddb7cb206dab672f08.webp', NULL, NULL, '2025-02-16 10:00:00', '2026-04-23 17:13:58');
-INSERT INTO `cultural_relic` VALUES (48, 'WW202501048', '清代铜香插', 1, '清朝', '青铜', '北京', '高15cm', 0.50, '清代铜香插，造型别致，包浆自然', '在库', '/uploads/d35eb1aa7fdc434f81c5ca1790c0aaa0.webp', NULL, NULL, '2025-02-17 10:00:00', '2026-04-23 17:14:03');
-INSERT INTO `cultural_relic` VALUES (49, 'WW202501049', '清代行书扇面', 3, '清朝', '纸本', '江苏扬州', '50x20cm', 0.10, '清代行书扇面，书法流畅，保存完好', '在库', '/uploads/298dcbaa80b94d30aa24baa9c3c850af.webp', NULL, NULL, '2025-02-18 10:00:00', '2026-04-23 17:14:09');
-INSERT INTO `cultural_relic` VALUES (50, 'WW202501050', '清代银锭', 5, '清朝', '银', '云南', '重10两', 0.30, '清代银锭，铭文清晰，品相完好', '在库', '/uploads/43b585c6af20412e98bf3a4191d99c36.webp', NULL, NULL, '2025-02-19 10:00:00', '2026-04-23 17:14:25');
-INSERT INTO `cultural_relic` VALUES (51, 'WW202501051', '清代银簪', 5, '清朝', '银', '北京', '长12cm', 0.05, '清代银簪，工艺精细，保存完好', '在库', '/uploads/adaff9788ded43359a696008bac31900.webp', NULL, NULL, '2025-02-20 10:00:00', '2026-04-23 17:14:29');
-INSERT INTO `cultural_relic` VALUES (52, 'WW202501052', '清代郑板桥竹石图', 3, '清朝', '纸本', '江苏扬州', '130x60cm', 0.50, '清代郑板桥竹石图，笔墨苍劲，极为珍贵', '在库', '/uploads/fffcad1c276141588537230a45f1aee8.webp', NULL, NULL, '2025-02-21 10:00:00', '2026-04-23 17:14:35');
-INSERT INTO `cultural_relic` VALUES (53, 'WW202501053', '清代织金袍', 8, '清朝', '织金缎', '北京', '长145cm', 2.50, '清代织金袍，织造精美，金线灿烂', '在库', '/uploads/9554fd393ce240ea99a2788886bf09a8.webp', NULL, NULL, '2025-02-22 10:00:00', '2026-04-23 17:14:40');
-INSERT INTO `cultural_relic` VALUES (54, 'WW202501054', '清代紫檀桌', 10, '清朝', '紫檀木', '北京', '高85cm', 50.00, '清代紫檀桌，材质珍贵，造型典雅', '在库', '/uploads/3b0c4c59760041dfbbbe323ee122dde4.webp', NULL, NULL, '2025-02-23 10:00:00', '2026-04-23 17:14:44');
-INSERT INTO `cultural_relic` VALUES (55, 'WW202501055', '清帖拓页', 6, '清朝', '纸', '北京', '30x40cm', 0.05, '清代碑帖拓片，字迹清晰', '在库', '/uploads/d3b88237423f4b5fbfd69ab309942557.jpg', NULL, NULL, '2025-02-24 10:00:00', '2026-04-23 17:14:53');
-INSERT INTO `cultural_relic` VALUES (56, 'WW202501056', '汝窑天青釉盏', 2, '宋朝', '瓷', '河南汝州', '直径12cm', 0.20, '宋代汝窑天青釉盏，釉色纯正，极为珍贵', '在库', '/uploads/6bd0676aaba342a0a7da079eb82dec70.webp', NULL, NULL, '2025-02-25 10:00:00', '2026-04-23 17:09:45');
-INSERT INTO `cultural_relic` VALUES (57, 'WW202501057', '三国青瓷罐', 2, '三国', '瓷', '浙江越窑', '高30cm', 2.00, '三国时期青瓷罐，釉色青翠，保存完好', '在库', '/uploads/88da0fad01314386b5968c70ede17edb.webp', NULL, NULL, '2025-02-26 10:00:00', '2026-04-23 17:06:53');
-INSERT INTO `cultural_relic` VALUES (58, 'WW202501058', '山水卷轴', 3, '明朝', '纸本', '浙江杭州', '200x50cm', 0.80, '明代山水画卷轴，笔墨精妙，构图优美', '在库', '/uploads/75d2df6fbd6b4bf2b669e6344533ad26.webp', NULL, NULL, '2025-02-27 10:00:00', '2026-04-23 17:13:06');
-INSERT INTO `cultural_relic` VALUES (59, 'WW202501059', '商代青铜鼎', 1, '商朝', '青铜', '河南安阳', '高60cm', 40.00, '商代青铜鼎，铸造精良，纹饰精美', '在库', '/uploads/e1f44f18efda4cbf918cc666a368091a.webp', 'https://sketchfab.com/3d-models/ting-food-vessel-12th-c-bce-3186ab05ebe04717af18181e5757205d', '2026-05-08 12:59:40', '2025-02-28 10:00:00', '2026-05-08 12:59:40');
-INSERT INTO `cultural_relic` VALUES (60, 'WW202501060', '商代青铜觚', 1, '商朝', '青铜', '河南安阳', '高35cm', 5.00, '商代青铜觚，造型优美，纹饰精美', '在库', '/uploads/38eee9a70cb34f24a48ede15088d9d15.jpg', NULL, NULL, '2025-03-01 10:00:00', '2026-04-23 17:03:59');
-INSERT INTO `cultural_relic` VALUES (61, 'WW202501061', '商代玉戈', 4, '商朝', '玉', '河南安阳', '长25cm', 0.50, '商代玉戈，玉质精良，制作精美', '在库', '/uploads/fc921cae189342e493a59d5436ff04cc.webp', NULL, NULL, '2025-03-02 10:00:00', '2026-04-23 17:04:04');
-INSERT INTO `cultural_relic` VALUES (62, 'WW202501062', '石雕观音像', 9, '明朝', '石', '福建泉州', '高150cm', 300.00, '明代石雕观音像，雕刻精美，神态慈祥', '在库', '/uploads/43e6e949f77f4a91b0114e4693edad14.jpg', NULL, NULL, '2025-03-03 10:00:00', '2026-04-23 17:13:12');
-INSERT INTO `cultural_relic` VALUES (63, 'WW202501063', '宋代白瓷瓶', 2, '宋朝', '瓷', '河北定窑', '高30cm', 1.50, '宋代白瓷瓶，胎质细腻，釉色纯白', '在库', '/uploads/cbb82347ac9e4112a6aecb970a7acd74.jpg', NULL, NULL, '2025-03-04 10:00:00', '2026-04-23 17:09:48');
-INSERT INTO `cultural_relic` VALUES (64, 'WW202501064', '宋代碑刻拓片', 6, '宋朝', '纸', '山东曲阜', '80x40cm', 0.10, '宋代碑刻拓片，字迹清晰，书法价值高', '在库', '/uploads/7c80c4768d8e4d54a7dad114b4d47c42.webp', NULL, NULL, '2025-03-05 10:00:00', '2026-04-23 17:09:56');
-INSERT INTO `cultural_relic` VALUES (65, 'WW202501065', '宋代木雕罗汉', 9, '宋朝', '木', '山西五台山', '高80cm', 20.00, '宋代木雕罗汉像，雕刻精美，神态生动', '在库', '/uploads/5efe908f0b594c0f8aaf1a90b63b0596.webp', NULL, NULL, '2025-03-06 10:00:00', '2026-04-23 17:10:04');
-INSERT INTO `cultural_relic` VALUES (66, 'WW202501066', '宋代汝窑盘', 2, '宋朝', '瓷', '河南汝州', '直径20cm', 0.50, '宋代汝窑盘，釉色天青，极为珍贵', '在库', '/uploads/a8b3f94cbd194ae2b3904806ee0364c6.webp', NULL, NULL, '2025-03-07 10:00:00', '2026-04-23 17:10:09');
-INSERT INTO `cultural_relic` VALUES (67, 'WW202501067', '宋代铜钱套装', 7, '宋朝', '铜', '河南开封', '直径2.5cm', 0.30, '宋代铜钱成套，品相完好，品种齐全', '在库', '/uploads/57fb47604e1c4e4eb35cace934f6f0eb.webp', NULL, NULL, '2025-03-08 10:00:00', '2026-04-23 17:10:15');
-INSERT INTO `cultural_relic` VALUES (68, 'WW202501068', '宋代银壶', 5, '宋朝', '银', '浙江杭州', '高20cm', 0.80, '宋代银壶，造型优美，工艺精湛', '修复中', '/uploads/08c6ab0e5b4643179743861502d297b5.webp', NULL, NULL, '2025-03-09 10:00:00', '2026-04-23 20:54:56');
-INSERT INTO `cultural_relic` VALUES (69, 'WW202501069', '宋代织锦残片', 8, '宋朝', '丝绸', '浙江杭州', '30x20cm', 0.10, '宋代织锦残片，纹样精美，极为珍贵', '在库', '/uploads/12ff4825507f43fd85ca71521284491c.jpg', NULL, NULL, '2025-03-10 10:00:00', '2026-04-23 17:10:27');
-INSERT INTO `cultural_relic` VALUES (70, 'WW202501070', '宋徽宗瘦金体书法', 3, '宋朝', '纸本', '河南开封', '100x40cm', 0.30, '宋徽宗瘦金体书法真迹，笔法独特，国宝级文物', '在库', '/uploads/322f2cc978d249ba98113313ae837853.webp', NULL, NULL, '2025-03-11 10:00:00', '2026-04-23 17:10:34');
-INSERT INTO `cultural_relic` VALUES (71, 'WW202501071', '宋人山水册页', 3, '宋朝', '纸本', '浙江杭州', '30x25cm', 0.20, '宋代山水画册页，笔墨精妙，意境深远', '在库', '/uploads/f9c3ff6a9b11439894dcf068dc52138b.webp', NULL, NULL, '2025-03-12 10:00:00', '2026-04-23 17:10:39');
-INSERT INTO `cultural_relic` VALUES (72, 'WW202501072', '宋帖影印本', 3, '宋朝', '纸', '浙江杭州', '40x30cm', 0.15, '宋代碑帖影印本，字迹清晰，保存完好', '在库', '/uploads/b2c5eaf363914301870124970b2a61ec.jpeg', NULL, NULL, '2025-03-13 10:00:00', '2026-04-23 17:10:45');
-INSERT INTO `cultural_relic` VALUES (73, 'WW202501073', '隋朝石刻佛首', 9, '隋朝', '石', '河北邯郸', '高40cm', 25.00, '隋代石刻佛首，雕刻精美，面容庄严', '在库', '/uploads/90324eee34794322bf92eea2151d74ad.webp', 'https://sketchfab.com/3d-models/stone-bodhisattva-head-9366562c76ba4615962ac291bd18206f', '2026-05-08 13:04:28', '2025-03-14 10:00:00', '2026-05-08 13:04:28');
-INSERT INTO `cultural_relic` VALUES (74, 'WW202501074', '唐碑拓本', 6, '唐朝', '纸', '陕西西安', '100x50cm', 0.20, '唐代碑刻拓本，书法遒劲，保存完好', '在库', '/uploads/59454ff4a2c042fd925150657b318d51.webp', NULL, NULL, '2025-03-15 10:00:00', '2026-04-23 17:08:00');
-INSERT INTO `cultural_relic` VALUES (75, 'WW202501075', '唐代金杯', 5, '唐朝', '金', '陕西西安', '高10cm', 0.20, '唐代金杯，工艺精湛，保存完好', '在库', '/uploads/645b9ef90d134ef0b0139a4fa7918046.webp', NULL, NULL, '2025-03-16 10:00:00', '2026-04-23 17:08:05');
-INSERT INTO `cultural_relic` VALUES (76, 'WW202501076', '唐代龙凤玉佩', 4, '唐朝', '玉', '陕西西安', '长10cm', 0.15, '唐代龙凤纹玉佩，雕工精细，寓意吉祥', '在库', '/uploads/63d15e510c7d4e3db421a419b350fe24.webp', NULL, NULL, '2025-03-17 10:00:00', '2026-04-23 17:08:09');
-INSERT INTO `cultural_relic` VALUES (77, 'WW202501077', '唐代墓志铭', 6, '唐朝', '石', '陕西西安', '50x50cm', 30.00, '唐代墓志铭，文字清晰，书法精美', '在库', '/uploads/8a46b212628d48d5ab02a77e02697f1b.webp', NULL, NULL, '2025-03-18 10:00:00', '2026-04-23 16:33:18');
-INSERT INTO `cultural_relic` VALUES (78, 'WW202501078', '唐代青铜佛像', 9, '唐朝', '青铜', '陕西西安', '高50cm', 12.00, '唐代青铜佛像，铸造精良，神态庄严', '在库', '/uploads/3c219d52e3814f8d8c6277827ec91d97.webp', 'https://sketchfab.com/3d-models/objstone-buddha-head-sculpture-9616e574c3b04c388bf0351400f7f0c9', '2026-05-08 13:08:55', '2025-03-19 10:00:00', '2026-05-08 13:08:55');
-INSERT INTO `cultural_relic` VALUES (79, 'WW202501079', '唐代山水画卷', 3, '唐朝', '纸本', '陕西西安', '300x50cm', 1.00, '唐代山水画卷，笔墨精妙，极为珍贵', '在库', '/uploads/9784a41ce1a44bcbb3ce5f6428fe578b.webp', NULL, NULL, '2025-03-20 10:00:00', '2026-04-23 17:08:34');
-INSERT INTO `cultural_relic` VALUES (80, 'WW202501080', '唐代铜佛像', 9, '唐朝', '青铜', '山西五台山', '高35cm', 8.00, '唐代铜佛造像，铸造精良，保存完好', '在库', '/uploads/e089b182f84640379e15b2400d714945.jpg', NULL, NULL, '2025-03-21 10:00:00', '2026-04-23 17:08:42');
-INSERT INTO `cultural_relic` VALUES (81, 'WW202501081', '唐代铜观音', 9, '唐朝', '青铜', '陕西西安', '高60cm', 15.00, '唐代铜观音像，造型优美，神态慈祥', '在库', '/uploads/6da715a8159045bda0e896de63ace624.webp', 'https://sketchfab.com/3d-models/objstone-buddha-head-sculpture-9616e574c3b04c388bf0351400f7f0c9', '2026-05-08 13:11:08', '2025-03-22 10:00:00', '2026-05-08 13:11:08');
-INSERT INTO `cultural_relic` VALUES (82, 'WW202501082', '唐代玉带饰', 4, '唐朝', '玉', '陕西西安', '长8cm', 0.10, '唐代玉带饰，雕工精细，保存完好', '在库', '/uploads/dde2f35afcff45f09b596453e10a4ef0.jpg', NULL, NULL, '2025-03-23 10:00:00', '2026-04-23 17:08:52');
-INSERT INTO `cultural_relic` VALUES (83, 'WW202501083', '唐开元通宝', 7, '唐朝', '铜', '陕西西安', '直径2.4cm', 0.04, '唐代开元通宝，铸造规整，品相完好', '在库', '/uploads/cdce86e7172a4afd980616b72139e389.webp', NULL, NULL, '2025-03-24 10:00:00', '2026-04-23 17:08:57');
-INSERT INTO `cultural_relic` VALUES (84, 'WW202501084', '唐三彩马', 2, '唐朝', '陶', '河南洛阳', '高50cm', 5.00, '唐三彩马，造型生动，釉色艳丽', '在库', '/uploads/aa0e3faee7b64ccb84a19a928c55f566.webp', NULL, NULL, '2025-03-25 10:00:00', '2026-04-23 17:09:04');
-INSERT INTO `cultural_relic` VALUES (85, 'WW202501085', '王羲之兰亭序摹本', 3, '唐朝', '纸本', '陕西西安', '28x320cm', 0.50, '王羲之兰亭序唐代摹本，书法精妙，极为珍贵', '在库', '/uploads/ab83d1743bd541d79414fe67c8a5e524.webp', NULL, NULL, '2025-03-26 10:00:00', '2026-04-23 17:09:12');
-INSERT INTO `cultural_relic` VALUES (86, 'WW202501086', '王羲之摹本', 3, '唐朝', '纸本', '陕西西安', '30x100cm', 0.30, '王羲之书法唐代摹本，笔法精妙，价值连城', '在库', '/uploads/01f1a5d031a349bcb69b2bbca13846af.jpg', NULL, NULL, '2025-03-27 10:00:00', '2026-04-23 17:09:22');
-INSERT INTO `cultural_relic` VALUES (87, 'WW202501087', '魏碑拓片', 6, '南北朝', '纸', '河南洛阳', '60x40cm', 0.10, '北魏碑刻拓片，字体方正，书法价值高', '在库', '/uploads/ce705c2e63fc421bb86c03b9866e23de.webp', NULL, NULL, '2025-03-28 10:00:00', '2026-04-23 17:07:29');
-INSERT INTO `cultural_relic` VALUES (88, 'WW202501088', '五代十国银执壶', 5, '五代十国', '银', '河南开封', '高25cm', 1.00, '五代银执壶，造型优美，工艺精湛', '在库', '/uploads/3ca543bae2a045379128befb7e377b26.jpg', NULL, NULL, '2025-03-29 10:00:00', '2026-04-23 17:09:32');
-INSERT INTO `cultural_relic` VALUES (89, 'WW202501089', '西汉青铜镜', 1, '汉朝', '青铜', '陕西西安', '直径20cm', 1.00, '西汉铜镜，纹饰精美，保存完好', '在库', '/uploads/295deac6800f40c4ae4983184256f1d2.jpg', NULL, NULL, '2025-03-30 10:00:00', '2026-04-23 17:06:43');
-INSERT INTO `cultural_relic` VALUES (90, 'WW202501090', '西夏文残碑拓片', 6, '西夏', '纸', '宁夏银川', '50x30cm', 0.08, '西夏文残碑拓片，文字罕见，研究价值高', '在库', '/uploads/8a42bd4782a14cd8a1774817ed013e9c.webp', NULL, NULL, '2025-03-31 10:00:00', '2026-04-23 17:11:04');
-INSERT INTO `cultural_relic` VALUES (91, 'WW202501091', '西周青铜簋', 1, '西周', '青铜', '陕西宝鸡', '高25cm', 8.00, '西周青铜簋，铸造精良，铭文清晰', '在库', '/uploads/230a77be5e6c4522aa33237f9e12dba0.webp', NULL, NULL, '2025-04-01 10:00:00', '2026-04-23 17:04:16');
-INSERT INTO `cultural_relic` VALUES (92, 'WW202501092', '夏朝青铜铃', 1, '夏朝', '青铜', '河南偃师', '高15cm', 1.50, '夏代青铜铃，中国最早的青铜器之一，极为珍贵', '在库', '/uploads/4ca25ebf262344e4b063b6cdfbc37e69.webp', NULL, NULL, '2025-04-02 10:00:00', '2026-04-23 17:03:42');
-INSERT INTO `cultural_relic` VALUES (93, 'WW202501093', '新石器彩陶罐', 1, '新石器时代', '陶', '甘肃马家窑', '高40cm', 3.00, '新石器时代彩陶罐，纹饰精美，保存完好', '封存', '/uploads/5daff7dd306e4104ba29ad26d2fd0fa7.webp', NULL, NULL, '2025-04-03 10:00:00', '2026-04-23 17:01:36');
-INSERT INTO `cultural_relic` VALUES (94, 'WW202501094', '新石器玉璧', 4, '新石器时代', '玉', '浙江良渚', '直径20cm', 0.80, '新石器时代玉璧，制作精美，礼器珍品', '封存', '/uploads/409d3e97d9704f25b6464797f156a888.webp', NULL, NULL, '2025-04-04 10:00:00', '2026-04-23 17:01:45');
-INSERT INTO `cultural_relic` VALUES (95, 'WW202501095', '元代金冠', 5, '元朝', '金', '内蒙古', '高20cm', 0.50, '元代金冠，工艺精湛，保存完好', '在库', '/uploads/f8d4f30997cd4eceb41293d08bb8f511.webp', NULL, NULL, '2025-04-05 10:00:00', '2026-04-23 17:11:16');
-INSERT INTO `cultural_relic` VALUES (96, 'WW202501096', '元代金饰片', 5, '元朝', '金', '内蒙古', '5x3cm', 0.05, '元代金饰片，工艺精细，保存完好', '在库', '/uploads/68fb242a5a634fceaee81b622bcab6a3.webp', NULL, NULL, '2025-04-06 10:00:00', '2026-04-23 17:11:20');
-INSERT INTO `cultural_relic` VALUES (97, 'WW202501097', '元代墨竹图', 3, '元朝', '纸本', '浙江杭州', '100x50cm', 0.40, '元代墨竹图，笔墨苍劲，意境高远', '在库', '/uploads/25588e9135eb47459a61873b01be1e5b.jpg', NULL, NULL, '2025-04-07 10:00:00', '2026-04-23 17:11:25');
-INSERT INTO `cultural_relic` VALUES (98, 'WW202501098', '元代青花瓷瓶', 2, '元朝', '瓷', '江西景德镇', '高40cm', 3.00, '元代青花瓷瓶，青花发色浓艳，极为珍贵', '在库', '/uploads/615f1dcbe4f64d9cb256330910c5cdd5.webp', NULL, NULL, '2025-04-08 10:00:00', '2026-04-23 17:11:29');
-INSERT INTO `cultural_relic` VALUES (99, 'WW202501099', '元代赵孟頫行书', 3, '元朝', '纸本', '浙江湖州', '80x40cm', 0.30, '元代赵孟頫行书真迹，书法精妙，价值连城', '在库', '/uploads/df772c02a59a42638c72c399180620b3.webp', NULL, NULL, '2025-04-09 10:00:00', '2026-04-23 17:11:34');
-INSERT INTO `cultural_relic` VALUES (100, 'WW202501100', '元青花梅瓶', 2, '元朝', '瓷', '江西景德镇', '高35cm', 2.50, '元青花梅瓶，造型优美，纹饰精美', '在库', '/uploads/3284351accd947448894fb6607a88f7c.jpg', NULL, NULL, '2025-04-10 10:00:00', '2026-04-23 17:11:38');
-INSERT INTO `cultural_relic` VALUES (101, 'WW202501101', '战国刀币', 7, '战国', '铜', '河北燕国', '长15cm', 0.20, '战国刀币，造型独特，保存完好', '在库', '/uploads/943a120f7a794fbaa6fb93d440447317.webp', NULL, NULL, '2025-04-11 10:00:00', '2026-04-23 17:04:44');
-INSERT INTO `cultural_relic` VALUES (102, 'WW202501102', '战国龙纹玉璧', 4, '战国', '玉', '河南洛阳', '直径18cm', 0.50, '战国龙纹玉璧，雕工精美，纹饰精细', '在库', '/uploads/dd86229ede644f57a2efe72b44c61738.webp', NULL, NULL, '2025-04-12 10:00:00', '2026-04-23 17:04:49');
-INSERT INTO `cultural_relic` VALUES (103, 'WW202501103', '战国漆器盒', 10, '战国', '漆木', '湖北荆州', '直径20cm', 0.60, '战国漆器盒，纹饰精美，保存完好', '在库', '/uploads/1e461ed655484847bce9d967ae110e73.webp', NULL, NULL, '2025-04-13 10:00:00', '2026-04-23 17:05:00');
-INSERT INTO `cultural_relic` VALUES (104, 'WW202501104', '战国青铜剑', 1, '战国', '青铜', '湖北荆州', '长60cm', 1.50, '锋利依旧，铸造精良', '在库', '/uploads/2170bd1297d7486bba277c514d27e9f2.webp', NULL, NULL, '2025-04-14 10:00:00', '2026-04-28 17:14:39');
-INSERT INTO `cultural_relic` VALUES (270, 'CR2026001', '兵马俑', 2, '秦朝', '陶俑', '陕西咸阳', '170x50cm', 180.00, '兵马俑群较为完整', '在库', '/uploads/e0c81692a3c34a8088300bc1ea3d6303.jpg', NULL, NULL, '2026-04-23 16:16:55', '2026-04-28 16:31:44');
-INSERT INTO `cultural_relic` VALUES (284, 'CR2026002', '北宋铜钱串', 7, '宋朝', '铜', '', '', NULL, '', '在库', '', NULL, NULL, '2026-05-06 20:38:09', '2026-05-06 20:38:09');
+INSERT INTO `cultural_relic` VALUES (2, 'WW202501002', '北魏石佛头像', 9, '南北朝', '石', '山西大同', '高25cm', 8.00, '北魏时期石雕佛头像，雕刻精美，面容慈祥', '借展中', '/uploads/c6c6d69e1b2c4f9b9249750249e0722c.webp', 'https://sketchfab.com/3d-models/four-faced-buddhist-altar-stone-statue-a37ff58bc518482a8829b711adda6c35', NULL, '2025-01-02 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (3, 'WW202501003', '北魏石佛像', 9, '南北朝', '石', '河南洛阳', '高80cm', 50.00, '北魏时期完整石佛造像，艺术价值极高', '修复中', '/uploads/7d1c8d9746954228ad84bb360a48e958.webp', 'https://sketchfab.com/3d-models/buddha-dipankara-metropolitan-museum-of-art-2a4749b2c7ea4220888792c2d445a2c6', NULL, '2025-01-03 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (4, 'WW202501004', '北魏造像碑', 6, '南北朝', '石', '河北邯郸', '高120cm', 150.00, '北魏造像碑，碑文清晰，造像精美', '借展中', '/uploads/3a61faebc0ef44638ca78150f3bc978d.webp', 'https://sketchfab.com/3d-models/buddhist-stele-of-bing-fajing-e31f089bcc1448c6a971fd0216ca748d', NULL, '2025-01-04 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (5, 'WW202501005', '曾侯乙编钟', 1, '战国', '青铜', '湖北随州', '高265cm', 2500.00, '战国时期曾侯乙墓出土编钟，音律完整，国宝级文物', '修复中', '/uploads/32877c4cd94f4c7f98de18818a8c5104.webp', 'https://sketchfab.com/3d-models/part-of-a-bianzhong-bell-set-3e2cf957b79f4da5adab7f35b37290fa', NULL, '2025-01-05 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (6, 'WW202501006', '春秋青铜编钟', 1, '春秋', '青铜', '河南新郑', '高45cm', 15.00, '春秋时期青铜编钟，铸造精良', '在库', '/uploads/045f072278a640b0b5a1ab25a4bcc4d7.jpeg', 'https://sketchfab.com/3d-models/chinese-bronze-bell-0fd27661ebe142aa880e17963d68851c', '2026-05-06 20:17:07', '2025-01-06 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (7, 'WW202501007', '大禹鼎', 1, '商朝', '青铜', '河南安阳', '高87cm', 75.00, '商代青铜重器，铭文记载大禹治水功绩', '在库', '/uploads/3536f8a54033417db069185f5a53ed4e.webp', 'https://sketchfab.com/3d-models/animated-bronze-ding-food-vessel-5th-c-bce-39b0e727bc1c43a38615b8ca8ac70a78', NULL, '2025-01-07 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (8, 'WW202501008', '东汉铜灯', 1, '汉朝', '青铜', '河北满城', '高48cm', 5.00, '东汉时期青铜灯具，设计巧妙，实用性强', '在库', '/uploads/6cd196faa27044cabfd3257132e0a023.jpg', 'https://sketchfab.com/3d-models/mh-19914146-chinese-turtle-lamp-96087bb0fa274bc290bc49da067617ce', NULL, '2025-01-08 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (9, 'WW202501009', '汉碑残拓', 6, '汉朝', '纸', '陕西西安', '50x70cm', 0.10, '汉代石碑拓片，虽有残缺但文字清晰', '借展中', '/uploads/e423867d6e4f4aac83af6cb469f4bbc7.webp', 'https://sketchfab.com/3d-models/chinese-stone-stele-e15311fd1d0a4b85a08419db712a1b91', '2026-05-06 20:17:23', '2025-01-09 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (10, 'WW202501010', '汉代彩绘陶俑', 2, '汉朝', '陶', '陕西咸阳', '高35cm', 2.00, '', '借展中', '/uploads/7a334f27bf404354b547edc28f274458.webp', 'https://sketchfab.com/3d-models/terracotta-warrior-statue-be25eea03ed741f4b84b5aa1ffbeb659', '2026-05-06 20:18:25', '2025-01-10 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (11, 'WW202501011', '汉代漆盘', 10, '汉朝', '漆木', '湖南长沙', '直径30cm', 0.50, '汉代漆器，纹饰精美，保存完好', '在库', '/uploads/7a49cbe142044f7c9d0a77ae81f5407c.webp', 'https://sketchfab.com/3d-models/chinese-tableware-8008b8c234c048369d329483afacaf46', '2026-05-08 12:21:06', '2025-01-11 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (12, 'WW202501012', '汉代青铜镜', 1, '汉朝', '青铜', '河南洛阳', '直径18cm', 0.80, '汉代铜镜，纹饰精美，铭文清晰', '借展中', '/uploads/678d29b16b5b4f12975d11fc2234feb3.webp', 'https://sketchfab.com/3d-models/animated-bronze-ding-food-vessel-5th-c-bce-39b0e727bc1c43a38615b8ca8ac70a78', NULL, '2025-01-12 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (13, 'WW202501013', '汉代石碑', 6, '汉朝', '石', '山东曲阜', '高180cm', 500.00, '汉代石碑，碑文完整，书法价值高', '在库', '/uploads/e371e143cebe48abb5ef249fd426ccd1.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-01-13 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (14, 'WW202501014', '汉代丝织残片', 8, '汉朝', '丝绸', '新疆吐鲁番', '20x30cm', 0.05, '汉代丝织品残片，纹样精美，极为珍贵', '借展中', '/uploads/3d0187ad0349445fabf4e0b33c512579.jpg', 'https://sketchfab.com/3d-models/silk-fabric-29d9a321f688419b9ae46fd5aa70f124', NULL, '2025-01-14 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (15, 'WW202501015', '汉代玉衣片', 4, '汉朝', '玉', '河北定州', '10x8cm', 0.20, '汉代金缕玉衣残片，工艺精湛', '在库', '/uploads/a6175e984ff14c8389805dd4508cb84e.webp', 'https://sketchfab.com/3d-models/jade-bi-disc-1100-771-bce-d763ec3d9b9c487fa1c6770ed80829cf', NULL, '2025-01-15 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (17, 'WW202501017', '汉五铢钱范', 7, '汉朝', '陶', '河南洛阳', '15x10cm', 0.50, '汉代铸钱模具，研究古代铸币工艺的重要实物', '在库', '/uploads/afabd4e7a71d49ad8ac87373a7a3fb48.webp', 'https://sketchfab.com/3d-models/chinese-coin-384f557db51a407e807c59af188cc9cc', NULL, '2025-01-17 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (18, 'WW202501018', '和田白玉佩', 4, '清朝', '和田玉', '新疆和田', '长8cm', 0.15, '清代和田白玉佩，玉质温润，雕工精细', '在库', '/uploads/17a595c9464541eaa43c2a2b77afd543.jpg', 'https://sketchfab.com/3d-models/chinese-imperial-jade-freepolyorg-4a78e21ef3824418ad4115f5f1aee75d', NULL, '2025-01-18 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (19, 'WW202501019', '金代鎏金杯', 5, '金朝', '鎏金银', '黑龙江哈尔滨', '高12cm', 0.30, '金代鎏金银杯，工艺精湛，保存完好', '在库', '/uploads/48f50558423a4fa98876114cd7cc1914.webp', 'https://sketchfab.com/3d-models/chinese-ancient-artifact-cup-a67d6ad73b354bbfabc2341c319799d8', NULL, '2025-01-19 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (20, 'WW202501020', '开元通宝套币', 7, '唐朝', '铜', '陕西西安', '直径2.4cm', 0.20, '唐代开元通宝成套钱币，品相完好', '在库', '/uploads/b1a5dc0a56e649cb98dcd54893ce2cf9.jpg', 'https://sketchfab.com/3d-models/old-coins-variety-set-08ad1336691345508071cc34aa0ee85c', NULL, '2025-01-20 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (21, 'WW202501021', '辽代玉鸟佩', 4, '辽朝', '玉', '内蒙古赤峰', '长6cm', 0.08, '辽代玉雕鸟形佩饰，造型生动', '在库', '/uploads/433fa46930e04a3fbf0737ed392d4fd6.webp', 'https://sketchfab.com/3d-models/chinese-jade-seal-8404c53255044457a3d4d35ff4ea206a', NULL, '2025-01-21 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (22, 'WW202501022', '鎏金银壶', 5, '唐朝', '鎏金银', '陕西西安', '高25cm', 1.20, '唐代鎏金银壶，造型优美，工艺精湛', '在库', '/uploads/8e9d1bac019c4e6fa93bf0d8537b4245.webp', 'https://sketchfab.com/3d-models/gold-and-silver-coins-c44b65cc0c6d44898aa40a42a82f82e1', NULL, '2025-01-22 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (23, 'WW202501023', '民国漆盒', 10, '民国', '漆木', '北京', '直径15cm', 0.30, '民国时期漆盒，工艺精美', '在库', '/uploads/d3200cbab3b049fc961bfade69089eac.jpg', 'https://sketchfab.com/3d-models/an-antique-lacquer-box-3e4d31c9a40049139532c172ecf34b73', NULL, '2025-01-23 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (24, 'WW202501024', '民国旗袍', 8, '民国', '丝绸', '上海', '长120cm', 0.50, '民国时期旗袍，保存完好，具有时代特色', '在库', '/uploads/3c3c740446124bc794e2339c33eb37ea.webp', 'https://sketchfab.com/3d-models/traditional-chinese-costumes-jinhuafu-0f09a05d8e7e41ae89ee98fd0a002d6d', NULL, '2025-01-24 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (25, 'WW202501025', '明代补子', 8, '明朝', '丝绸', '北京', '30x30cm', 0.20, '明代官服补子，刺绣精美', '借展中', '/uploads/3b5b872bc4574442be36bdfa7525f43d.webp', 'https://sketchfab.com/3d-models/traditional-chinese-costumes-jinhuafu-0f09a05d8e7e41ae89ee98fd0a002d6d', NULL, '2025-01-25 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (26, 'WW202501026', '明代黄花梨椅', 10, '明朝', '黄花梨木', '广东', '高95cm', 15.00, '明代黄花梨圈椅，造型优美，包浆自然', '在库', '/uploads/970e5599235e41aabb14c8275df4475e.webp', 'https://sketchfab.com/3d-models/chinese-classical-low-wooden-table-928d9159b0a1404285a5f4efb7dd1523', NULL, '2025-01-26 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (27, 'WW202501027', '明代金簪', 5, '明朝', '金', '北京', '长15cm', 0.10, '明代金簪，工艺精细，保存完好', '在库', '/uploads/971880acf0944e498e2c11a133011590.webp', 'https://sketchfab.com/3d-models/ancient-gold-coin-1409b233a341410a92c9a3e0e03ff10a', NULL, '2025-01-27 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (28, 'WW202501028', '明代龙袍', 10, '明朝', '丝绸', '北京', '长150cm', 2.00, '明代皇室龙袍，刺绣精美，极为珍贵', '在库', '/uploads/e4bed460f71d495d945fd6630cdcf323.webp', 'https://sketchfab.com/3d-models/traditional-chinese-costumes-jinhuafu-0f09a05d8e7e41ae89ee98fd0a002d6d', NULL, '2025-01-28 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (29, 'WW202501029', '明代木雕佛龛', 9, '明朝', '木', '福建', '高60cm', 10.00, '明代木雕佛龛，雕刻精美，保存完好', '在库', '/uploads/3f14bc2165a04e32a96846dd28c20158.webp', 'https://sketchfab.com/3d-models/the-buddha-statue-in-a-mountain-53d144d6c081439f9aa5dc1b753ce1ce', NULL, '2025-01-29 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (30, 'WW202501030', '明代青花盘', 2, '明朝', '瓷', '江西景德镇', '直径35cm', 1.50, '明代青花瓷盘，纹饰精美，品相完好', '在库', '/uploads/0fa0b165b82c4ca3bde7575dc4e79e39.webp', 'https://sketchfab.com/3d-models/colored-blue-and-white-porcelain-vase-d0358634154a4a2b82e29db3da041b34', NULL, '2025-01-30 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (31, 'WW202501031', '明代青花碗', 2, '明朝', '瓷', '江西景德镇', '直径15cm', 0.30, '明代青花碗，胎质细腻，青花发色纯正', '在库', '/uploads/4baa8e62f5d54bdea8c5afe846b3ddf9.webp', 'https://sketchfab.com/3d-models/ancient-chinese-porcelain-vase-39eb515623694df3a0bf052cfde6690f', NULL, '2025-01-31 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (32, 'WW202501032', '明代唐寅山水画', 3, '明朝', '纸本', '江苏苏州', '120x60cm', 0.50, '明代唐寅山水画作，笔墨精妙，极为珍贵', '在库', '/uploads/3f8291c4743e4e078f1f5b47e69bdcce.webp', 'https://sketchfab.com/3d-models/chinese-painting-f0bdcca352b44d06a122a3dec17c68bb', NULL, '2025-02-01 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (33, 'WW202501033', '明代剔红盒', 10, '明朝', '漆木', '北京', '直径20cm', 0.80, '明代剔红漆盒，雕刻精美，保存完好', '借展中', '/uploads/aab685aa93184206a68ad8a41bb8a604.webp', 'https://sketchfab.com/3d-models/an-antique-lacquer-box-3e4d31c9a40049139532c172ecf34b73', NULL, '2025-02-02 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (34, 'WW202501034', '明代铜佛', 9, '明朝', '青铜', '山西五台山', '高40cm', 8.00, '明代铜佛造像，铸造精良，神态庄严', '在库', '/uploads/e22c85430b234395a7e4911fb9f36541.webp', 'https://sketchfab.com/3d-models/the-buddha-statue-in-a-mountain-53d144d6c081439f9aa5dc1b753ce1ce', NULL, '2025-02-03 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (35, 'WW202501035', '明代银锭', 5, '明朝', '银', '云南', '重50两', 1.50, '明代银锭，铭文清晰，保存完好', '在库', '/uploads/e9f595acac3f40f18e29d3a921144290.jpg', 'https://sketchfab.com/3d-models/gold-and-silver-coins-c44b65cc0c6d44898aa40a42a82f82e1', NULL, '2025-02-04 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (36, 'WW202501036', '明代银香炉', 5, '明朝', '银', '江苏南京', '高18cm', 1.00, '明代银香炉，造型典雅，工艺精湛', '在库', '/uploads/019f1b7f43cd415ca0a9263fc8ea7053.webp', 'https://sketchfab.com/3d-models/chinese-ancient-artifact-cup-a67d6ad73b354bbfabc2341c319799d8', NULL, '2025-02-05 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (37, 'WW202501037', '明代玉如意', 4, '明朝', '玉', '北京', '长40cm', 0.80, '明代玉如意，玉质温润，雕工精细', '在库', '/uploads/47e94f29a81244c0ae8f71c8ede34dfb.webp', 'https://sketchfab.com/3d-models/chinese-imperial-jade-freepolyorg-4a78e21ef3824418ad4115f5f1aee75d', NULL, '2025-02-06 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (38, 'WW202501038', '明代云锦服饰', 8, '明朝', '云锦', '江苏南京', '长130cm', 1.50, '明代云锦服饰，织造精美，色彩艳丽', '借展中', '/uploads/7cb302c8ff474f1bbb00064077ff6447.webp', 'https://sketchfab.com/3d-models/traditional-chinese-costumes-jinhuafu-0f09a05d8e7e41ae89ee98fd0a002d6d', NULL, '2025-02-07 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (39, 'WW202501039', '秦半两钱', 7, '秦朝', '铜', '陕西咸阳', '直径3.2cm', 0.05, '秦代半两钱，中国最早的统一货币', '在库', '/uploads/e1411506fcf94f5a8bedd3eeda9b7378.webp', 'https://sketchfab.com/3d-models/chinese-coin-384f557db51a407e807c59af188cc9cc', NULL, '2025-02-08 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (40, 'WW202501040', '秦朝铜诏版', 1, '秦朝', '青铜', '陕西西安', '30x20cm', 5.00, '秦代诏书铜版，文字清晰，极为珍贵', '在库', '/uploads/88572677c666468e8c66144f43d24186.webp', 'https://sketchfab.com/3d-models/chinese-bronze-ding-vessel-300371f38b92494fbb2a5f1709db2104', NULL, '2025-02-09 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (41, 'WW202501041', '清代白玉如意', 4, '清朝', '白玉', '北京', '长35cm', 0.60, '清代白玉如意，玉质上乘，雕工精美', '在库', '/uploads/bd43d42531484560933d09ec7502f243.jpg', 'https://sketchfab.com/3d-models/chinese-imperial-jade-freepolyorg-4a78e21ef3824418ad4115f5f1aee75d', NULL, '2025-02-10 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (42, 'WW202501042', '清代鼻烟壶', 4, '清朝', '玉石', '北京', '高8cm', 0.10, '清代鼻烟壶，小巧精致，工艺精湛', '在库', '/uploads/3a92d4aea53e4857a9ce860f15c511c2.webp', 'https://sketchfab.com/3d-models/chinese-jade-seal-8404c53255044457a3d4d35ff4ea206a', NULL, '2025-02-11 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (43, 'WW202501043', '清代翡翠手镯', 4, '清朝', '翡翠', '云南', '直径6cm', 0.08, '清代翡翠手镯，色泽鲜艳，质地细腻', '在库', '/uploads/529731d36ef8408590babfb9f4cd584c.webp', 'https://sketchfab.com/3d-models/jade-bi-disc-1100-771-bce-d763ec3d9b9c487fa1c6770ed80829cf', NULL, '2025-02-12 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (44, 'WW202501044', '清代粉彩瓶', 2, '清朝', '瓷', '江西景德镇', '高45cm', 3.00, '清代粉彩瓷瓶，色彩艳丽，绘画精美', '在库', '/uploads/c77e9d65149544b98c254da1592b9650.webp', 'https://sketchfab.com/3d-models/porcelain-vase-d6554d72a1604329bec9756daded361d', NULL, '2025-02-13 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (45, 'WW202501045', '清代官服', 8, '清朝', '丝绸', '北京', '长140cm', 2.00, '清代官服，品级清晰，保存完好', '在库', '/uploads/0306afb2748e4cdb96e5292143173bf6.webp', 'https://sketchfab.com/3d-models/traditional-chinese-costumes-jinhuafu-0f09a05d8e7e41ae89ee98fd0a002d6d', NULL, '2025-02-14 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (46, 'WW202501046', '清代红木柜', 10, '清朝', '红木', '广东', '高180cm', 80.00, '清代红木柜，造型端庄，雕刻精美', '在库', '/uploads/ff357c7d674f40a5b8000c918182f7fe.webp', 'https://sketchfab.com/3d-models/antique-chinese-carved-red-lacquer-cabinet-6f7a085788bd450294c9f41207a35ae8', NULL, '2025-02-15 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (47, 'WW202501047', '清代花鸟立轴', 3, '清朝', '纸本', '北京', '150x60cm', 0.50, '清代花鸟画立轴，设色雅致，笔墨精妙', '在库', '/uploads/58a4b9b01b7740ddb7cb206dab672f08.webp', 'https://sketchfab.com/3d-models/chinese-painting-f0bdcca352b44d06a122a3dec17c68bb', NULL, '2025-02-16 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (48, 'WW202501048', '清代铜香插', 1, '清朝', '青铜', '北京', '高15cm', 0.50, '清代铜香插，造型别致，包浆自然', '在库', '/uploads/d35eb1aa7fdc434f81c5ca1790c0aaa0.webp', 'https://sketchfab.com/3d-models/ting-food-vessel-12th-c-bce-3186ab05ebe04717af18181e5757205d', NULL, '2025-02-17 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (49, 'WW202501049', '清代行书扇面', 3, '清朝', '纸本', '江苏扬州', '50x20cm', 0.10, '清代行书扇面，书法流畅，保存完好', '在库', '/uploads/298dcbaa80b94d30aa24baa9c3c850af.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-02-18 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (50, 'WW202501050', '清代银锭', 5, '清朝', '银', '云南', '重10两', 0.30, '清代银锭，铭文清晰，品相完好', '在库', '/uploads/43b585c6af20412e98bf3a4191d99c36.webp', 'https://sketchfab.com/3d-models/gold-and-silver-coins-c44b65cc0c6d44898aa40a42a82f82e1', NULL, '2025-02-19 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (51, 'WW202501051', '清代银簪', 5, '清朝', '银', '北京', '长12cm', 0.05, '清代银簪，工艺精细，保存完好', '在库', '/uploads/adaff9788ded43359a696008bac31900.webp', 'https://sketchfab.com/3d-models/ancient-gold-coin-1409b233a341410a92c9a3e0e03ff10a', NULL, '2025-02-20 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (52, 'WW202501052', '清代郑板桥竹石图', 3, '清朝', '纸本', '江苏扬州', '130x60cm', 0.50, '清代郑板桥竹石图，笔墨苍劲，极为珍贵', '在库', '/uploads/fffcad1c276141588537230a45f1aee8.webp', 'https://sketchfab.com/3d-models/chinese-painting-f0bdcca352b44d06a122a3dec17c68bb', NULL, '2025-02-21 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (53, 'WW202501053', '清代织金袍', 8, '清朝', '织金缎', '北京', '长145cm', 2.50, '清代织金袍，织造精美，金线灿烂', '在库', '/uploads/9554fd393ce240ea99a2788886bf09a8.webp', 'https://sketchfab.com/3d-models/traditional-chinese-costumes-jinhuafu-0f09a05d8e7e41ae89ee98fd0a002d6d', NULL, '2025-02-22 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (54, 'WW202501054', '清代紫檀桌', 10, '清朝', '紫檀木', '北京', '高85cm', 50.00, '清代紫檀桌，材质珍贵，造型典雅', '在库', '/uploads/3b0c4c59760041dfbbbe323ee122dde4.webp', 'https://sketchfab.com/3d-models/chinese-lacquer-shanxi-console-table-fb09d8719c9b4f81ba5ca2244fcc7588', NULL, '2025-02-23 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (55, 'WW202501055', '清帖拓页', 6, '清朝', '纸', '北京', '30x40cm', 0.05, '清代碑帖拓片，字迹清晰', '在库', '/uploads/d3b88237423f4b5fbfd69ab309942557.jpg', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-02-24 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (56, 'WW202501056', '汝窑天青釉盏', 2, '宋朝', '瓷', '河南汝州', '直径12cm', 0.20, '宋代汝窑天青釉盏，釉色纯正，极为珍贵', '在库', '/uploads/6bd0676aaba342a0a7da079eb82dec70.webp', 'https://sketchfab.com/3d-models/porcelain-vase-e8843ce29f304443a4a60a41d638cf74', NULL, '2025-02-25 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (57, 'WW202501057', '三国青瓷罐', 2, '三国', '瓷', '浙江越窑', '高30cm', 2.00, '三国时期青瓷罐，釉色青翠，保存完好', '在库', '/uploads/88da0fad01314386b5968c70ede17edb.webp', 'https://sketchfab.com/3d-models/ancient-chinese-porcelain-vase-39eb515623694df3a0bf052cfde6690f', NULL, '2025-02-26 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (58, 'WW202501058', '山水卷轴', 3, '明朝', '纸本', '浙江杭州', '200x50cm', 0.80, '明代山水画卷轴，笔墨精妙，构图优美', '在库', '/uploads/75d2df6fbd6b4bf2b669e6344533ad26.webp', 'https://sketchfab.com/3d-models/chinese-painting-f0bdcca352b44d06a122a3dec17c68bb', NULL, '2025-02-27 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (59, 'WW202501059', '商代青铜鼎', 1, '商朝', '青铜', '河南安阳', '高60cm', 40.00, '商代青铜鼎，铸造精良，纹饰精美', '在库', '/uploads/e1f44f18efda4cbf918cc666a368091a.webp', 'https://sketchfab.com/3d-models/chinese-bronze-ding-vessel-300371f38b92494fbb2a5f1709db2104', '2026-05-08 12:59:40', '2025-02-28 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (60, 'WW202501060', '商代青铜觚', 1, '商朝', '青铜', '河南安阳', '高35cm', 5.00, '商代青铜觚，造型优美，纹饰精美', '在库', '/uploads/38eee9a70cb34f24a48ede15088d9d15.jpg', 'https://sketchfab.com/3d-models/chinese-bronze-ding-vessel-300371f38b92494fbb2a5f1709db2104', NULL, '2025-03-01 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (61, 'WW202501061', '商代玉戈', 4, '商朝', '玉', '河南安阳', '长25cm', 0.50, '商代玉戈，玉质精良，制作精美', '在库', '/uploads/fc921cae189342e493a59d5436ff04cc.webp', 'https://sketchfab.com/3d-models/jade-bi-disc-1100-771-bce-d763ec3d9b9c487fa1c6770ed80829cf', NULL, '2025-03-02 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (62, 'WW202501062', '石雕观音像', 9, '明朝', '石', '福建泉州', '高150cm', 300.00, '明代石雕观音像，雕刻精美，神态慈祥', '在库', '/uploads/43e6e949f77f4a91b0114e4693edad14.jpg', 'https://sketchfab.com/3d-models/the-buddha-statue-in-a-mountain-53d144d6c081439f9aa5dc1b753ce1ce', NULL, '2025-03-03 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (63, 'WW202501063', '宋代白瓷瓶', 2, '宋朝', '瓷', '河北定窑', '高30cm', 1.50, '宋代白瓷瓶，胎质细腻，釉色纯白', '在库', '/uploads/cbb82347ac9e4112a6aecb970a7acd74.jpg', 'https://sketchfab.com/3d-models/cut-down-porcelain-vase-2375cce82d2c481c86c79eb39bee93ee', NULL, '2025-03-04 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (64, 'WW202501064', '宋代碑刻拓片', 6, '宋朝', '纸', '山东曲阜', '80x40cm', 0.10, '宋代碑刻拓片，字迹清晰，书法价值高', '在库', '/uploads/7c80c4768d8e4d54a7dad114b4d47c42.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-05 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (65, 'WW202501065', '宋代木雕罗汉', 9, '宋朝', '木', '山西五台山', '高80cm', 20.00, '宋代木雕罗汉像，雕刻精美，神态生动', '在库', '/uploads/5efe908f0b594c0f8aaf1a90b63b0596.webp', 'https://sketchfab.com/3d-models/the-buddha-statue-in-a-mountain-53d144d6c081439f9aa5dc1b753ce1ce', NULL, '2025-03-06 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (66, 'WW202501066', '宋代汝窑盘', 2, '宋朝', '瓷', '河南汝州', '直径20cm', 0.50, '宋代汝窑盘，釉色天青，极为珍贵', '在库', '/uploads/a8b3f94cbd194ae2b3904806ee0364c6.webp', 'https://sketchfab.com/3d-models/colored-blue-and-white-porcelain-vase-d0358634154a4a2b82e29db3da041b34', NULL, '2025-03-07 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (67, 'WW202501067', '宋代铜钱套装', 7, '宋朝', '铜', '河南开封', '直径2.5cm', 0.30, '宋代铜钱成套，品相完好，品种齐全', '在库', '/uploads/57fb47604e1c4e4eb35cace934f6f0eb.webp', 'https://sketchfab.com/3d-models/old-coins-variety-set-08ad1336691345508071cc34aa0ee85c', NULL, '2025-03-08 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (68, 'WW202501068', '宋代银壶', 5, '宋朝', '银', '浙江杭州', '高20cm', 0.80, '宋代银壶，造型优美，工艺精湛', '修复中', '/uploads/08c6ab0e5b4643179743861502d297b5.webp', 'https://sketchfab.com/3d-models/chinese-ancient-artifact-cup-a67d6ad73b354bbfabc2341c319799d8', NULL, '2025-03-09 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (69, 'WW202501069', '宋代织锦残片', 8, '宋朝', '丝绸', '浙江杭州', '30x20cm', 0.10, '宋代织锦残片，纹样精美，极为珍贵', '在库', '/uploads/12ff4825507f43fd85ca71521284491c.jpg', 'https://sketchfab.com/3d-models/silk-fabric-29d9a321f688419b9ae46fd5aa70f124', NULL, '2025-03-10 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (70, 'WW202501070', '宋徽宗瘦金体书法', 3, '宋朝', '纸本', '河南开封', '100x40cm', 0.30, '宋徽宗瘦金体书法真迹，笔法独特，国宝级文物', '在库', '/uploads/322f2cc978d249ba98113313ae837853.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-11 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (71, 'WW202501071', '宋人山水册页', 3, '宋朝', '纸本', '浙江杭州', '30x25cm', 0.20, '宋代山水画册页，笔墨精妙，意境深远', '在库', '/uploads/f9c3ff6a9b11439894dcf068dc52138b.webp', 'https://sketchfab.com/3d-models/chinese-painting-f0bdcca352b44d06a122a3dec17c68bb', NULL, '2025-03-12 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (72, 'WW202501072', '宋帖影印本', 3, '宋朝', '纸', '浙江杭州', '40x30cm', 0.15, '宋代碑帖影印本，字迹清晰，保存完好', '在库', '/uploads/b2c5eaf363914301870124970b2a61ec.jpeg', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-13 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (73, 'WW202501073', '隋朝石刻佛首', 9, '隋朝', '石', '河北邯郸', '高40cm', 25.00, '隋代石刻佛首，雕刻精美，面容庄严', '在库', '/uploads/90324eee34794322bf92eea2151d74ad.webp', 'https://sketchfab.com/3d-models/stone-statue-of-one-buddha-and-twobodhisattvas-8c744c4a67ad4923bbfcee4b33c91385', '2026-05-08 13:04:28', '2025-03-14 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (74, 'WW202501074', '唐碑拓本', 6, '唐朝', '纸', '陕西西安', '100x50cm', 0.20, '唐代碑刻拓本，书法遒劲，保存完好', '在库', '/uploads/59454ff4a2c042fd925150657b318d51.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-15 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (75, 'WW202501075', '唐代金杯', 5, '唐朝', '金', '陕西西安', '高10cm', 0.20, '唐代金杯，工艺精湛，保存完好', '在库', '/uploads/645b9ef90d134ef0b0139a4fa7918046.webp', 'https://sketchfab.com/3d-models/ancient-gold-coin-1409b233a341410a92c9a3e0e03ff10a', NULL, '2025-03-16 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (76, 'WW202501076', '唐代龙凤玉佩', 4, '唐朝', '玉', '陕西西安', '长10cm', 0.15, '唐代龙凤纹玉佩，雕工精细，寓意吉祥', '在库', '/uploads/63d15e510c7d4e3db421a419b350fe24.webp', 'https://sketchfab.com/3d-models/chinese-imperial-jade-freepolyorg-4a78e21ef3824418ad4115f5f1aee75d', NULL, '2025-03-17 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (77, 'WW202501077', '唐代墓志铭', 6, '唐朝', '石', '陕西西安', '50x50cm', 30.00, '唐代墓志铭，文字清晰，书法精美', '在库', '/uploads/8a46b212628d48d5ab02a77e02697f1b.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-18 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (78, 'WW202501078', '唐代青铜佛像', 9, '唐朝', '青铜', '陕西西安', '高50cm', 12.00, '唐代青铜佛像，铸造精良，神态庄严', '在库', '/uploads/3c219d52e3814f8d8c6277827ec91d97.webp', 'https://sketchfab.com/3d-models/leshan-giant-tallest-buddha-statue-china-fbdce41919314fe19d3a5de28357c58e', '2026-05-08 13:08:55', '2025-03-19 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (79, 'WW202501079', '唐代山水画卷', 3, '唐朝', '纸本', '陕西西安', '300x50cm', 1.00, '唐代山水画卷，笔墨精妙，极为珍贵', '在库', '/uploads/9784a41ce1a44bcbb3ce5f6428fe578b.webp', 'https://sketchfab.com/3d-models/chinese-painting-f0bdcca352b44d06a122a3dec17c68bb', NULL, '2025-03-20 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (80, 'WW202501080', '唐代铜佛像', 9, '唐朝', '青铜', '山西五台山', '高35cm', 8.00, '唐代铜佛造像，铸造精良，保存完好', '在库', '/uploads/e089b182f84640379e15b2400d714945.jpg', 'https://sketchfab.com/3d-models/the-buddha-statue-in-a-mountain-53d144d6c081439f9aa5dc1b753ce1ce', NULL, '2025-03-21 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (81, 'WW202501081', '唐代铜观音', 9, '唐朝', '青铜', '陕西西安', '高60cm', 15.00, '唐代铜观音像，造型优美，神态慈祥', '在库', '/uploads/6da715a8159045bda0e896de63ace624.webp', 'https://sketchfab.com/3d-models/stone-statue-of-vipassi-buddha-ed07bb68ee44429abb6ec001ba3c8d4d', '2026-05-08 13:11:08', '2025-03-22 10:00:00', '2026-06-15 07:57:31');
+INSERT INTO `cultural_relic` VALUES (82, 'WW202501082', '唐代玉带饰', 4, '唐朝', '玉', '陕西西安', '长8cm', 0.10, '唐代玉带饰，雕工精细，保存完好', '在库', '/uploads/dde2f35afcff45f09b596453e10a4ef0.jpg', 'https://sketchfab.com/3d-models/chinese-jade-handled-bowl-c4d84d08bc374f86be02a20340331a90', NULL, '2025-03-23 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (83, 'WW202501083', '唐开元通宝', 7, '唐朝', '铜', '陕西西安', '直径2.4cm', 0.04, '唐代开元通宝，铸造规整，品相完好', '在库', '/uploads/cdce86e7172a4afd980616b72139e389.webp', 'https://sketchfab.com/3d-models/chinese-coin-384f557db51a407e807c59af188cc9cc', NULL, '2025-03-24 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (84, 'WW202501084', '唐三彩马', 2, '唐朝', '陶', '河南洛阳', '高50cm', 5.00, '唐三彩马，造型生动，釉色艳丽', '在库', '/uploads/aa0e3faee7b64ccb84a19a928c55f566.webp', 'https://sketchfab.com/3d-models/chinese-terracotta-horse-1ffd515f7c8145d0a60e413515262b04', NULL, '2025-03-25 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (85, 'WW202501085', '王羲之兰亭序摹本', 3, '唐朝', '纸本', '陕西西安', '28x320cm', 0.50, '王羲之兰亭序唐代摹本，书法精妙，极为珍贵', '在库', '/uploads/ab83d1743bd541d79414fe67c8a5e524.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-26 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (86, 'WW202501086', '王羲之摹本', 3, '唐朝', '纸本', '陕西西安', '30x100cm', 0.30, '王羲之书法唐代摹本，笔法精妙，价值连城', '在库', '/uploads/01f1a5d031a349bcb69b2bbca13846af.jpg', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-27 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (87, 'WW202501087', '魏碑拓片', 6, '南北朝', '纸', '河南洛阳', '60x40cm', 0.10, '北魏碑刻拓片，字体方正，书法价值高', '在库', '/uploads/ce705c2e63fc421bb86c03b9866e23de.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-28 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (88, 'WW202501088', '五代十国银执壶', 5, '五代十国', '银', '河南开封', '高25cm', 1.00, '五代银执壶，造型优美，工艺精湛', '在库', '/uploads/3ca543bae2a045379128befb7e377b26.jpg', 'https://sketchfab.com/3d-models/chinese-ancient-artifact-cup-a67d6ad73b354bbfabc2341c319799d8', NULL, '2025-03-29 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (89, 'WW202501089', '西汉青铜镜', 1, '汉朝', '青铜', '陕西西安', '直径20cm', 1.00, '西汉铜镜，纹饰精美，保存完好', '在库', '/uploads/295deac6800f40c4ae4983184256f1d2.jpg', 'https://sketchfab.com/3d-models/animated-bronze-ding-food-vessel-5th-c-bce-39b0e727bc1c43a38615b8ca8ac70a78', NULL, '2025-03-30 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (90, 'WW202501090', '西夏文残碑拓片', 6, '西夏', '纸', '宁夏银川', '50x30cm', 0.08, '西夏文残碑拓片，文字罕见，研究价值高', '在库', '/uploads/8a42bd4782a14cd8a1774817ed013e9c.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-03-31 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (91, 'WW202501091', '西周青铜簋', 1, '西周', '青铜', '陕西宝鸡', '高25cm', 8.00, '西周青铜簋，铸造精良，铭文清晰', '在库', '/uploads/230a77be5e6c4522aa33237f9e12dba0.webp', 'https://sketchfab.com/3d-models/ting-food-vessel-12th-c-bce-3186ab05ebe04717af18181e5757205d', NULL, '2025-04-01 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (92, 'WW202501092', '夏朝青铜铃', 1, '夏朝', '青铜', '河南偃师', '高15cm', 1.50, '夏代青铜铃，中国最早的青铜器之一，极为珍贵', '在库', '/uploads/4ca25ebf262344e4b063b6cdfbc37e69.webp', 'https://sketchfab.com/3d-models/chinese-bronze-ding-vessel-300371f38b92494fbb2a5f1709db2104', NULL, '2025-04-02 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (93, 'WW202501093', '新石器彩陶罐', 1, '新石器时代', '陶', '甘肃马家窑', '高40cm', 3.00, '新石器时代彩陶罐，纹饰精美，保存完好', '封存', '/uploads/5daff7dd306e4104ba29ad26d2fd0fa7.webp', 'https://sketchfab.com/3d-models/ceramic-horse-e4b39918931243acb91063047bb08809', NULL, '2025-04-03 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (94, 'WW202501094', '新石器玉璧', 4, '新石器时代', '玉', '浙江良渚', '直径20cm', 0.80, '新石器时代玉璧，制作精美，礼器珍品', '封存', '/uploads/409d3e97d9704f25b6464797f156a888.webp', 'https://sketchfab.com/3d-models/jade-bi-disc-1100-771-bce-d763ec3d9b9c487fa1c6770ed80829cf', NULL, '2025-04-04 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (95, 'WW202501095', '元代金冠', 5, '元朝', '金', '内蒙古', '高20cm', 0.50, '元代金冠，工艺精湛，保存完好', '在库', '/uploads/f8d4f30997cd4eceb41293d08bb8f511.webp', 'https://sketchfab.com/3d-models/ancient-gold-coin-1409b233a341410a92c9a3e0e03ff10a', NULL, '2025-04-05 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (96, 'WW202501096', '元代金饰片', 5, '元朝', '金', '内蒙古', '5x3cm', 0.05, '元代金饰片，工艺精细，保存完好', '在库', '/uploads/68fb242a5a634fceaee81b622bcab6a3.webp', 'https://sketchfab.com/3d-models/gold-and-silver-coins-c44b65cc0c6d44898aa40a42a82f82e1', NULL, '2025-04-06 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (97, 'WW202501097', '元代墨竹图', 3, '元朝', '纸本', '浙江杭州', '100x50cm', 0.40, '元代墨竹图，笔墨苍劲，意境高远', '在库', '/uploads/25588e9135eb47459a61873b01be1e5b.jpg', 'https://sketchfab.com/3d-models/chinese-painting-f0bdcca352b44d06a122a3dec17c68bb', NULL, '2025-04-07 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (98, 'WW202501098', '元代青花瓷瓶', 2, '元朝', '瓷', '江西景德镇', '高40cm', 3.00, '元代青花瓷瓶，青花发色浓艳，极为珍贵', '在库', '/uploads/615f1dcbe4f64d9cb256330910c5cdd5.webp', 'https://sketchfab.com/3d-models/porcelain-vase-d6554d72a1604329bec9756daded361d', NULL, '2025-04-08 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (99, 'WW202501099', '元代赵孟頫行书', 3, '元朝', '纸本', '浙江湖州', '80x40cm', 0.30, '元代赵孟頫行书真迹，书法精妙，价值连城', '在库', '/uploads/df772c02a59a42638c72c399180620b3.webp', 'https://sketchfab.com/3d-models/scroll-with-chinese-calligraphy-6c353b702ac84065aa0627fb4994c067', NULL, '2025-04-09 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (100, 'WW202501100', '元青花梅瓶', 2, '元朝', '瓷', '江西景德镇', '高35cm', 2.50, '元青花梅瓶，造型优美，纹饰精美', '在库', '/uploads/3284351accd947448894fb6607a88f7c.jpg', 'https://sketchfab.com/3d-models/ancient-chinese-porcelain-vase-39eb515623694df3a0bf052cfde6690f', NULL, '2025-04-10 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (101, 'WW202501101', '战国刀币', 7, '战国', '铜', '河北燕国', '长15cm', 0.20, '战国刀币，造型独特，保存完好', '在库', '/uploads/943a120f7a794fbaa6fb93d440447317.webp', 'https://sketchfab.com/3d-models/old-coins-variety-set-08ad1336691345508071cc34aa0ee85c', NULL, '2025-04-11 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (102, 'WW202501102', '战国龙纹玉璧', 4, '战国', '玉', '河南洛阳', '直径18cm', 0.50, '战国龙纹玉璧，雕工精美，纹饰精细', '在库', '/uploads/dd86229ede644f57a2efe72b44c61738.webp', 'https://sketchfab.com/3d-models/jade-bi-disc-1100-771-bce-d763ec3d9b9c487fa1c6770ed80829cf', NULL, '2025-04-12 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (103, 'WW202501103', '战国漆器盒', 10, '战国', '漆木', '湖北荆州', '直径20cm', 0.60, '战国漆器盒，纹饰精美，保存完好', '在库', '/uploads/1e461ed655484847bce9d967ae110e73.webp', 'https://sketchfab.com/3d-models/old-storage-wooden-box-6a6683d8533a412c822dd59627349985', NULL, '2025-04-13 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (104, 'WW202501104', '战国青铜剑', 1, '战国', '青铜', '湖北荆州', '长60cm', 1.50, '锋利依旧，铸造精良', '在库', '/uploads/2170bd1297d7486bba277c514d27e9f2.webp', 'https://sketchfab.com/3d-models/animated-bronze-ding-food-vessel-5th-c-bce-39b0e727bc1c43a38615b8ca8ac70a78', NULL, '2025-04-14 10:00:00', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (270, 'CR2026001', '兵马俑', 2, '秦朝', '陶俑', '陕西咸阳', '170x50cm', 180.00, '兵马俑群较为完整', '在库', '/uploads/e0c81692a3c34a8088300bc1ea3d6303.jpg', 'https://sketchfab.com/3d-models/terracotta-warrior-8fd9421a512745ddbe6abb31c1425017', NULL, '2026-04-23 16:16:55', '2026-06-15 07:52:44');
+INSERT INTO `cultural_relic` VALUES (284, 'CR2026002', '北宋铜钱串', 7, '宋朝', '铜', '', '', NULL, '', '在库', '', 'https://sketchfab.com/3d-models/chinese-coin-384f557db51a407e807c59af188cc9cc', NULL, '2026-05-06 20:38:09', '2026-06-15 07:52:44');
 
 -- ----------------------------
 -- Table structure for cultural_relic_category
@@ -743,7 +743,7 @@ CREATE TABLE `cultural_relic_category`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_parent_id`(`parent_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cultural_relic_category
@@ -791,7 +791,7 @@ CREATE TABLE `image_library`  (
   INDEX `idx_reference`(`reference_type`, `reference_id`) USING BTREE,
   INDEX `idx_create_time`(`create_time`) USING BTREE,
   INDEX `idx_status`(`status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 121 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '图片库管理表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 122 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '图片库管理表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of image_library
@@ -941,9 +941,9 @@ CREATE TABLE `loan_record`  (
   INDEX `idx_status`(`status`) USING BTREE,
   INDEX `idx_expected_return_date`(`expected_return_date`) USING BTREE,
   INDEX `idx_borrower_id`(`borrower_id`) USING BTREE,
-  CONSTRAINT `fk_loan_relic` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `fk_loan_record_borrower` FOREIGN KEY (`borrower_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  CONSTRAINT `fk_loan_record_borrower` FOREIGN KEY (`borrower_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_loan_relic` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of loan_record
@@ -1002,9 +1002,9 @@ CREATE TABLE `maintenance_record`  (
   INDEX `idx_maintenance_date`(`maintenance_date`) USING BTREE,
   INDEX `idx_maintainer_id`(`maintainer_id`) USING BTREE,
   INDEX `idx_status`(`status`) USING BTREE,
-  CONSTRAINT `fk_maintenance_relic` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `fk_maintenance_maintainer` FOREIGN KEY (`maintainer_id`) REFERENCES `sys_user` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 33 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  CONSTRAINT `fk_maintenance_maintainer` FOREIGN KEY (`maintainer_id`) REFERENCES `sys_user` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `fk_maintenance_relic` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 34 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of maintenance_record
@@ -1063,7 +1063,7 @@ CREATE TABLE `museum`  (
   UNIQUE INDEX `museum_code`(`museum_code`) USING BTREE,
   INDEX `idx_museum_name`(`museum_name`) USING BTREE,
   INDEX `idx_status`(`status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 110 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '博物馆信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 111 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '博物馆信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of museum
@@ -1193,7 +1193,7 @@ CREATE TABLE `notification_config`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_type`(`user_id`, `notification_type`) USING BTREE,
   CONSTRAINT `notification_config_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知配置表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of notification_config
@@ -1242,7 +1242,7 @@ CREATE TABLE `relic_archive`  (
   INDEX `idx_status`(`status`) USING BTREE,
   INDEX `idx_created_time`(`created_time`) USING BTREE,
   CONSTRAINT `relic_archive_ibfk_1` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文物档案主表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文物档案主表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of relic_archive
@@ -1277,7 +1277,7 @@ CREATE TABLE `relic_image_relation`  (
   INDEX `idx_is_main`(`is_main`) USING BTREE,
   CONSTRAINT `fk_relic_image_image` FOREIGN KEY (`image_id`) REFERENCES `image_library` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `fk_relic_image_relic` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 227 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文物图片关联表（一对多：一个文物可以有多张图片）' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 228 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文物图片关联表（一对多：一个文物可以有多张图片）' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of relic_image_relation
@@ -1409,7 +1409,7 @@ CREATE TABLE `repair_expert`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `expert_code`(`expert_code`) USING BTREE,
   INDEX `idx_specialty`(`specialty`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 36 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '修复专家表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '修复专家表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of repair_expert
@@ -1470,7 +1470,7 @@ CREATE TABLE `repair_material`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `material_code`(`material_code`) USING BTREE,
   INDEX `idx_category`(`category`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 70 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '修复材料表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 71 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '修复材料表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of repair_material
@@ -1584,9 +1584,9 @@ CREATE TABLE `repair_record`  (
   INDEX `idx_apply_date`(`apply_date`) USING BTREE,
   INDEX `idx_repair_expert`(`repair_expert`) USING BTREE,
   INDEX `idx_applicant_id`(`applicant_id`) USING BTREE,
-  CONSTRAINT `fk_repair_relic` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `fk_repair_applicant` FOREIGN KEY (`applicant_id`) REFERENCES `sys_user` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 27 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '修复记录表' ROW_FORMAT = Dynamic;
+  CONSTRAINT `fk_repair_applicant` FOREIGN KEY (`applicant_id`) REFERENCES `sys_user` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `fk_repair_relic` FOREIGN KEY (`relic_id`) REFERENCES `cultural_relic` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '修复记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of repair_record
@@ -1635,7 +1635,7 @@ CREATE TABLE `repair_record_material`  (
   INDEX `idx_material_id`(`material_id`) USING BTREE,
   CONSTRAINT `fk_rrm_material` FOREIGN KEY (`material_id`) REFERENCES `repair_material` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_rrm_repair_record` FOREIGN KEY (`repair_record_id`) REFERENCES `repair_record` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '修复记录材料关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '修复记录材料关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of repair_record_material
@@ -1682,24 +1682,24 @@ CREATE TABLE `sys_backup`  (
   INDEX `idx_backup_type`(`backup_type`) USING BTREE,
   INDEX `idx_backup_status`(`backup_status`) USING BTREE,
   INDEX `idx_created_time`(`created_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统备份记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统备份记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_backup
 -- ----------------------------
 INSERT INTO `sys_backup` VALUES (1, '系统上线前备份', 'manual', 'success', 'backup_20260420_100000.sql', 'backups/backup_20260420_100000.sql', 15728640, 0, NULL, '系统正式上线前的完整备份', NULL, '张明远', '2026-04-20 10:00:00', 1);
-INSERT INTO `sys_backup` VALUES (2, '每日自动备份-20260421', 'auto', 'success', 'backup_20260421_020000.sql', 'backups/backup_20260421_020000.sql', 16777216, 0, NULL, '系统自动执行的每日备份', NULL, '张明远', '2026-04-21 02:00:00', 0);
+INSERT INTO `sys_backup` VALUES (2, '每日自动备份-20260421', 'auto', 'success', 'backup_20260421_020000.sql', 'backups/backup_20260421_020000.sql', 16777216, 0, NULL, '系统自动执行的每日备份', NULL, '张明远', '2026-04-21 02:00:00', 1);
 INSERT INTO `sys_backup` VALUES (3, '重要数据加密备份', 'manual', 'success', 'backup_20260422_150000.sql', 'backups/backup_20260422_150000.sql', 18874368, 1, NULL, '包含敏感数据的加密备份', NULL, '张明远', '2026-04-22 15:00:00', 0);
-INSERT INTO `sys_backup` VALUES (4, '失败的备份任务', 'auto', 'failed', 'backup_20260423_020000.sql', 'backups/backup_20260423_020000.sql', 0, 0, NULL, '由于磁盘空间不足导致备份失败', 'mysqldump: Error: No space left on device when writing to file', '张明远', '2026-04-23 02:00:00', 0);
+INSERT INTO `sys_backup` VALUES (4, '失败的备份任务', 'auto', 'failed', 'backup_20260423_020000.sql', 'backups/backup_20260423_020000.sql', 0, 0, NULL, '由于磁盘空间不足导致备份失败', 'mysqldump: Error: No space left on device when writing to file', '张明远', '2026-04-23 02:00:00', 1);
 INSERT INTO `sys_backup` VALUES (5, '权限错误的备份', 'manual', 'failed', 'backup_20260424_100000.sql', 'backups/backup_20260424_100000.sql', 0, 0, NULL, '测试备份权限', 'mysqldump: Got error: 1044: Access denied for user', '张明远', '2026-04-24 10:00:00', 0);
-INSERT INTO `sys_backup` VALUES (6, '每日自动备份-20260426', 'auto', 'success', 'backup_20260426_020000.sql', 'backups/backup_20260426_020000.sql', 20971520, 0, NULL, '系统自动执行的每日备份', NULL, '张明远', '2026-04-26 02:00:00', 0);
+INSERT INTO `sys_backup` VALUES (6, '每日自动备份-20260426', 'auto', 'success', 'backup_20260426_020000.sql', 'backups/backup_20260426_020000.sql', 20971520, 0, NULL, '系统自动执行的每日备份', NULL, '张明远', '2026-04-26 02:00:00', 1);
 INSERT INTO `sys_backup` VALUES (7, '数据迁移前备份', 'manual', 'success', 'backup_20260427_080000.sql', 'backups/backup_20260427_080000.sql', 22020096, 0, NULL, '执行数据迁移操作前的安全备份', NULL, '张明远', '2026-04-27 08:00:00', 0);
 INSERT INTO `sys_backup` VALUES (8, '正在执行的备份', 'manual', 'processing', 'backup_20260427_210000.sql', 'backups/backup_20260427_210000.sql', 0, 0, NULL, '当前正在执行的备份任务', NULL, '张明远', '2026-04-27 21:00:00', 1);
 INSERT INTO `sys_backup` VALUES (9, '重要数据备份', 'manual', 'success', 'backup_20260509_143608.sql', 'backups\\backup_20260509_143608.sql', 517492, 0, NULL, '', NULL, '张明远', '2026-05-09 14:36:09', 1);
 INSERT INTO `sys_backup` VALUES (10, '数据备份', 'manual', 'success', 'backup_20260509_145118.sql', 'backups\\backup_20260509_145118.sql', 537759, 0, NULL, '', NULL, '张明远', '2026-05-09 14:51:19', 0);
 INSERT INTO `sys_backup` VALUES (11, '备份', 'manual', 'success', 'backup_20260509_150136.sql', 'backups\\backup_20260509_150136.sql', 539969, 0, NULL, '', NULL, '张明远', '2026-05-09 15:01:36', 0);
 INSERT INTO `sys_backup` VALUES (12, '测试备份', 'manual', 'success', 'backup_20260509_150233.sql', 'backups\\backup_20260509_150233.sql', 540366, 0, NULL, '', NULL, '张明远', '2026-05-09 15:02:33', 0);
-INSERT INTO `sys_backup` VALUES (13, '每日自动备份 - 2026-05-11 12:00', 'auto', 'success', 'backup_20260511_120000.sql', 'backups\\backup_20260511_120000.sql', 611294, 0, NULL, '自动备份 - daily', NULL, '系统', '2026-05-11 12:00:00', 0);
+INSERT INTO `sys_backup` VALUES (13, '每日自动备份 - 2026-05-11 12:00', 'auto', 'success', 'backup_20260511_120000.sql', 'backups\\backup_20260511_120000.sql', 611294, 0, NULL, '自动备份 - daily', NULL, '系统', '2026-05-11 12:00:00', 1);
 INSERT INTO `sys_backup` VALUES (14, '备份测试', 'manual', 'failed', 'backup_20260513_122541.sql', 'backups\\backup_20260513_122541.sql', 617583, 1, NULL, '', 'Java原生备份失败: Invalid AES key length: 27 bytes', '张明远', '2026-05-13 12:25:41', 0);
 INSERT INTO `sys_backup` VALUES (15, '1', 'manual', 'failed', 'backup_20260513_122807.sql', 'backups\\backup_20260513_122807.sql', 618431, 1, NULL, '', 'Java原生备份失败: Invalid AES key length: 27 bytes', '张明远', '2026-05-13 12:28:08', 0);
 INSERT INTO `sys_backup` VALUES (16, '1', 'manual', 'failed', 'backup_20260513_123055.sql', 'backups\\backup_20260513_123055.sql', 618869, 1, NULL, '', 'Java原生备份失败: Invalid AES key length: 27 bytes', '张明远', '2026-05-13 12:30:55', 0);
@@ -1711,6 +1711,7 @@ INSERT INTO `sys_backup` VALUES (21, '1', 'manual', 'failed', 'backup_20260513_1
 INSERT INTO `sys_backup` VALUES (22, '1', 'manual', 'success', 'backup_20260513_125315.sql', 'backups\\backup_20260513_125315.sql', 621456, 1, NULL, '', NULL, '张明远', '2026-05-13 12:53:15', 0);
 INSERT INTO `sys_backup` VALUES (23, '每日自动备份 - 2026-05-15 20:00', 'auto', 'success', 'backup_20260515_200000.sql', 'backups\\backup_20260515_200000.sql', 658758, 0, NULL, '自动备份 - daily', NULL, '系统', '2026-05-15 20:00:00', 0);
 INSERT INTO `sys_backup` VALUES (24, '每日自动备份 - 2026-05-17 20:00', 'auto', 'success', 'backup_20260517_200000.sql', 'backups\\backup_20260517_200000.sql', 660420, 0, NULL, '自动备份 - daily', NULL, '系统', '2026-05-17 20:00:00', 0);
+INSERT INTO `sys_backup` VALUES (25, '每日自动备份 - 2026-06-14 20:00', 'auto', 'success', 'backup_20260614_200000.sql', 'backups\\backup_20260614_200000.sql', 623207, 0, NULL, '自动备份 - daily', NULL, '系统', '2026-06-14 20:00:00', 0);
 
 -- ----------------------------
 -- Table structure for sys_backup_config
@@ -1732,7 +1733,7 @@ CREATE TABLE `sys_backup_config`  (
   `updated_by` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '更新人',
   `updated_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '备份配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '备份配置表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_backup_config
@@ -1757,7 +1758,7 @@ CREATE TABLE `sys_data_change_detail`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_log_id`(`log_id`) USING BTREE,
   CONSTRAINT `sys_data_change_detail_ibfk_1` FOREIGN KEY (`log_id`) REFERENCES `sys_operation_log` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据变更详情表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据变更详情表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_data_change_detail
@@ -1806,7 +1807,7 @@ CREATE TABLE `sys_operation_log`  (
   INDEX `idx_resource`(`resource_type`, `resource_id`) USING BTREE,
   INDEX `idx_operation_type`(`operation_type`) USING BTREE,
   INDEX `idx_operation_result`(`operation_result`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1090 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1091 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_operation_log
@@ -2900,6 +2901,16 @@ INSERT INTO `sys_operation_log` VALUES (1087, 'chen', '登录', '系统认证', 
 INSERT INTO `sys_operation_log` VALUES (1088, '李婉清', '登录', '系统认证', '用户登录', '成功', '0:0:0:0:0:0:0:1', '2026-05-17 11:53:57', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_operation_log` VALUES (1089, '未知用户', '登出', '系统认证', '退出登录', '成功', '0:0:0:0:0:0:0:1', '2026-05-17 11:53:59', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_operation_log` VALUES (1090, '陈淑华', '登录', '系统认证', '用户登录', '成功', '0:0:0:0:0:0:0:1', '2026-05-17 11:54:05', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1091, 'chen', '登录', '系统认证', '用户登录', '失败', '0:0:0:0:0:0:0:1', '2026-06-14 16:12:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1092, 'chen', '登录', '系统认证', '用户登录', '失败', '0:0:0:0:0:0:0:1', '2026-06-14 16:12:44', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1093, 'chen', '登录', '系统认证', '用户登录', '失败', '0:0:0:0:0:0:0:1', '2026-06-14 16:12:44', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1094, 'chen', '登录', '系统认证', '用户登录', '失败', '0:0:0:0:0:0:0:1', '2026-06-14 16:12:44', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1095, '李婉清', '登录', '系统认证', '用户登录', '成功', '0:0:0:0:0:0:0:1', '2026-06-14 16:12:56', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1096, 'chen', '登录', '系统认证', '用户登录', '失败', '0:0:0:0:0:0:0:1', '2026-06-14 16:13:19', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1097, '张明远', '修改', '用户管理', '修改用户管理（ID:4）', '成功', '0:0:0:0:0:0:0:1', '2026-06-14 16:13:31', 1, 'USER', 4, '{\"id\":4,\"username\":\"chen\",\"password\":\"$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC\",\"realName\":\"陈淑华\",\"email\":\"3071624946@qq.com\",\"phone\":\"13800000004\",\"status\":1,\"roleId\":3,\"roleName\":\"申请审批员\",\"roleCode\":\"APPROVER\",\"createTime\":\"2026-04-02T18:00:33\",\"updateTime\":\"2026-06-14T16:12:44\",\"loginFailedCount\":3,\"accountLocked\":1,\"lockedTime\":\"2026-06-14T16:12:44\",\"lastLoginTime\":\"2026-05-17T11:54:05\",\"lastLoginIp\":\"0:0:0:0:0:0:0:1\"}', '{\"id\":4,\"username\":\"chen\",\"password\":\"$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC\",\"realName\":\"陈淑华\",\"email\":\"3071624946@qq.com\",\"phone\":\"13800000004\",\"status\":1,\"roleId\":3,\"roleName\":\"申请审批员\",\"roleCode\":\"APPROVER\",\"createTime\":\"2026-04-02T18:00:33\",\"updateTime\":\"2026-06-14T16:13:31\",\"loginFailedCount\":3,\"accountLocked\":1,\"lockedTime\":\"2026-06-14T16:12:44\",\"lastLoginTime\":\"2026-05-17T11:54:05\",\"lastLoginIp\":\"0:0:0:0:0:0:0:1\"}', NULL, 'PUT', '/users', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1098, 'chen', '登录', '系统认证', '用户登录', '失败', '0:0:0:0:0:0:0:1', '2026-06-14 16:13:34', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1099, 'chen', '登录', '系统认证', '用户登录', '失败', '0:0:0:0:0:0:0:1', '2026-06-14 16:13:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_operation_log` VALUES (1100, '张明远', '登录', '系统认证', '用户登录', '成功', '0:0:0:0:0:0:0:1', '2026-06-15 07:48:30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_restore
@@ -2919,7 +2930,7 @@ CREATE TABLE `sys_restore`  (
   INDEX `idx_backup_id`(`backup_id`) USING BTREE,
   INDEX `idx_restore_status`(`restore_status`) USING BTREE,
   CONSTRAINT `sys_restore_ibfk_1` FOREIGN KEY (`backup_id`) REFERENCES `sys_backup` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统恢复记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统恢复记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_restore
@@ -2943,7 +2954,7 @@ CREATE TABLE `sys_role`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `role_code`(`role_code`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role
@@ -2976,15 +2987,15 @@ CREATE TABLE `sys_user`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `username`(`username`) USING BTREE,
   INDEX `idx_role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 121 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 122 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 'admin', '$2a$10$cnGSWFJQCF6b/alG2mf1mung9vS1o9jEXNqy0MwQk3PYTfBYt9C6C', '张明远', '3071624946@qq.com', '15874225616', 1, 1, '2026-04-01 22:58:33', '2026-05-17 11:53:40', 0, 0, NULL, '2026-05-17 11:53:41', '0:0:0:0:0:0:0:1');
-INSERT INTO `sys_user` VALUES (2, 'li', '$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC', '李婉清', '3071624946@qq.com', '13800000002', 1, 2, '2026-04-02 18:00:33', '2026-05-17 11:53:56', 0, 0, NULL, '2026-05-17 11:53:57', '0:0:0:0:0:0:0:1');
+INSERT INTO `sys_user` VALUES (1, 'admin', '$2a$10$cnGSWFJQCF6b/alG2mf1mung9vS1o9jEXNqy0MwQk3PYTfBYt9C6C', '张明远', '3071624946@qq.com', '15874225616', 1, 1, '2026-04-01 22:58:33', '2026-06-15 07:48:30', 0, 0, NULL, '2026-06-15 07:48:30', '0:0:0:0:0:0:0:1');
+INSERT INTO `sys_user` VALUES (2, 'li', '$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC', '李婉清', '3071624946@qq.com', '13800000002', 1, 2, '2026-04-02 18:00:33', '2026-06-14 16:12:56', 0, 0, NULL, '2026-06-14 16:12:56', '0:0:0:0:0:0:0:1');
 INSERT INTO `sys_user` VALUES (3, 'wang', '$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC', '王建国', 'c02@test.com', '13800000003', 1, 2, '2026-04-02 18:00:33', '2026-04-23 17:37:14', 0, 0, NULL, NULL, NULL);
-INSERT INTO `sys_user` VALUES (4, 'chen', '$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC', '陈淑华', '3071624946@qq.com', '13800000004', 1, 3, '2026-04-02 18:00:33', '2026-05-17 11:54:05', 0, 0, NULL, '2026-05-17 11:54:05', '0:0:0:0:0:0:0:1');
+INSERT INTO `sys_user` VALUES (4, 'chen', '$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC', '陈淑华', '3071624946@qq.com', '13800000004', 1, 3, '2026-04-02 18:00:33', '2026-06-14 16:13:31', 3, 1, '2026-06-14 16:12:44', '2026-05-17 11:54:05', '0:0:0:0:0:0:0:1');
 INSERT INTO `sys_user` VALUES (5, 'liu', '$2a$10$/RQLY9NI5iVpbJ2kN09ksuB8g2xkj5cfpwD6ycd41covJOYwegwMC', '刘志强', 'a02@test.com', '13800000005', 1, 3, '2026-04-02 18:00:33', '2026-04-17 13:59:20', 0, 0, NULL, NULL, NULL);
 INSERT INTO `sys_user` VALUES (6, '赵曌', '$2a$10$CEd0/yJiR0WLLaOUXaE/yeWqL6Pzm8tdT1qQEsEPdn/nAlO/OyqG.', '赵曌', 'vdcd@test.com', '14785412309', 1, 4, '2026-04-24 21:14:45', '2026-04-27 09:02:32', 0, 0, NULL, NULL, NULL);
 INSERT INTO `sys_user` VALUES (7, '沈卓', '$2a$10$CEd0/yJiR0WLLaOUXaE/yeWqL6Pzm8tdT1qQEsEPdn/nAlO/OyqG.', '沈卓', 'egbf@test.com', '18540259630', 1, 4, '2026-04-24 21:15:25', '2026-04-24 21:43:23', 0, 0, NULL, NULL, NULL);
@@ -3122,7 +3133,7 @@ CREATE TABLE `system_notification`  (
   INDEX `idx_type`(`type`) USING BTREE,
   INDEX `idx_related`(`related_type`, `related_id`) USING BTREE,
   INDEX `idx_create_time`(`create_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统通知表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统通知表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of system_notification
@@ -3175,7 +3186,7 @@ CREATE TABLE `user_museum`  (
   INDEX `idx_museum_id`(`museum_id`) USING BTREE,
   CONSTRAINT `user_museum_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `user_museum_ibfk_2` FOREIGN KEY (`museum_id`) REFERENCES `museum` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 118 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户博物馆关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 119 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户博物馆关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user_museum
@@ -3308,7 +3319,7 @@ CREATE TABLE `user_notification`  (
   INDEX `idx_is_read`(`is_read`) USING BTREE,
   CONSTRAINT `user_notification_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `system_notification` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `user_notification_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 99 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户通知关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户通知关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user_notification
@@ -3432,7 +3443,7 @@ CREATE TABLE `verification_code`  (
   INDEX `idx_username`(`username`) USING BTREE,
   INDEX `idx_code`(`code`) USING BTREE,
   INDEX `idx_expire_time`(`expire_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '验证码表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '验证码表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of verification_code
